@@ -1,0 +1,159 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return request.auth.token.role == 'admin';
+    }
+
+    function isVerifiedTrader() {
+      return request.auth.token.verified_trader == true;
+    }
+
+    function isMeetingParticipant(meetingId) {
+      let meeting = get(/databases/$(database)/documents/meetings/$(meetingId)).data;
+      return request.auth.uid in meeting.participant_ids || request.auth.uid == meeting.organizer_id;
+    }
+
+    function isDealParticipant(dealId) {
+      let deal = get(/databases/$(database)/documents/deals/$(dealId)).data;
+      return request.auth.uid in deal.participant_ids || request.auth.uid == deal.creator_id;
+    }
+
+    function canEditDeal(dealId) {
+      let deal = get(/databases/$(database)/documents/deals/$(dealId)).data;
+      return request.auth.uid == deal.creator_id || request.auth.uid in deal.participant_ids;
+    }
+
+    // Users collection - strict access control
+    match /users/{uid} {
+      allow read: if isUser(uid) || isAdmin();
+      allow create: if isUser(uid) && isAuthenticated();
+      allow update: if isUser(uid) || isAdmin();
+      allow delete: if isUser(uid) || isAdmin();
+
+      // User public profile (limited fields)
+      match /profile/{document=**} {
+        allow read: if true; // Public profiles
+        allow write: if isUser(uid);
+      }
+
+      // User's private settings
+      match /settings/{document=**} {
+        allow read, write: if isUser(uid);
+      }
+    }
+
+    // Assets collection
+    match /assets/{assetId} {
+      allow read: if resource.data.visibility == 'public' || isUser(resource.data.owner_id) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow update: if isUser(resource.data.owner_id) || isAdmin();
+      allow delete: if isUser(resource.data.owner_id) || isAdmin();
+
+      // Asset images
+      match /images/{image} {
+        allow read: if resource.data.visibility == 'public' || isUser(resource.data.owner_id);
+        allow write: if isUser(resource.data.owner_id);
+      }
+    }
+
+    // Meetings collection - participant-based access
+    match /meetings/{meetingId} {
+      allow read: if isMeetingParticipant(meetingId) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.organizer_id == request.auth.uid;
+      allow update: if isMeetingParticipant(meetingId) || isAdmin();
+      allow delete: if resource.data.organizer_id == request.auth.uid || isAdmin();
+
+      // Meeting chats
+      match /chats/{chatId} {
+        allow read: if isMeetingParticipant(meetingId);
+        allow create: if isMeetingParticipant(meetingId) && request.resource.data.sender_id == request.auth.uid;
+        allow update: if request.resource.data.sender_id == request.auth.uid;
+        allow delete: if resource.data.sender_id == request.auth.uid || isAdmin();
+      }
+
+      // Meeting analysis/transcripts
+      match /analysis/{document=**} {
+        allow read: if isMeetingParticipant(meetingId);
+        allow write: if isMeetingParticipant(meetingId);
+      }
+    }
+
+    // Deals collection
+    match /deals/{dealId} {
+      allow read: if isDealParticipant(dealId) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.creator_id == request.auth.uid;
+      allow update: if canEditDeal(dealId) || isAdmin();
+      allow delete: if resource.data.creator_id == request.auth.uid || isAdmin();
+
+      // Deal updates/milestones
+      match /updates/{updateId} {
+        allow read: if isDealParticipant(dealId);
+        allow create: if isDealParticipant(dealId);
+        allow update: if resource.data.created_by == request.auth.uid || isAdmin();
+        allow delete: if resource.data.created_by == request.auth.uid || isAdmin();
+      }
+
+      // Deal collaborative notes
+      match /notes/{noteId} {
+        allow read: if isDealParticipant(dealId);
+        allow create: if isDealParticipant(dealId);
+        allow update: if resource.data.author_id == request.auth.uid || isDealParticipant(dealId);
+        allow delete: if resource.data.author_id == request.auth.uid || isAdmin();
+      }
+    }
+
+    // Form responses collection
+    match /form_responses/{responseId} {
+      allow read: if isUser(resource.data.user_id) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
+      allow update: if isUser(resource.data.user_id) || isAdmin();
+      allow delete: if isUser(resource.data.user_id) || isAdmin();
+    }
+
+    // Notifications collection
+    match /notifications/{userId}/{notificationId} {
+      allow read: if isUser(userId);
+      allow create: if isUser(userId) || isAdmin();
+      allow update: if isUser(userId) || isAdmin();
+      allow delete: if isUser(userId) || isAdmin();
+    }
+
+    // KYC documents collection
+    match /kyc_documents/{kycId} {
+      allow read: if isUser(resource.data.user_id) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
+      allow update: if isUser(resource.data.user_id) || isAdmin();
+      allow delete: if isUser(resource.data.user_id) || isAdmin();
+    }
+
+    // Activity logs (read-only for users, admin can write)
+    match /activity_logs/{logId} {
+      allow read: if isUser(resource.data.user_id) || isAdmin();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Admin settings (admin only)
+    match /admin/{document=**} {
+      allow read, write, delete: if isAdmin();
+    }
+
+    // Public data (no auth required)
+    match /public/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
