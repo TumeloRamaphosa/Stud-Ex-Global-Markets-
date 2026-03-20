@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --brand-gold: #eab308;
+  --brand-teal: #14b8a6;
+}
+
+body {
+  background: linear-gradient(135deg, #0f172a 0%, #020617 50%, #0f172a 100%);
+  color: #f8fafc;
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* Card glass effect */
+.card-glass {
+  background: linear-gradient(135deg, rgba(30,41,59,0.5) 0%, rgba(15,23,42,0.8) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(202, 138, 4, 0.15);
+}
+
+.card-glass:hover {
+  border-color: rgba(202, 138, 4, 0.3);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.08);
+}
+
+/* Status indicators */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.success { background: #10b981; }
+.status-dot.warning { background: #f59e0b; }
+.status-dot.error { background: #f43f5e; }
+.status-dot.info { background: #3b82f6; }

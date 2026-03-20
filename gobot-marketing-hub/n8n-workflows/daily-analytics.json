@@ -1,0 +1,120 @@
+{
+  "name": "GoBot - Daily Analytics Collection",
+  "nodes": [
+    {
+      "name": "Daily 7AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 0 7 * * *" }
+          ]
+        }
+      },
+      "notes": "Runs daily at 7:00 AM"
+    },
+    {
+      "name": "Get Blotato Accounts",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [470, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "https://backend.blotato.com/v2/users/me/accounts",
+        "headerParameters": {
+          "parameters": [
+            { "name": "blotato-api-key", "value": "={{ $env.BLOTATO_API_KEY }}" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Loop Through Accounts",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [690, 300],
+      "parameters": { "batchSize": 1 }
+    },
+    {
+      "name": "Save Analytics to Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "position": [910, 300],
+      "parameters": {
+        "operation": "create",
+        "application": "{{ $env.AIRTABLE_BASE_ID }}",
+        "table": "Analytics",
+        "fields": {
+          "Date": "={{ new Date().toISOString().split('T')[0] }}",
+          "Platform": "={{ $json.platform }}",
+          "Followers": "={{ $json.followers || 0 }}",
+          "Impressions": "={{ $json.impressions || 0 }}",
+          "Reach": "={{ $json.reach || 0 }}",
+          "Profile Views": "={{ $json.profileViews || 0 }}",
+          "Post Count": "={{ $json.postCount || 0 }}"
+        }
+      }
+    },
+    {
+      "name": "Check Recent Posts",
+      "type": "n8n-nodes-base.airtable",
+      "position": [470, 500],
+      "parameters": {
+        "operation": "list",
+        "application": "{{ $env.AIRTABLE_BASE_ID }}",
+        "table": "Content Calendar",
+        "filterByFormula": "AND({Status}='Posted', IS_AFTER({Posted Date}, DATEADD(TODAY(), -3, 'day')))"
+      },
+      "notes": "Get posts from last 3 days for diagnostic analysis"
+    },
+    {
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [690, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/airtable/content",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "Title", "value": "Daily Report - {{ new Date().toISOString().split('T')[0] }}" },
+            { "name": "Hook Text", "value": "Automated Daily Report" },
+            { "name": "Hook Category", "value": "report" },
+            { "name": "Status", "value": "Archived" },
+            { "name": "Notes", "value": "Auto-generated daily analytics report. {{ $json.length || 0 }} posts analyzed." }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Log Automation",
+      "type": "n8n-nodes-base.airtable",
+      "position": [910, 500],
+      "parameters": {
+        "operation": "create",
+        "application": "{{ $env.AIRTABLE_BASE_ID }}",
+        "table": "Automation Log",
+        "fields": {
+          "Action Type": "Daily Analytics Collection",
+          "Action Details": "Collected platform analytics and generated daily report",
+          "Status": "Success",
+          "Triggered By": "n8n Daily Cron",
+          "Triggered At": "={{ new Date().toISOString() }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 7AM Trigger": {
+      "main": [
+        [
+          { "node": "Get Blotato Accounts", "type": "main", "index": 0 },
+          { "node": "Check Recent Posts", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Get Blotato Accounts": { "main": [[{ "node": "Loop Through Accounts", "type": "main", "index": 0 }]] },
+    "Loop Through Accounts": { "main": [[{ "node": "Save Analytics to Airtable", "type": "main", "index": 0 }]] },
+    "Check Recent Posts": { "main": [[{ "node": "Generate Report", "type": "main", "index": 0 }]] },
+    "Generate Report": { "main": [[{ "node": "Log Automation", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

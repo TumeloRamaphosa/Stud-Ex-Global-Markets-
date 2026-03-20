@@ -1,0 +1,99 @@
+{
+  "name": "GoBot - Scheduled Content Posting",
+  "nodes": [
+    {
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 30 7,30 16,0 21 * * *" }
+          ]
+        }
+      },
+      "notes": "Triggers at 07:30, 16:30, and 21:00 daily"
+    },
+    {
+      "name": "Get Scheduled Posts from Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "position": [470, 300],
+      "parameters": {
+        "operation": "list",
+        "application": "{{ $env.AIRTABLE_BASE_ID }}",
+        "table": "Content Calendar",
+        "filterByFormula": "AND({Status}='Scheduled', {Scheduled Date}=TODAY(), {Scheduled Time}=DATETIME_FORMAT(NOW(), 'HH:mm'))"
+      },
+      "notes": "Fetches posts scheduled for right now"
+    },
+    {
+      "name": "Loop Through Posts",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [690, 300],
+      "parameters": {
+        "batchSize": 1,
+        "options": { "reset": false }
+      }
+    },
+    {
+      "name": "Parse Platforms",
+      "type": "n8n-nodes-base.set",
+      "position": [910, 300],
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "text", "value": "={{ $json.fields.Caption }}" },
+            { "name": "platforms", "value": "={{ $json.fields.Platforms }}" },
+            { "name": "mediaUrls", "value": "={{ $json.fields['Media URLs'] || '[]' }}" },
+            { "name": "recordId", "value": "={{ $json.id }}" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Post via Blotato",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1130, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/blotato/post",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "text", "value": "={{ $json.text }}" },
+            { "name": "mediaUrls", "value": "={{ JSON.parse($json.mediaUrls) }}" },
+            { "name": "platforms", "value": "={{ $json.platforms.split(',').map(p => p.trim()) }}" },
+            { "name": "airtableRecordId", "value": "={{ $json.recordId }}" }
+          ]
+        }
+      },
+      "notes": "Posts to all platforms via GoBot API → Blotato"
+    },
+    {
+      "name": "Log to Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "position": [1350, 300],
+      "parameters": {
+        "operation": "create",
+        "application": "{{ $env.AIRTABLE_BASE_ID }}",
+        "table": "Automation Log",
+        "fields": {
+          "Action Type": "Scheduled Post",
+          "Action Details": "Posted content via n8n schedule trigger",
+          "Status": "Success",
+          "Triggered By": "n8n Scheduler",
+          "Triggered At": "={{ new Date().toISOString() }}",
+          "Content Record ID": "={{ $json.recordId }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": { "main": [[{ "node": "Get Scheduled Posts from Airtable", "type": "main", "index": 0 }]] },
+    "Get Scheduled Posts from Airtable": { "main": [[{ "node": "Loop Through Posts", "type": "main", "index": 0 }]] },
+    "Loop Through Posts": { "main": [[{ "node": "Parse Platforms", "type": "main", "index": 0 }]] },
+    "Parse Platforms": { "main": [[{ "node": "Post via Blotato", "type": "main", "index": 0 }]] },
+    "Post via Blotato": { "main": [[{ "node": "Log to Airtable", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
