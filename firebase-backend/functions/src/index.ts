@@ -335,6 +335,297 @@ app.post('/kyc/:id/verify', async (req, res) => {
   }
 });
 
+// ==================== MARKETING ====================
+
+/**
+ * Create or update marketing profile
+ */
+app.post('/marketing/profile', async (req, res) => {
+  try {
+    const { userId, ...profileData } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    // Check if profile exists
+    const existing = await admin.firestore()
+      .collection('marketing_profiles')
+      .where('userId', '==', userId)
+      .limit(1)
+      .get();
+
+    if (!existing.empty) {
+      // Update existing
+      const docId = existing.docs[0].id;
+      await admin.firestore()
+        .collection('marketing_profiles')
+        .doc(docId)
+        .update({
+          ...profileData,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      res.json({ id: docId, message: 'Profile updated' });
+    } else {
+      // Create new
+      const docRef = await admin.firestore()
+        .collection('marketing_profiles')
+        .add({
+          ...profileData,
+          userId,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      res.json({ id: docRef.id, message: 'Profile created' });
+    }
+  } catch (error) {
+    console.error('Error with marketing profile:', error);
+    res.status(500).json({ error: 'Failed to save marketing profile' });
+  }
+});
+
+/**
+ * Get marketing profile
+ */
+app.get('/marketing/profile/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const snap = await admin.firestore()
+      .collection('marketing_profiles')
+      .where('userId', '==', userId)
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    res.json({ id: snap.docs[0].id, ...snap.docs[0].data() });
+  } catch (error) {
+    console.error('Error getting marketing profile:', error);
+    res.status(500).json({ error: 'Failed to get marketing profile' });
+  }
+});
+
+/**
+ * Create marketing post
+ */
+app.post('/marketing/posts', async (req, res) => {
+  try {
+    const { userId, profileId, ...postData } = req.body;
+
+    if (!userId || !profileId) {
+      return res.status(400).json({ error: 'userId and profileId are required' });
+    }
+
+    const docRef = await admin.firestore()
+      .collection('marketing_posts')
+      .add({
+        ...postData,
+        userId,
+        profileId,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+    res.json({ id: docRef.id, message: 'Post created' });
+  } catch (error) {
+    console.error('Error creating marketing post:', error);
+    res.status(500).json({ error: 'Failed to create marketing post' });
+  }
+});
+
+/**
+ * Get marketing posts for a profile
+ */
+app.get('/marketing/posts/:profileId', async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const snap = await admin.firestore()
+      .collection('marketing_posts')
+      .where('profileId', '==', profileId)
+      .orderBy('createdAt', 'desc')
+      .limit(50)
+      .get();
+
+    const posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    res.json({ posts });
+  } catch (error) {
+    console.error('Error getting marketing posts:', error);
+    res.status(500).json({ error: 'Failed to get marketing posts' });
+  }
+});
+
+/**
+ * Update marketing post status
+ */
+app.post('/marketing/posts/:postId/status', async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { status, platformResults, requestId } = req.body;
+
+    const updateData: any = {
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    if (status) updateData.status = status;
+    if (platformResults) updateData.platformResults = platformResults;
+    if (requestId) updateData.requestId = requestId;
+    if (status === 'posted') updateData.postedAt = admin.firestore.FieldValue.serverTimestamp();
+
+    await admin.firestore()
+      .collection('marketing_posts')
+      .doc(postId)
+      .update(updateData);
+
+    res.json({ message: 'Post updated' });
+  } catch (error) {
+    console.error('Error updating marketing post:', error);
+    res.status(500).json({ error: 'Failed to update marketing post' });
+  }
+});
+
+/**
+ * Save analytics snapshot
+ */
+app.post('/marketing/analytics', async (req, res) => {
+  try {
+    const { profileId, date, platforms } = req.body;
+
+    if (!profileId || !date) {
+      return res.status(400).json({ error: 'profileId and date are required' });
+    }
+
+    const docRef = await admin.firestore()
+      .collection('marketing_analytics')
+      .add({
+        profileId,
+        date,
+        platforms: platforms || {},
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+    res.json({ id: docRef.id, message: 'Analytics saved' });
+  } catch (error) {
+    console.error('Error saving marketing analytics:', error);
+    res.status(500).json({ error: 'Failed to save analytics' });
+  }
+});
+
+/**
+ * Generate daily marketing report
+ */
+app.post('/marketing/reports/generate', async (req, res) => {
+  try {
+    const { profileId } = req.body;
+
+    if (!profileId) {
+      return res.status(400).json({ error: 'profileId is required' });
+    }
+
+    const today = new Date();
+    const threeDaysAgo = new Date(today);
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+    const dateStr = today.toISOString().split('T')[0];
+    const startStr = threeDaysAgo.toISOString().split('T')[0];
+
+    // Get recent posts
+    const postsSnap = await admin.firestore()
+      .collection('marketing_posts')
+      .where('profileId', '==', profileId)
+      .where('status', '==', 'posted')
+      .orderBy('createdAt', 'desc')
+      .limit(20)
+      .get();
+
+    const posts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Get hook performance
+    const hooksSnap = await admin.firestore()
+      .collection('hook_performance')
+      .where('profileId', '==', profileId)
+      .orderBy('updatedAt', 'desc')
+      .limit(50)
+      .get();
+
+    const hooks = hooksSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Build report
+    const diagnosticBreakdown = { scale: 0, fixCta: 0, fixHooks: 0, fullReset: 0 };
+    const recommendations: string[] = [];
+
+    if (posts.length === 0) {
+      recommendations.push('Start posting content to generate analytics data.');
+    } else {
+      recommendations.push(`${posts.length} posts published in the last 3 days.`);
+    }
+
+    if (hooks.length > 0) {
+      const winning = hooks.filter((h: any) => h.status === 'doubleDown');
+      const dropped = hooks.filter((h: any) => h.status === 'dropped');
+
+      if (winning.length > 0) {
+        recommendations.push(`${winning.length} winning hooks identified — create variations.`);
+        diagnosticBreakdown.scale = winning.length;
+      }
+      if (dropped.length > 0) {
+        recommendations.push(`${dropped.length} underperforming hooks dropped.`);
+        diagnosticBreakdown.fullReset = dropped.length;
+      }
+    }
+
+    recommendations.push('Maintain 3x daily posting schedule for algorithmic consistency.');
+    recommendations.push('Add trending TikTok audio to published slideshows.');
+
+    const report = {
+      profileId,
+      date: dateStr,
+      period: { start: startStr, end: dateStr },
+      summary: `Daily marketing report for ${dateStr}. ${posts.length} posts analyzed across the 3-day rolling window.`,
+      topHooks: hooks.slice(0, 5),
+      ctaPerformance: [],
+      diagnosticBreakdown,
+      recommendations,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    const docRef = await admin.firestore()
+      .collection('marketing_reports')
+      .add(report);
+
+    res.json({ id: docRef.id, report });
+  } catch (error) {
+    console.error('Error generating marketing report:', error);
+    res.status(500).json({ error: 'Failed to generate report' });
+  }
+});
+
+/**
+ * Track hook performance
+ */
+app.post('/marketing/hooks/track', async (req, res) => {
+  try {
+    const hookData = req.body;
+
+    if (!hookData.profileId || !hookData.hookText) {
+      return res.status(400).json({ error: 'profileId and hookText are required' });
+    }
+
+    const docRef = await admin.firestore()
+      .collection('hook_performance')
+      .add({
+        ...hookData,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+    res.json({ id: docRef.id, message: 'Hook tracked' });
+  } catch (error) {
+    console.error('Error tracking hook:', error);
+    res.status(500).json({ error: 'Failed to track hook' });
+  }
+});
+
 // ==================== NOTIFICATIONS ====================
 
 /**
