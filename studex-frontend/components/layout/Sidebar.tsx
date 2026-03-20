@@ -10,7 +10,8 @@ import {
   Clock,
   Settings,
   Search,
-  X
+  X,
+  Megaphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Input from '@/components/ui/Input';
@@ -22,6 +23,7 @@ interface SidebarProps {
 
 const sidebarLinks = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/marketing', icon: Megaphone, label: 'Marketing' },
   { href: '/deals', icon: Briefcase, label: 'Deal Pipeline' },
   { href: '/messages', icon: MessageSquare, label: 'Messages' },
   { href: '/tracker', icon: Clock, label: 'Time Tracker' },
