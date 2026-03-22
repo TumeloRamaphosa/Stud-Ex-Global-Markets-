@@ -626,6 +626,317 @@ app.post('/marketing/hooks/track', async (req, res) => {
   }
 });
 
+/**
+ * Get hook performance data for a profile
+ */
+app.get('/marketing/hooks/:profileId', async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const snap = await admin.firestore()
+      .collection('hook_performance')
+      .where('profileId', '==', profileId)
+      .orderBy('updatedAt', 'desc')
+      .limit(100)
+      .get();
+
+    const hooks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    res.json({ hooks });
+  } catch (error) {
+    console.error('Error getting hook performance:', error);
+    res.status(500).json({ error: 'Failed to get hook performance' });
+  }
+});
+
+/**
+ * Get platform analytics for a profile
+ */
+app.get('/marketing/analytics/:profileId', async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const days = parseInt(req.query.days as string) || 30;
+
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+    const sinceStr = since.toISOString().split('T')[0];
+
+    const snap = await admin.firestore()
+      .collection('marketing_analytics')
+      .where('profileId', '==', profileId)
+      .where('date', '>=', sinceStr)
+      .orderBy('date', 'desc')
+      .get();
+
+    const analytics = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    res.json({ analytics });
+  } catch (error) {
+    console.error('Error getting analytics:', error);
+    res.status(500).json({ error: 'Failed to get analytics' });
+  }
+});
+
+/**
+ * Get upload/post history for a profile (Upload-Post integration)
+ */
+app.get('/marketing/analytics/history/:profileId', async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const limit = parseInt(req.query.limit as string) || 50;
+
+    const snap = await admin.firestore()
+      .collection('marketing_posts')
+      .where('profileId', '==', profileId)
+      .where('status', '==', 'posted')
+      .orderBy('postedAt', 'desc')
+      .limit(limit)
+      .get();
+
+    const history = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        requestId: data.requestId,
+        platforms: data.platforms,
+        platformResults: data.platformResults,
+        hookText: data.hookText,
+        postedAt: data.postedAt,
+      };
+    });
+
+    res.json({ history });
+  } catch (error) {
+    console.error('Error getting analytics history:', error);
+    res.status(500).json({ error: 'Failed to get analytics history' });
+  }
+});
+
+/**
+ * List marketing reports for a profile
+ */
+app.get('/marketing/reports/:profileId', async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const limit = parseInt(req.query.limit as string) || 30;
+
+    const snap = await admin.firestore()
+      .collection('marketing_reports')
+      .where('profileId', '==', profileId)
+      .orderBy('createdAt', 'desc')
+      .limit(limit)
+      .get();
+
+    const reports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    res.json({ reports });
+  } catch (error) {
+    console.error('Error getting marketing reports:', error);
+    res.status(500).json({ error: 'Failed to get reports' });
+  }
+});
+
+/**
+ * Generate slideshow images (async via image generation provider)
+ */
+app.post('/marketing/slides/generate', async (req, res) => {
+  try {
+    const { userId, profileId, slides, provider } = req.body;
+
+    if (!userId || !profileId || !slides || !Array.isArray(slides)) {
+      return res.status(400).json({ error: 'userId, profileId, and slides array are required' });
+    }
+
+    // Create a pending post with slide prompts
+    const postRef = await admin.firestore()
+      .collection('marketing_posts')
+      .add({
+        userId,
+        profileId,
+        slides: slides.map((s: any) => ({
+          prompt: s.prompt || '',
+          overlayText: s.overlayText || '',
+          imageUrl: '',
+          status: 'pending',
+        })),
+        provider: provider || 'openai',
+        status: 'generating',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+    res.json({
+      postId: postRef.id,
+      message: 'Slide generation started. Poll GET /marketing/slides/:postId for status.',
+    });
+  } catch (error) {
+    console.error('Error starting slide generation:', error);
+    res.status(500).json({ error: 'Failed to start slide generation' });
+  }
+});
+
+/**
+ * Apply text overlays to slide images
+ */
+app.post('/marketing/slides/overlay', async (req, res) => {
+  try {
+    const { postId, overlays } = req.body;
+
+    if (!postId || !overlays || !Array.isArray(overlays)) {
+      return res.status(400).json({ error: 'postId and overlays array are required' });
+    }
+
+    const postRef = admin.firestore().collection('marketing_posts').doc(postId);
+    const postSnap = await postRef.get();
+
+    if (!postSnap.exists) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const postData = postSnap.data();
+    const slides = postData?.slides || [];
+
+    // Update overlay text for each slide
+    const updatedSlides = slides.map((slide: any, i: number) => ({
+      ...slide,
+      overlayText: overlays[i]?.text || slide.overlayText,
+      overlayPosition: overlays[i]?.position || 'center',
+      overlayFontSize: overlays[i]?.fontSize || 'auto',
+    }));
+
+    await postRef.update({
+      slides: updatedSlides,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.json({ message: 'Text overlays applied', slides: updatedSlides });
+  } catch (error) {
+    console.error('Error applying overlays:', error);
+    res.status(500).json({ error: 'Failed to apply text overlays' });
+  }
+});
+
+/**
+ * Get slide images for a post
+ */
+app.get('/marketing/slides/:postId', async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const postSnap = await admin.firestore()
+      .collection('marketing_posts')
+      .doc(postId)
+      .get();
+
+    if (!postSnap.exists) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const data = postSnap.data();
+    res.json({
+      postId,
+      status: data?.status,
+      slides: data?.slides || [],
+      provider: data?.provider,
+    });
+  } catch (error) {
+    console.error('Error getting slides:', error);
+    res.status(500).json({ error: 'Failed to get slides' });
+  }
+});
+
+/**
+ * Check post status by requestId (Upload-Post reference)
+ */
+app.get('/marketing/post/status/:requestId', async (req, res) => {
+  try {
+    const { requestId } = req.params;
+
+    const snap = await admin.firestore()
+      .collection('marketing_posts')
+      .where('requestId', '==', requestId)
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      return res.status(404).json({ error: 'Post not found for this requestId' });
+    }
+
+    const doc = snap.docs[0];
+    const data = doc.data();
+    res.json({
+      id: doc.id,
+      requestId,
+      status: data.status,
+      platformResults: data.platformResults || {},
+      postedAt: data.postedAt,
+    });
+  } catch (error) {
+    console.error('Error checking post status:', error);
+    res.status(500).json({ error: 'Failed to check post status' });
+  }
+});
+
+/**
+ * Start competitor research
+ */
+app.post('/marketing/research', async (req, res) => {
+  try {
+    const { profileId, userId, competitors } = req.body;
+
+    if (!profileId || !userId || !competitors || !Array.isArray(competitors)) {
+      return res.status(400).json({ error: 'profileId, userId, and competitors array are required' });
+    }
+
+    const researchRef = await admin.firestore()
+      .collection('competitor_research')
+      .add({
+        profileId,
+        userId,
+        competitors: competitors.map((c: any) => ({
+          handle: c.handle,
+          platform: c.platform || 'tiktok',
+          hookTypes: [],
+          slideFormats: [],
+          viewRanges: { average: 0, best: 0 },
+          postingFrequency: '',
+          ctaPatterns: [],
+          trendingSounds: [],
+        })),
+        gapAnalysis: '',
+        opportunities: [],
+        status: 'pending',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+    res.json({
+      id: researchRef.id,
+      message: 'Competitor research started',
+    });
+  } catch (error) {
+    console.error('Error starting competitor research:', error);
+    res.status(500).json({ error: 'Failed to start competitor research' });
+  }
+});
+
+/**
+ * Get competitor research results
+ */
+app.get('/marketing/research/:profileId', async (req, res) => {
+  try {
+    const { profileId } = req.params;
+
+    const snap = await admin.firestore()
+      .collection('competitor_research')
+      .where('profileId', '==', profileId)
+      .orderBy('createdAt', 'desc')
+      .limit(10)
+      .get();
+
+    const research = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    res.json({ research });
+  } catch (error) {
+    console.error('Error getting competitor research:', error);
+    res.status(500).json({ error: 'Failed to get competitor research' });
+  }
+});
+
 // ==================== NOTIFICATIONS ====================
 
 /**

@@ -90,7 +90,7 @@ const messages = [
 
 export default function MessagesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [selectedConversation, setSelectedConversation] = useState(conversations[0].id);
+  const [selectedConversation, setSelectedConversation] = useState<number | null>(conversations[0].id);
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 

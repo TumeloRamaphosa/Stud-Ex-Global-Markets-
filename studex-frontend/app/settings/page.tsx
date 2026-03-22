@@ -21,6 +21,7 @@ import {
 import toast from 'react-hot-toast';
 import { signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
+import { usersApi } from '@/lib/api';
 
 const settingsTabs = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -51,9 +52,13 @@ export default function SettingsPage() {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user?.uid) return;
     setIsSaving(true);
     try {
-      // TODO: Save to Firebase
+      await usersApi.updateProfile(user.uid, {
+        display_name: formData.displayName,
+        bio: formData.bio,
+      });
       toast.success('Profile updated successfully');
     } catch (error) {
       toast.error('Failed to update profile');
