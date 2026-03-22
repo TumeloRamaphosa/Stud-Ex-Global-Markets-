@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import Header from '@/components/layout/Header';
 import Button from '@/components/ui/Button';
-import { TrendingUp, Users, Zap, Shield, Globe, ArrowRight } from 'lucide-react';
+import { TrendingUp, Users, Zap, Shield, Globe, ArrowRight, Sparkles, Rocket } from 'lucide-react';
 
 const features = [
   {
@@ -96,6 +96,49 @@ export default function Home() {
             <div className="aspect-video bg-dark-800/50 rounded-lg border border-primary-700/30 flex items-center justify-center">
               <Globe className="w-24 h-24 text-primary-600/30 animate-pulse" />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Larry Skill Section */}
+      <section className="px-4 py-20 sm:px-6 lg:px-8 bg-gradient-to-r from-amber-900/20 via-orange-900/20 to-transparent border-y border-amber-700/30">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-600/30 bg-amber-900/20 px-4 py-2 text-sm text-amber-300 mb-4">
+              <Sparkles size={16} />
+              New AI Feature
+            </div>
+            <h2 className="text-4xl font-bold mb-4 text-amber-300">Larry Skill Marketing Platform</h2>
+            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+              AI-powered automated content pipeline. Create viral hooks, design 6-slide posts, auto-post to TikTok/Instagram, and track performance in real-time.
+            </p>
+          </div>
+
+          <div className="bg-dark-900/80 rounded-2xl border border-amber-600/30 p-8 mb-8">
+            <div className="grid md:grid-cols-3 gap-6 text-center mb-8">
+              <div>
+                <div className="text-3xl font-bold text-amber-400">7M+</div>
+                <p className="text-gray-400 text-sm mt-1">Total Views Generated</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-amber-400">1M+</div>
+                <p className="text-gray-400 text-sm mt-1">TikTok Followers Built</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-amber-400">$670/mo</div>
+                <p className="text-gray-400 text-sm mt-1">Recurring Revenue Proven</p>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => router.push('/larry-skill')}
+              variant="primary"
+              size="lg"
+              className="w-full sm:w-auto"
+              icon={<Rocket size={20} />}
+            >
+              Launch Your Campaign
+            </Button>
           </div>
         </div>
       </section>
