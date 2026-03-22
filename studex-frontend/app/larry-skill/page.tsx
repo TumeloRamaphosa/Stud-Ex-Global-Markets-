@@ -220,15 +220,23 @@ export default function LarrySkillPage() {
             {/* Hero Section */}
             {currentStep === 'intro' && (
               <div className="space-y-6">
-                <div className="text-center space-y-3 mb-8">
-                  <div className="flex items-center justify-center gap-2 text-4xl font-bold">
-                    <Sparkles className="text-amber-500" size={40} />
-                    Larry Skill Marketing Platform
-                    <Sparkles className="text-amber-500" size={40} />
+                <div className="flex items-center justify-between mb-8">
+                  <div className="text-center flex-1">
+                    <div className="flex items-center justify-center gap-2 text-4xl font-bold mb-3">
+                      <Sparkles className="text-amber-500" size={40} />
+                      Larry Skill Marketing Platform
+                      <Sparkles className="text-amber-500" size={40} />
+                    </div>
+                    <p className="text-xl text-slate-600">
+                      AI-Powered Automated Content Pipeline for Viral Growth
+                    </p>
                   </div>
-                  <p className="text-xl text-slate-600">
-                    AI-Powered Automated Content Pipeline for Viral Growth
-                  </p>
+                  <Button
+                    onClick={() => router.push('/larry-skill/campaigns')}
+                    className="bg-slate-600 hover:bg-slate-700"
+                  >
+                    View All Campaigns
+                  </Button>
                 </div>
 
                 {/* What Is Section */}
