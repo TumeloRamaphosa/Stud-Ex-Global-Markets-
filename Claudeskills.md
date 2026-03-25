@@ -24,6 +24,7 @@
 9. [Competitor Research Skill](#9-competitor-research-skill)
 10. [Hook Performance Skill](#10-hook-performance-skill)
 11. [Multi-Platform Distribution Skill](#11-multi-platform-distribution-skill)
+12. [BMAD Consulting Skill](#12-bmad-consulting-skill)
 
 ---
 
@@ -409,6 +410,72 @@ POST /api/upload_photos           — Post photos/slideshows
 GET  /api/analytics/{profile}     — Platform analytics
 GET  /api/uploadposts/history     — Upload history
 GET  /api/uploadposts/status      — Upload status check
+```
+
+---
+
+## 12. BMAD Consulting Skill
+
+**Status:** Implemented
+**Category:** Development Methodology & Project Planning
+**Framework:** [BMAD-FRAMEWORK.md](./docs/bmad/BMAD-FRAMEWORK.md)
+
+### Overview
+Structured consulting methodology that runs BEFORE any code is written. Combines three
+frameworks into a systematic build pipeline: **Ralph Wiggum Loop** (naive discovery questioning),
+**BMAD** (structured brief generation), and **Get Shit Done** (disciplined execution).
+
+### When It Triggers
+- **Explicitly** — When the user invokes a BMAD session
+- **Auto-triggered** — When Claude detects a new feature, project, or skill with unclear
+  scope, undefined requirements, or that would benefit from structured planning
+
+### The Three Phases
+1. **Ralph Wiggum Loop** — Ask 10+ "naive" questions until zero unknowns remain.
+   Vague answers trigger follow-up questions. The loop only exits when everything is clear.
+2. **BMAD Brief** — Structure all answers into an actionable brief covering: problem,
+   users, features, agents, architecture, data model, risks, phases, and success metrics.
+3. **GSD Execution** — Build exactly what the brief says. No scope creep. Commit after
+   each unit. Update Claudeskills.md when done.
+
+### Core Questions (10 Minimum)
+| # | Block | Question |
+|---|-------|----------|
+| 1 | Business | What problem are we solving? |
+| 2 | Business | Who is this for? |
+| 3 | Business | What does success look like? |
+| 4 | Model | How does this create value? |
+| 5 | Model | What already exists? |
+| 6 | Architecture | What is the technical scope? |
+| 7 | Architecture | What agents are involved? |
+| 8 | Architecture | What are the data requirements? |
+| 9 | Development | What are the constraints and risks? |
+| 10 | Development | What is the implementation order? |
+
+Bonus questions (11-15) are asked when answers are vague or reveal new unknowns.
+
+### Agent Considerations (Built Into Q7)
+- Which AI agents or automated systems execute tasks?
+- What is the orchestration flow between agents?
+- What decisions require human-in-the-loop vs. full automation?
+- What data do agents need access to?
+
+### Output
+- **Brief** saved to `docs/bmad/[project-name]-brief.md`
+- **Option** for deeper PRD-level analysis if needed
+- **Auto-updates** Claudeskills.md with new skill entry
+
+### Existing Briefs
+| Brief | Status | Link |
+|-------|--------|------|
+| Marketing Skill App | Implemented | [marketing-skill-brief.md](./docs/bmad/marketing-skill-brief.md) |
+| Google Stitch Skill | Implemented | [stitch-skill-brief.md](./docs/bmad/stitch-skill-brief.md) |
+
+### Key Files
+```
+docs/bmad/BMAD-FRAMEWORK.md     — Full framework reference & templates
+docs/bmad/*-brief.md            — Individual project briefs
+Claudeskills.md                 — Updated after each BMAD → GSD cycle
 ```
 
 ---
