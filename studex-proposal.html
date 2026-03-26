@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page {
+    size: A4;
+    margin: 2cm 2.5cm;
+    @bottom-center {
+      content: counter(page);
+      font-size: 9pt;
+      color: #999;
+    }
+  }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.55;
+    color: #1a1a2e;
+    margin: 0;
+  }
+  h1 {
+    font-size: 28pt;
+    font-weight: 800;
+    color: #0f0f23;
+    margin: 0 0 4pt 0;
+    letter-spacing: -0.5pt;
+  }
+  h2 {
+    font-size: 15pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 22pt 0 8pt 0;
+    padding-bottom: 4pt;
+    border-bottom: 2.5pt solid #4f46e5;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #4f46e5;
+    margin: 14pt 0 6pt 0;
+  }
+  .subtitle {
+    font-size: 13pt;
+    color: #6366f1;
+    font-weight: 500;
+    margin: 0 0 20pt 0;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: space-between;
+    margin: 16pt 0;
+    gap: 10pt;
+  }
+  .stat-box {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    padding: 14pt 16pt;
+    border-radius: 8pt;
+    text-align: center;
+    flex: 1;
+  }
+  .stat-box .number {
+    font-size: 20pt;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 2pt;
+  }
+  .stat-box .label {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    opacity: 0.9;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10pt 0;
+    font-size: 9.5pt;
+  }
+  th {
+    background: #f1f0ff;
+    color: #4f46e5;
+    font-weight: 700;
+    text-align: left;
+    padding: 8pt 10pt;
+    border-bottom: 2pt solid #4f46e5;
+  }
+  td {
+    padding: 7pt 10pt;
+    border-bottom: 1pt solid #e8e8f0;
+  }
+  tr:nth-child(even) td {
+    background: #fafaff;
+  }
+  .highlight-row td {
+    font-weight: 700;
+    background: #f1f0ff !important;
+    color: #4f46e5;
+  }
+  .pipeline-step {
+    display: flex;
+    align-items: flex-start;
+    margin: 8pt 0;
+    gap: 10pt;
+  }
+  .step-num {
+    background: #4f46e5;
+    color: white;
+    width: 24pt;
+    height: 24pt;
+    min-width: 24pt;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 11pt;
+  }
+  .step-content {
+    flex: 1;
+  }
+  .step-content strong {
+    color: #1a1a2e;
+  }
+  .pricing-grid {
+    display: flex;
+    gap: 8pt;
+    margin: 12pt 0;
+  }
+  .price-card {
+    flex: 1;
+    border: 1.5pt solid #e8e8f0;
+    border-radius: 8pt;
+    padding: 12pt;
+    text-align: center;
+  }
+  .price-card.featured {
+    border-color: #4f46e5;
+    background: linear-gradient(180deg, #f8f7ff, #fff);
+    box-shadow: 0 2pt 8pt rgba(79, 70, 229, 0.15);
+  }
+  .price-card .plan-name {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #4f46e5;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+  }
+  .price-card .price {
+    font-size: 22pt;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 4pt 0;
+  }
+  .price-card .price span {
+    font-size: 10pt;
+    font-weight: 400;
+    color: #888;
+  }
+  .price-card .audience {
+    font-size: 8.5pt;
+    color: #666;
+    font-style: italic;
+    margin-bottom: 8pt;
+  }
+  .price-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    font-size: 8.5pt;
+  }
+  .price-card ul li {
+    padding: 3pt 0;
+    padding-left: 14pt;
+    position: relative;
+  }
+  .price-card ul li::before {
+    content: "\2713";
+    color: #4f46e5;
+    font-weight: 700;
+    position: absolute;
+    left: 0;
+  }
+  .roi-box {
+    background: #f1f0ff;
+    border: 1.5pt solid #4f46e5;
+    border-radius: 8pt;
+    padding: 14pt 18pt;
+    margin: 12pt 0;
+  }
+  .roi-box .roi-number {
+    font-size: 26pt;
+    font-weight: 800;
+    color: #4f46e5;
+    text-align: center;
+    display: block;
+    margin: 4pt 0;
+  }
+  .roi-box .roi-label {
+    text-align: center;
+    font-size: 9.5pt;
+    color: #555;
+  }
+  .section-intro {
+    font-size: 11pt;
+    color: #444;
+    margin-bottom: 12pt;
+  }
+  .audience-card {
+    background: #fafaff;
+    border-left: 3pt solid #4f46e5;
+    padding: 8pt 12pt;
+    margin: 8pt 0;
+    border-radius: 0 6pt 6pt 0;
+  }
+  .audience-card strong {
+    color: #1a1a2e;
+    display: block;
+    margin-bottom: 2pt;
+  }
+  .audience-card p {
+    margin: 0;
+    font-size: 9.5pt;
+    color: #555;
+  }
+  .footer-bar {
+    margin-top: 24pt;
+    padding-top: 12pt;
+    border-top: 2pt solid #4f46e5;
+    text-align: center;
+    font-size: 9pt;
+    color: #888;
+  }
+  .footer-bar strong {
+    color: #4f46e5;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+  p { margin: 4pt 0 8pt 0; }
+  ul { margin: 4pt 0; padding-left: 18pt; }
+  li { margin: 3pt 0; }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<h1>Stud-Ex Global Markets</h1>
+<div class="subtitle">The AI-Powered Platform That Grows Your Business While You Sleep</div>
+
+<div class="hero-stats">
+  <div class="stat-box">
+    <span class="number">7M+</span>
+    <span class="label">Views Generated</span>
+  </div>
+  <div class="stat-box">
+    <span class="number">1M+</span>
+    <span class="label">Followers Built</span>
+  </div>
+  <div class="stat-box">
+    <span class="number">10+</span>
+    <span class="label">Platforms</span>
+  </div>
+  <div class="stat-box">
+    <span class="number">43</span>
+    <span class="label">AI Agents</span>
+  </div>
+</div>
+
+<h2>What Is Stud-Ex Global Markets?</h2>
+<p class="section-intro">Stud-Ex Global Markets is an all-in-one business growth platform that combines <strong>global deal-making</strong>, <strong>AI-powered marketing automation</strong>, and <strong>real-time analytics</strong> into a single dashboard. It replaces the 8-10 tools you're currently paying for with one intelligent system.</p>
+
+<h3>Global Markets Hub</h3>
+<ul>
+  <li><strong>Deal Pipeline Tracker</strong> &mdash; Track, negotiate, and close deals in real-time with multi-stage progress tracking</li>
+  <li><strong>Investor Network</strong> &mdash; Connect with global investors and entrepreneurs in your industry</li>
+  <li><strong>Secure Messaging</strong> &mdash; Real-time chat with file sharing for sensitive negotiations</li>
+  <li><strong>AI Deal Insights</strong> &mdash; Predict which deals will close and get recommendations for next actions</li>
+  <li><strong>Revenue Dashboard</strong> &mdash; Monthly revenue trends, pipeline value, annual goals, and growth metrics</li>
+  <li><strong>Time Tracking</strong> &mdash; Log hours by category for billing, profitability, and accountability</li>
+</ul>
+
+<h3>Larry AI Marketing Engine &mdash; Your 24/7 Marketing Team</h3>
+<p>Our 43-agent AI system automates your entire content pipeline from creation to optimisation:</p>
+
+<div class="pipeline-step">
+  <div class="step-num">1</div>
+  <div class="step-content"><strong>Hook Generation</strong> &mdash; AI creates viral hooks using 7 proven psychological formulas (Person-Conflict, Budget Transformation, Before/After, and more) tailored to your niche.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">2</div>
+  <div class="step-content"><strong>Content Creation</strong> &mdash; Automatically generates professional 6-slide carousels: Hook &rarr; Problem &rarr; Discovery &rarr; Transformation &rarr; Reinforcement &rarr; Call to Action.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">3</div>
+  <div class="step-content"><strong>Image & Video Production</strong> &mdash; AI generates custom visuals (Gemini 3 Pro) and creates videos (Remotion) &mdash; no designer or video editor needed.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">4</div>
+  <div class="step-content"><strong>Multi-Platform Publishing</strong> &mdash; One click publishes to TikTok, Instagram, YouTube, LinkedIn, Facebook, X, Threads, Pinterest, Reddit, and Bluesky simultaneously.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">5</div>
+  <div class="step-content"><strong>Performance Analytics</strong> &mdash; Tracks views, likes, shares, comments, follower growth, and actual revenue attribution per post.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">6</div>
+  <div class="step-content"><strong>Automatic Optimisation</strong> &mdash; The system analyses winners, creates variations of top-performing content, and drops what isn't working. Every day it gets smarter.</div>
+</div>
+
+<h3>Who Is This For?</h3>
+<div class="audience-card">
+  <strong>Entrepreneurs & Startup Founders</strong>
+  <p>Replace your marketing team, designer, social media manager, and video editor with one platform. Larry runs 24/7 while you focus on product and fundraising.</p>
+</div>
+<div class="audience-card">
+  <strong>Brands & Content Creators</strong>
+  <p>Automate creation, posting, and optimisation across 10+ platforms. Daily reports tell you what's working so you double down on winners.</p>
+</div>
+<div class="audience-card">
+  <strong>Investors & Portfolio Managers</strong>
+  <p>Track every deal from one dashboard. Communicate securely with founders. Monitor revenue with AI-powered intelligence.</p>
+</div>
+<div class="audience-card">
+  <strong>Agencies & Marketing Teams</strong>
+  <p>Scale client campaigns without adding headcount. White-label available. Built-in reporting for stakeholder presentations.</p>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page-break"></div>
+
+<h2>The 10 Tools You'll Replace</h2>
+<table>
+  <tr><th>What You're Paying For</th><th>Monthly Cost</th><th>Stud-Ex Replaces It With</th></tr>
+  <tr><td>Social media scheduler (Buffer/Hootsuite)</td><td>$50-100</td><td>Multi-platform auto-posting</td></tr>
+  <tr><td>Graphic designer (Canva Pro/freelancer)</td><td>$100-500</td><td>AI image generation</td></tr>
+  <tr><td>Video editor (freelancer/software)</td><td>$200-1,000</td><td>AI video creation (Remotion)</td></tr>
+  <tr><td>Analytics tool (Sprout Social/Brandwatch)</td><td>$100-300</td><td>Built-in performance analytics</td></tr>
+  <tr><td>CRM for deals (HubSpot/Pipedrive)</td><td>$50-150</td><td>Deal pipeline tracker</td></tr>
+  <tr><td>Team messaging (Slack)</td><td>$8-15/user</td><td>Secure built-in messaging</td></tr>
+  <tr><td>Time tracker (Toggl/Harvest)</td><td>$10-20/user</td><td>Built-in time tracking</td></tr>
+  <tr><td>Content strategist (freelancer)</td><td>$500-2,000</td><td>AI hook generation & strategy</td></tr>
+  <tr><td>Competitor research (SEMrush/SpyFu)</td><td>$100-400</td><td>Automated competitor analysis</td></tr>
+  <tr><td>Revenue attribution (AppsFlyer)</td><td>$100-500</td><td>RevenueCat integration</td></tr>
+  <tr class="highlight-row"><td>Total you're currently spending</td><td>$1,200-5,000/mo</td><td></td></tr>
+</table>
+
+<h2>Pricing</h2>
+<div class="pricing-grid">
+  <div class="price-card">
+    <div class="plan-name">Starter</div>
+    <div class="price">$49<span>/mo</span></div>
+    <div class="audience">Solo entrepreneurs</div>
+    <ul>
+      <li>Investor network access</li>
+      <li>10 active deals</li>
+      <li>Secure messaging</li>
+      <li>30 AI posts/month</li>
+      <li>3 platforms</li>
+      <li>Weekly reports</li>
+      <li>Time tracking</li>
+    </ul>
+  </div>
+  <div class="price-card featured">
+    <div class="plan-name">Growth</div>
+    <div class="price">$149<span>/mo</span></div>
+    <div class="audience">Growing brands</div>
+    <ul>
+      <li>Everything in Starter</li>
+      <li>Unlimited deals</li>
+      <li>100 AI posts/month</li>
+      <li>200 AI images/month</li>
+      <li>20 AI videos/month</li>
+      <li>10+ platforms</li>
+      <li>Daily reports</li>
+      <li>Competitor research</li>
+      <li>Revenue attribution</li>
+    </ul>
+  </div>
+  <div class="price-card">
+    <div class="plan-name">Scale</div>
+    <div class="price">$399<span>/mo</span></div>
+    <div class="audience">Agencies & teams</div>
+    <ul>
+      <li>Everything in Growth</li>
+      <li>Unlimited AI posts</li>
+      <li>Unlimited images</li>
+      <li>100 videos/month</li>
+      <li>5 team seats</li>
+      <li>Client reporting</li>
+      <li>White-label option</li>
+      <li>API access</li>
+      <li>Account manager</li>
+    </ul>
+  </div>
+  <div class="price-card">
+    <div class="plan-name">Enterprise</div>
+    <div class="price">Custom</div>
+    <div class="audience">Large organisations</div>
+    <ul>
+      <li>Everything in Scale</li>
+      <li>Unlimited seats</li>
+      <li>Custom AI training</li>
+      <li>Dedicated infrastructure</li>
+      <li>99.9% SLA</li>
+      <li>Custom integrations</li>
+      <li>Quarterly strategy</li>
+      <li>Multi-brand management</li>
+    </ul>
+  </div>
+</div>
+
+<h2>Return on Investment</h2>
+<div class="roi-box">
+  <div class="roi-label">Growth Plan ($149/month) delivers</div>
+  <span class="roi-number">37x ROI</span>
+  <div class="roi-label">100 posts across 10 platforms + 200 images + 20 videos + daily reports = <strong>$5,600+ in value</strong></div>
+</div>
+
+<table>
+  <tr><th>What You Get (Growth Plan)</th><th>Equivalent Value</th></tr>
+  <tr><td>100 posts/month across 10 platforms (1,000 platform posts)</td><td>$2,000+</td></tr>
+  <tr><td>200 AI-generated professional images</td><td>$1,000+</td></tr>
+  <tr><td>20 AI-generated marketing videos</td><td>$2,000+</td></tr>
+  <tr><td>Daily analytics reports with recommendations</td><td>$500+</td></tr>
+  <tr><td>Deal tracking & CRM</td><td>$100+</td></tr>
+  <tr class="highlight-row"><td>Total value delivered monthly</td><td>$5,600+</td></tr>
+</table>
+
+<h2>Getting Started Takes 5 Minutes</h2>
+<div class="pipeline-step">
+  <div class="step-num">1</div>
+  <div class="step-content"><strong>Sign up</strong> &mdash; Create your account at stud-ex-global-markets.vercel.app</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">2</div>
+  <div class="step-content"><strong>Connect your accounts</strong> &mdash; Link TikTok, Instagram, and your other platforms</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">3</div>
+  <div class="step-content"><strong>Tell Larry your niche</strong> &mdash; Describe your business, audience, and goals</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">4</div>
+  <div class="step-content"><strong>Launch your first campaign</strong> &mdash; AI generates your first batch of content instantly</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">5</div>
+  <div class="step-content"><strong>Watch the data come in</strong> &mdash; Daily performance reports start arriving by morning</div>
+</div>
+
+<p style="text-align: center; margin-top: 16pt; font-size: 11pt; font-weight: 600; color: #4f46e5;">14-day free trial. No credit card required. Cancel anytime.</p>
+
+<div class="footer-bar">
+  <strong>Stud-Ex Global Markets</strong><br>
+  stud-ex-global-markets.vercel.app &nbsp;|&nbsp; hello@studexglobal.com &nbsp;|&nbsp; Available worldwide<br>
+  <em>Built with AI. Designed for growth. Powered by results.</em>
+</div>
+
+</body>
+</html>
