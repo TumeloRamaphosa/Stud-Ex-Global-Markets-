@@ -1,0 +1,40 @@
+{
+  "storage": {
+    "provider": "google-drive",
+    "folderId": "1hoMlNAVfKWHb4ttczoyqAp6rlyqF7ehM",
+    "folderUrl": "https://drive.google.com/drive/folders/1hoMlNAVfKWHb4ttczoyqAp6rlyqF7ehM",
+    "structure": {
+      "images": "generated-images/",
+      "videos": "generated-videos/",
+      "slideshows": "tiktok-slideshows/",
+      "instagram": "instagram-content/",
+      "analytics": "analytics-reports/",
+      "exports": "exports/"
+    }
+  },
+  "contentPipeline": {
+    "nanoBanana": {
+      "skill": "nano-banana",
+      "output": "generated-images/",
+      "formats": ["png", "jpg", "webp"],
+      "use": "Product images, marketing visuals, social media graphics"
+    },
+    "remotion": {
+      "skill": "remotion-best-practices",
+      "output": "generated-videos/",
+      "formats": ["mp4", "gif"],
+      "use": "TikTok videos, Instagram Reels, product demos, explainer videos"
+    },
+    "larryMarketing": {
+      "skill": "tiktok-app-marketing",
+      "output": "tiktok-slideshows/",
+      "use": "Automated TikTok slideshow campaigns, Instagram carousels"
+    }
+  },
+  "platforms": {
+    "tiktok": { "enabled": true, "contentTypes": ["slideshows", "videos"] },
+    "instagram": { "enabled": true, "contentTypes": ["reels", "carousels", "stories"] },
+    "facebook": { "enabled": false },
+    "googleAds": { "enabled": false }
+  }
+}
