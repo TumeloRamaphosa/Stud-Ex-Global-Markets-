@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "tiktok-app-marketing": {
+      "source": "Upload-Post/upload-post-larry-marketing-skill",
+      "sourceType": "github",
+      "computedHash": "b8574098ba4ea2254d7ba4a410c13be79b462182fe8352c544bfb20a09ef98a7"
+    }
+  }
+}
