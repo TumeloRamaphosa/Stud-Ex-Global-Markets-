@@ -36,7 +36,7 @@ Your role is to:
 Be conversational, encouraging, and data-driven. Ask clarifying questions when needed.${context ? `\n\nCurrent Context: ${context}` : ''}`;
 
     const response = await client.messages.create({
-      model: 'claude-opus-4-6',
+      model: 'claude-sonnet-4-5-20241022',
       max_tokens: 1024,
       system: systemPrompt,
       messages: messages.map((msg: any) => ({

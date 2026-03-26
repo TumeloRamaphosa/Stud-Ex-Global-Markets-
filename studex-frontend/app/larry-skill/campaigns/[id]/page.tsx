@@ -114,9 +114,9 @@ export default function CampaignDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex">
-        <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(!sidebarOpen)} />
         <div className="flex-1 flex flex-col">
-          <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+          <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
           <main className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin inline-block w-8 h-8 border-2 border-slate-300 border-t-blue-600 rounded-full" />
@@ -131,9 +131,9 @@ export default function CampaignDetailPage() {
   if (!campaign) {
     return (
       <div className="min-h-screen bg-slate-50 flex">
-        <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(!sidebarOpen)} />
         <div className="flex-1 flex flex-col">
-          <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+          <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
           <main className="flex-1 flex items-center justify-center">
             <Card className="p-8 text-center">
               <p className="text-slate-600">Campaign not found</p>
@@ -146,10 +146,10 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex-1 flex flex-col">
-        <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+        <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
         <main className="flex-1 p-6 overflow-y-auto">
           <div className="max-w-6xl mx-auto">

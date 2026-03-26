@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import Header from '@/components/layout/Header';
 import Button from '@/components/ui/Button';
-import { TrendingUp, Users, Zap, Shield, Globe, ArrowRight, Sparkles, Rocket } from 'lucide-react';
+import { TrendingUp, Users, Zap, Shield, Globe, ArrowRight, Sparkles, Rocket, Briefcase, Clock } from 'lucide-react';
 
 const features = [
   {
@@ -38,8 +38,6 @@ const features = [
     description: 'Enterprise-grade security for all communications',
   },
 ];
-
-import { Briefcase, Clock } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
