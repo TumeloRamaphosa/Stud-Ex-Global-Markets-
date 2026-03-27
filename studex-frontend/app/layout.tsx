@@ -18,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className="bg-[#0a0a0a] text-white antialiased">
+      <body className="bg-[#1a1a2e] text-white antialiased">
         <AuthProvider>
           {children}
           <Toaster position="top-right" />

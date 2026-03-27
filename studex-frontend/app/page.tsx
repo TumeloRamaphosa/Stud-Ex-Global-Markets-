@@ -108,7 +108,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white scanlines">
+    <div className="min-h-screen bg-[#1a1a2e] text-white scanlines">
       {/* Cyber Grid Background */}
       <div className="fixed inset-0 cyber-grid pointer-events-none opacity-30" />
 
@@ -147,7 +147,7 @@ export default function Home() {
       {/* ===== HERO SECTION ===== */}
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-24 pb-16 overflow-hidden">
         {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-transparent to-[#0a0a0a] z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e] via-transparent to-[#1a1a2e] z-10 pointer-events-none" />
 
         <div className="relative z-20 max-w-6xl mx-auto text-center">
           {/* Badge */}
@@ -175,7 +175,7 @@ export default function Home() {
           </p>
 
           {/* Description */}
-          <p className={`text-xl sm:text-2xl text-gray-400 font-rajdhani max-w-3xl mx-auto mb-12 leading-relaxed transition-all duration-700 delay-500 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
+          <p className={`text-xl sm:text-2xl text-gray-300 font-rajdhani max-w-3xl mx-auto mb-12 leading-relaxed transition-all duration-700 delay-500 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
             43 autonomous AI agents that create viral content, publish to 10+ platforms,
             track performance, and optimise your marketing — all while you sleep.
           </p>
@@ -199,7 +199,7 @@ export default function Home() {
       </section>
 
       {/* ===== STATS BAR ===== */}
-      <section className="relative z-20 border-y border-[#ff1493]/20 bg-[#0a0a0a]/90 backdrop-blur-lg">
+      <section className="relative z-20 border-y border-[#ff1493]/20 bg-[#1a1a2e]/90 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-6 py-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {stats.map((stat, i) => (
@@ -251,7 +251,7 @@ export default function Home() {
                   >
                     {feature.title}
                   </h3>
-                  <p className="text-lg font-rajdhani text-gray-400 leading-relaxed">
+                  <p className="text-xl font-rajdhani text-gray-300 leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -306,7 +306,7 @@ export default function Home() {
           </div>
 
           {/* Terminal Readout */}
-          <div className="rounded-xl border border-[#00ffff]/20 bg-[#0a0a0a]/90 p-8 font-mono">
+          <div className="rounded-xl border border-[#00ffff]/20 bg-[#1a1a2e]/90 p-8 font-mono">
             <div className="flex items-center gap-3 mb-6">
               <Terminal size={24} className="text-[#00ffff]" />
               <span className="text-[#00ffff] text-lg font-bold tracking-wider">AGENT STATUS — LIVE</span>
@@ -355,7 +355,7 @@ export default function Home() {
           </div>
 
           {/* ASCII-style Terminal */}
-          <div className="rounded-xl border border-[#9d00ff]/30 bg-[#0a0a0a] p-8 sm:p-10 font-mono">
+          <div className="rounded-xl border border-[#9d00ff]/30 bg-[#1a1a2e] p-8 sm:p-10 font-mono">
             <div className="text-[#9d00ff] text-base mb-6 tracking-wider">
               ╔══════════════════════════════════════════════╗<br />
               ║&nbsp;&nbsp;STUDEX SYSTEM SPECS v4.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;║<br />
