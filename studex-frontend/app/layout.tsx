@@ -4,8 +4,8 @@ import { Toaster } from 'react-hot-toast';
 import AuthProvider from '@/components/providers/AuthProvider';
 
 export const metadata: Metadata = {
-  title: 'Studex Global Markets MVP',
-  description: 'Connect with global investment and entrepreneurial opportunities',
+  title: '$Tud#x D#V0P$ — Agent Command Server Warehouse',
+  description: 'Neural network command center for autonomous AI agents. Deploy, monitor, dominate.',
   icons: {
     icon: '/favicon.ico',
   },
@@ -18,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className="bg-gradient-dark text-white antialiased">
+      <body className="bg-[#0a0a0a] text-white antialiased">
         <AuthProvider>
           {children}
           <Toaster position="top-right" />
