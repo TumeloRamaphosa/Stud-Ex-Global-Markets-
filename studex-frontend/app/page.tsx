@@ -133,6 +133,7 @@ export default function Home() {
             <a href="#warehouse" className="text-gray-400 hover:text-[#ff1493] hover:no-underline transition-colors">WAREHOUSE</a>
             <a href="#specs" className="text-gray-400 hover:text-[#ff1493] hover:no-underline transition-colors">SPECS</a>
             <a href="#deploy" className="text-gray-400 hover:text-[#ff1493] hover:no-underline transition-colors">DEPLOY</a>
+            <a href="/meat-dashboard" className="text-[#C9A84C] hover:text-[#e8c97a] hover:no-underline transition-colors border border-[#C9A84C]/30 px-3 py-1 rounded">MEAT</a>
           </div>
 
           <button
