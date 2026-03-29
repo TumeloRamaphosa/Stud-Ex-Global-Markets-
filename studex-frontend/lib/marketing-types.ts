@@ -21,7 +21,7 @@ export interface MarketingProfile {
 }
 
 export interface ImageGenConfig {
-  provider: 'openai' | 'stability' | 'replicate' | 'local';
+  provider: 'gemini' | 'openai' | 'stability' | 'replicate' | 'local';
   model: string;
   basePrompt: string;
 }

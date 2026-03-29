@@ -21,12 +21,96 @@ export async function POST(req: NextRequest) {
       'clear call-to-action closing scene',
     ];
 
-    if (provider === 'openai' || !provider) {
-      // OpenAI image generation (gpt-image-1.5 recommended)
+    // ==================== GEMINI (DEFAULT — FREE TIER) ====================
+    if (provider === 'gemini' || !provider) {
+      const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+      if (!apiKey) {
+        return NextResponse.json(
+          { error: 'GOOGLE_GEMINI_API_KEY not configured. Get one free at https://aistudio.google.com/apikey' },
+          { status: 500 }
+        );
+      }
+
+      for (let i = 0; i < count; i++) {
+        const slidePrompt = `Generate a photorealistic image: ${prompt}. Scene ${i + 1} of 6: ${slideContexts[i]}. ${
+          slideTexts?.[i] ? `The text overlay will say: "${slideTexts[i]}"` : ''
+        } Style: iPhone photo, warm realistic lighting, portrait orientation 9:16, high quality, no text in the image.`;
+
+        try {
+          // Gemini 2.0 Flash with image generation
+          const geminiModel = model || 'gemini-2.0-flash-exp';
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: slidePrompt }] }],
+                generationConfig: {
+                  responseModalities: ['IMAGE', 'TEXT'],
+                  imageDimensions: { width: 1024, height: 1536 },
+                },
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            // Fallback: try Imagen 3 via Gemini API
+            const imagenResponse = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  instances: [{ prompt: slidePrompt }],
+                  parameters: {
+                    sampleCount: 1,
+                    aspectRatio: '9:16',
+                    personGeneration: 'allow_adult',
+                  },
+                }),
+              }
+            );
+
+            if (imagenResponse.ok) {
+              const imagenData = await imagenResponse.json();
+              if (imagenData.predictions?.[0]?.bytesBase64Encoded) {
+                images.push({
+                  url: `data:image/png;base64,${imagenData.predictions[0].bytesBase64Encoded}`,
+                  index: i,
+                });
+              }
+            } else {
+              console.error(`Gemini image gen failed for slide ${i + 1}`);
+            }
+            continue;
+          }
+
+          const data = await response.json();
+          // Extract inline image from Gemini response
+          const parts = data.candidates?.[0]?.content?.parts || [];
+          for (const part of parts) {
+            if (part.inlineData?.mimeType?.startsWith('image/')) {
+              images.push({
+                url: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
+                index: i,
+              });
+              break;
+            }
+          }
+        } catch (err) {
+          console.error(`Gemini slide ${i + 1} error:`, err);
+          continue;
+        }
+      }
+    }
+
+    // ==================== OPENAI (FALLBACK) ====================
+    else if (provider === 'openai') {
       const apiKey = process.env.OPENAI_API_KEY;
       if (!apiKey) {
         return NextResponse.json(
-          { error: 'OPENAI_API_KEY not configured on server. Add it to your environment variables.' },
+          { error: 'OPENAI_API_KEY not configured on server.' },
           { status: 500 }
         );
       }
@@ -50,25 +134,22 @@ export async function POST(req: NextRequest) {
           }),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error(`OpenAI image gen failed for slide ${i + 1}:`, errorData);
-          continue;
-        }
+        if (!response.ok) continue;
 
         const data = await response.json();
         if (data.data?.[0]?.url) {
           images.push({ url: data.data[0].url, index: i });
         } else if (data.data?.[0]?.b64_json) {
-          // Convert base64 to data URL
           images.push({
             url: `data:image/png;base64,${data.data[0].b64_json}`,
             index: i,
           });
         }
       }
-    } else if (provider === 'stability') {
-      // Stability AI
+    }
+
+    // ==================== STABILITY AI (FALLBACK) ====================
+    else if (provider === 'stability') {
       const apiKey = process.env.STABILITY_API_KEY;
       if (!apiKey) {
         return NextResponse.json(

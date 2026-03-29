@@ -50,8 +50,8 @@ export default function MarketingSettingsPage() {
   const [url, setUrl] = useState('');
 
   // Image Gen
-  const [imageProvider, setImageProvider] = useState('openai');
-  const [imageModel, setImageModel] = useState('gpt-image-1.5');
+  const [imageProvider, setImageProvider] = useState('gemini');
+  const [imageModel, setImageModel] = useState('gemini-2.0-flash-exp');
   const [basePrompt, setBasePrompt] = useState('');
 
   // Upload-Post
@@ -85,8 +85,8 @@ export default function MarketingSettingsPage() {
           setDifferentiator(profile.differentiator || '');
           setCategory(profile.category || 'tech');
           setUrl(profile.url || '');
-          setImageProvider(profile.imageGen?.provider || 'openai');
-          setImageModel(profile.imageGen?.model || 'gpt-image-1.5');
+          setImageProvider(profile.imageGen?.provider || 'gemini');
+          setImageModel(profile.imageGen?.model || 'gemini-2.0-flash-exp');
           setBasePrompt(profile.imageGen?.basePrompt || '');
           setUploadPostApiKey(profile.uploadPost?.apiKey || '');
           setUploadPostProfile(profile.uploadPost?.profile || '');
@@ -303,7 +303,8 @@ export default function MarketingSettingsPage() {
                     value={imageProvider}
                     onChange={(e) => setImageProvider(e.target.value)}
                   >
-                    <option value="openai">OpenAI (gpt-image-1.5 — Recommended)</option>
+                    <option value="gemini">Google Gemini (Free Tier — Recommended)</option>
+                    <option value="openai">OpenAI (gpt-image-1)</option>
                     <option value="stability">Stability AI (Stable Diffusion XL)</option>
                     <option value="replicate">Replicate (Open Source Models)</option>
                     <option value="local">Local Images (No API)</option>
@@ -312,12 +313,14 @@ export default function MarketingSettingsPage() {
                   {imageProvider !== 'local' && (
                     <Input
                       label="Model"
-                      placeholder="gpt-image-1.5"
+                      placeholder={imageProvider === 'gemini' ? 'gemini-2.0-flash-exp' : 'gpt-image-1'}
                       value={imageModel}
                       onChange={(e) => setImageModel(e.target.value)}
                       helper={
-                        imageProvider === 'openai'
-                          ? 'Always use "gpt-image-1.5" — massive quality difference vs older models.'
+                        imageProvider === 'gemini'
+                          ? 'Free tier: gemini-2.0-flash-exp. Also supports imagen-3.0-generate-002.'
+                          : imageProvider === 'openai'
+                          ? 'Use "gpt-image-1" for best quality.'
                           : undefined
                       }
                     />
