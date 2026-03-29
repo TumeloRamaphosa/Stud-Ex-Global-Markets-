@@ -1,108 +1,165 @@
-# Google Stitch Mega Prompt — Larry Brain Marketing Skill
+# Google Stitch Prompts — Larry Brain Marketing Platform
 
-Paste this into Google Stitch (https://stitch.withgoogle.com) to generate the UI for the Larry Brain Marketing platform.
+Use these one page at a time in Google Stitch. Paste ONE prompt per generation.
 
 ---
 
-## PROMPT FOR STITCH
+## PAGE 1 — Landing Page
 
 ```
-Design a dark cyberpunk AI marketing command centre web app called "$TUD#X D#V0P$ — Agent Command Server Warehouse". This is a professional marketing automation platform.
+A dark themed marketing SaaS landing page. Background color #1a1a2e (dark navy blue, NOT black).
 
-DESIGN SYSTEM:
-- Background: dark charcoal #1a1a2e (NOT pure black)
-- Primary accent: neon pink #ff1493
-- Secondary: neon cyan #00ffff
-- Tertiary: neon purple #9d00ff
-- Gold highlights: #C9A84C for premium elements
-- Fonts: Orbitron (headings), Rajdhani (body), Share Tech Mono (code/data)
-- Glass morphism cards with backdrop blur
-- Scanline overlay effect
-- Cyber grid background pattern
-- Glow effects on interactive elements
+Header: Logo text "$TUD#X" in bold neon pink (#ff1493) on the left. Navigation links on right: "AGENTS", "WAREHOUSE", "SPECS", "DEPLOY". A glowing "GET STARTED" button in pink.
 
-PAGE 1 — LANDING PAGE (public):
-- Top nav: "$TUD#X" logo in neon pink + links: AGENTS, WAREHOUSE, SPECS, DEPLOY, MEAT (gold)
-- Hero: Large text "$TUD#X D#V0P$ AGENT COMMAND SERVER WAREHOUSE" with glitch animation
-- Stats bar: "43 Agents Online | 7M+ Views | 10+ Platforms | 1M+ Followers"
-- 6 feature cards in grid: Agent Swarm Control, Neural Warehouse, Real-Time Telemetry, Autonomous Deployment, Cyber Security Mesh, Quantum Sync
-- Terminal readout section with ASCII art and live system specs
-- CTA: "INITIALIZE SYSTEM" button with glow
+Hero section: Large bold heading "AI Marketing Automation Platform" with subtext "Deploy 43 AI agents that create, post, and optimize your marketing across TikTok, Instagram, YouTube and 10+ platforms automatically."
 
-PAGE 2 — MARKETING DASHBOARD (authenticated):
-- Sidebar: Dashboard, Marketing, Deals, Messages, Settings links with icons
-- Header: "Marketing Dashboard" + Create Post button
-- 4 KPI cards: Total Posts, Platform Reach, Drafts, Success Rate
-- Recent posts list with status badges (posted/draft/failed)
-- Quick Actions panel: Create Slideshow, View Analytics, Settings
-- Connected Platforms list with status indicators
-- Posting Schedule with time slots
+Below hero: 4 stats in a row - "43 Agents", "7M+ Views", "10+ Platforms", "1M+ Followers"
 
-PAGE 3 — CREATE SLIDESHOW (wizard):
-- 5-step progress indicator: Hook & Strategy > Slide Images > Text Overlays > Caption & CTA > Preview & Post
-- Step 1: Hook category selector (7 types), hook template buttons, text input, image prompt input
-- Step 2: 6 image upload cards in 2x3 grid (2:3 portrait ratio) + "Generate 6 Slides with AI" button
-- Step 3: 6 text overlay inputs with slide labels (Hook, Problem, Discovery, Transformation x2, CTA)
-- Step 4: Caption textarea, CTA input, platform toggle buttons (9 platforms)
-- Step 5: Slide preview carousel + post details + "Save Draft" and "Post to N Platforms" buttons
+Below stats: 6 feature cards in a 3x2 grid. Each card has an icon, title, and description. Dark card backgrounds (#0d1117) with subtle borders. Cards: "Agent Control", "Image Generation", "Video Creation", "Multi-Platform Posting", "Analytics Dashboard", "AI Strategy Advisor"
 
-PAGE 4 — ANALYTICS:
-- Tab navigation: Overview, Hook Performance, Diagnostics, Reports
-- Overview: Platform metrics cards, hook category breakdown chart
-- Hook Performance: Sortable table with impressions, conversions, status
-- Diagnostics: Two-axis framework visualization (Views vs Conversions quadrant)
-  - Top-right: "SCALE" (green)
-  - Top-left: "FIX CTA" (amber)
-  - Bottom-right: "FIX HOOKS" (blue)
-  - Bottom-left: "FULL RESET" (red)
-- Reports: Daily report cards with recommendations
+Footer: "Get Started Free" call-to-action button. Pink accent color throughout.
 
-PAGE 5 — CAMPAIGN MANAGER:
-- Tabs: All Posts, Drafts, Posted, Failed (with counts)
-- Post cards showing: slide preview thumbnail, hook text, platform badges, status, hook category
-- Delete action on draft posts
-
-PAGE 6 — SETTINGS:
-- Sections: Business Profile, Image Generation (Nano Banana/Gemini default), Upload-Post Connection, Posting Schedule, RevenueCat Integration
-- Each section in its own card with form fields
-
-PAGE 7 — MEAT DASHBOARD (separate theme):
-- Warm charcoal/brown palette (#2a2420 bg, #C9A84C gold accents)
-- Factory banner with 5 pixel-art agent avatars (animated)
-- KPI strip: Products, Suppliers, Coverage metrics
-- Tabbed interface: Price Matrix, Supplier View, Quote Builder
-- Price matrix: Color-coded table (green=best, amber=mid, red=highest)
-- Quote builder with markup buttons (20%/25%/30%) and email send
-
-MOBILE (iOS 26):
-- Full responsive design
-- Safe area insets for iPhone notch/Dynamic Island
-- 44px minimum touch targets
-- Collapsible sidebar → hamburger menu on mobile
-- Bottom nav bar on mobile screens
-- Swipe gestures for tab navigation
-- Pull-to-refresh on data views
-
-ANIMATIONS:
-- Neon flicker on headings
-- Glitch effect on hero text
-- Smooth slide transitions in wizard
-- Pulse glow on active buttons
-- Card hover lift with glow border
-
-Export as: Next.js / React with Tailwind CSS
+Style: Modern SaaS, dark theme, clean typography, monospace font for data. NOT a travel app. This is a B2B marketing automation tool.
 ```
 
 ---
 
-## HOW TO USE IN STITCH
+## PAGE 2 — Marketing Dashboard (Main Cockpit)
 
-1. Go to https://stitch.withgoogle.com
-2. Click "New Design" or use Voice Canvas
-3. Paste the prompt above
-4. Stitch generates all 7 pages
-5. Export as React + Tailwind CSS
-6. Copy the component code into your `studex-frontend/app/` directory
-7. Deploy to Vercel
+```
+A dark themed marketing automation dashboard. Background #080c14 (very dark blue-black).
 
-Note: Stitch generates frontend UI only. The backend (Firebase, Upload-Post API, Gemini) is already built in this repo.
+Top bar: Clock showing "14:32:05 SAST" on left, date "Sat 29 Mar 2026", location "Johannesburg, SA". On right: green dot with text "SYSTEM ACTIVE" and "6/6 AGENTS".
+
+Below top bar on left: Heading "LARRY'S BRAIN" in gradient text (pink to cyan) with subtitle "MARKETING AUTOMATION COMMAND CENTRE". On right: a green glowing button labeled "LAUNCH" with a power icon.
+
+6 metric cards in a row, each shaped like a hexagon with: "Posts: 12", "Reach: 48", "Success: 92%", "Drafts: 3", "Failed: 1", "Agents: 6". Each a different color (pink, cyan, green, yellow, red, purple).
+
+3-column layout below:
+- Left column: "AGENT CONTROL" panel with 6 small agent cards. Each has a green dot, agent name (LARRY, NANO, REMOTION, UPLOAD, ANALYTICS, CLAUDE), role text, and a pause button.
+- Center column: "PLATFORM TELEMETRY" showing TikTok, Instagram, YouTube metrics. Below that "RECENT MISSIONS" list showing 5 posts with status badges (green=posted, yellow=draft, red=failed).
+- Right column: "STRATEGY ADVISOR" panel with 3 colored tip cards. Below that "COMMAND PANEL" with 5 navigation buttons.
+
+Bottom: A chat input bar labeled "LARRY AI CHAT" with a text field and SEND button.
+
+Style: Military/cockpit dashboard aesthetic. Monospace fonts. Subtle dark borders. Status indicators with colored dots. NOT a travel or booking app. This is a marketing command center.
+```
+
+---
+
+## PAGE 3 — Create Slideshow Wizard
+
+```
+A dark themed multi-step form wizard for creating social media slideshow posts. Background #080c14.
+
+Top: Back arrow button, heading "Create Slideshow Post", subtext "Step 1 of 5: Hook & Strategy".
+
+Step indicator: 5 horizontal pills showing progress - "Hook & Strategy" (active, pink), "Slide Images", "Text Overlays", "Caption & CTA", "Preview & Post". Each with a small icon.
+
+Main content area in a dark card (#0d1117 background):
+- Dropdown labeled "Hook Category" with option "Person Conflict (Highest Performing)"
+- Section "Hook Templates" with 4 clickable template buttons showing example hooks like "I showed my boss what AI thinks..."
+- Textarea labeled "Your Hook Text"
+- Textarea labeled "Image Generation Prompt" with helper text
+
+Bottom: "Previous" and "Next" navigation buttons.
+
+Style: Clean dark form UI. Monospace accents. Pink highlight color. This is a content creation tool for TikTok/Instagram marketing.
+```
+
+---
+
+## PAGE 4 — Slide Images Step
+
+```
+A dark themed image upload interface. Background #080c14.
+
+Top: Step indicator showing step 2 of 5 active - "Slide Images".
+
+Blue highlighted box: "AI Image Generation" with text "Generate all 6 slides using Nano Banana / Gemini" and a "Generate 6 Slides" button with sparkle icon.
+
+Below: 6 image upload cards in a 3x2 grid. Each card is portrait orientation (2:3 ratio). Each has:
+- Label: "Slide 1: Hook", "Slide 2: Problem", "Slide 3: Discovery", "Slide 4: Transformation 1", "Slide 5: Transformation 2", "Slide 6: CTA"
+- Dashed border placeholder with upload icon and "Upload Image" text
+- Dark background (#111827)
+
+Bottom: Previous and Next buttons.
+
+Style: Dark theme, clean upload UI. This is for creating 6-slide TikTok/Instagram slideshow marketing content.
+```
+
+---
+
+## PAGE 5 — Analytics Dashboard
+
+```
+A dark themed analytics dashboard for social media marketing. Background #080c14.
+
+Top: Heading "Marketing Analytics" with tabs: "Overview" (active), "Hook Performance", "Diagnostics", "Reports".
+
+Main area:
+- Row of 4 metric cards: "Total Views", "Conversions", "Best Hook", "ROI"
+- A 2x2 quadrant chart labeled "Diagnostic Framework":
+  - Top-right quadrant: green, labeled "SCALE"
+  - Top-left quadrant: yellow, labeled "FIX CTA"
+  - Bottom-right quadrant: blue, labeled "FIX HOOKS"
+  - Bottom-left quadrant: red, labeled "FULL RESET"
+  - X-axis: "Views" (low to high)
+  - Y-axis: "Conversions" (low to high)
+
+Below: A table showing hook performance with columns: Hook Text, Category, Impressions, Conversions, Status. 5 sample rows.
+
+Style: Data-heavy dark dashboard. Monospace fonts for numbers. Color-coded status badges. Marketing analytics tool, NOT travel.
+```
+
+---
+
+## PAGE 6 — Meat Supplier Dashboard
+
+```
+A warm-toned business dashboard for meat/food wholesale supplier management. Background #2a2420 (warm dark brown, NOT black or navy).
+
+Gold accent color #C9A84C throughout.
+
+Top banner: 5 pixel-art style agent avatars in a row on a warm brown background. Window-style chrome bar at top with dots.
+
+Below banner: Horizontal bar with date and countdown timer "2d 14:32:05".
+
+KPI strip: 4 cards showing "Products: 123", "Suppliers: 6", "Best Basket: R45k", "Invoice Total: R67k" in gold text.
+
+Tabbed interface: "Price Matrix" (active), "Supplier View", "Quote Builder". Plus "Excel Export" and "Build Quote" buttons.
+
+Price matrix table: Product names in left column, 6 supplier columns (S1-S6) with colored prices (green=best, yellow=mid, red=highest). Categories like "Meat - Beef", "Dairy", "Canned Goods".
+
+Style: Warm luxury aesthetic with brown/gold palette. Professional B2B wholesale tool. DM Sans font. NOT cyberpunk or travel.
+```
+
+---
+
+## PAGE 7 — Mobile Version
+
+```
+Mobile responsive version of the marketing dashboard for iPhone. Background #080c14. Width 390px.
+
+Top: Status bar with time. Below: "LARRY'S BRAIN" heading with small brain icon.
+
+Compact metrics: 3 hex cards in a row (Posts, Success%, Agents).
+
+Scrollable agent list: 3 visible agent cards with pause buttons.
+
+Recent missions: 3 post items with status dots.
+
+Bottom navigation bar with 5 icons: Home, Create (plus icon), Analytics, Campaigns, Settings. Pink active indicator on Home.
+
+Style: Mobile-first dark UI. Touch-friendly 44px tap targets. Safe area padding for iPhone notch. Compact monospace data display. Marketing app, NOT travel.
+```
+
+---
+
+## TIPS FOR STITCH
+
+1. Paste ONE prompt at a time (not all at once)
+2. After each generation, click "Redesign" if it looks wrong
+3. Use "Thinking" mode for higher quality output
+4. Export as React + Tailwind CSS when satisfied
+5. If it generates a travel app, add "This is NOT a travel app. This is a B2B marketing automation dashboard." at the end of your prompt
