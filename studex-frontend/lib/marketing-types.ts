@@ -21,7 +21,7 @@ export interface MarketingProfile {
 }
 
 export interface ImageGenConfig {
-  provider: 'gemini' | 'openai' | 'stability' | 'replicate' | 'local';
+  provider: 'nano-banana' | 'gemini' | 'openai' | 'stability' | 'replicate' | 'local';
   model: string;
   basePrompt: string;
 }

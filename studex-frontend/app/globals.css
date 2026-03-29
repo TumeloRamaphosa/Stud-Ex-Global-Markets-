@@ -4,6 +4,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== iOS / MOBILE SAFE AREA ===== */
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Touch-friendly tap targets (44px min per iOS HIG) */
+@media (max-width: 768px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Stack sidebar below on mobile */
+  .sidebar-mobile-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+  }
+}
+
+/* PWA standalone mode (home screen) */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

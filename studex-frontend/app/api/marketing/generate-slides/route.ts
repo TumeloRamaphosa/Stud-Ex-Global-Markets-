@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { readFile, mkdir } from 'fs/promises';
+import path from 'path';
+
+const execAsync = promisify(exec);
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,181 +27,168 @@ export async function POST(req: NextRequest) {
       'clear call-to-action closing scene',
     ];
 
-    // ==================== GEMINI (DEFAULT — FREE TIER) ====================
-    if (provider === 'gemini' || !provider) {
-      const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
-      if (!apiKey) {
-        return NextResponse.json(
-          { error: 'GOOGLE_GEMINI_API_KEY not configured. Get one free at https://aistudio.google.com/apikey' },
-          { status: 500 }
-        );
-      }
+    // ==================== NANO-BANANA (DEFAULT — LOCAL CLI) ====================
+    if (provider === 'nano-banana' || provider === 'gemini' || !provider) {
+      // Try nano-banana CLI first (uses Gemini under the hood, cheaper)
+      const outputDir = path.join(process.cwd(), 'public', 'generated-slides');
+      await mkdir(outputDir, { recursive: true });
 
       for (let i = 0; i < count; i++) {
-        const slidePrompt = `Generate a photorealistic image: ${prompt}. Scene ${i + 1} of 6: ${slideContexts[i]}. ${
-          slideTexts?.[i] ? `The text overlay will say: "${slideTexts[i]}"` : ''
-        } Style: iPhone photo, warm realistic lighting, portrait orientation 9:16, high quality, no text in the image.`;
+        const slidePrompt = `${prompt}. Scene ${i + 1}: ${slideContexts[i]}. ${
+          slideTexts?.[i] ? `Context: "${slideTexts[i]}"` : ''
+        } iPhone photo, realistic lighting, portrait 9:16, high quality, no text in image.`;
+
+        const outputName = `slide-${Date.now()}-${i}`;
+        const outputPath = path.join(outputDir, outputName);
 
         try {
-          // Gemini 2.0 Flash with image generation
-          const geminiModel = model || 'gemini-2.0-flash-exp';
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: slidePrompt }] }],
-                generationConfig: {
-                  responseModalities: ['IMAGE', 'TEXT'],
-                  imageDimensions: { width: 1024, height: 1536 },
-                },
-              }),
-            }
+          // Try nano-banana CLI first
+          await execAsync(
+            `nano-banana "${slidePrompt.replace(/"/g, '\\"')}" -o "${outputName}" -d "${outputDir}" -a 9:16 -s 1K`,
+            { timeout: 60000 }
           );
 
-          if (!response.ok) {
-            // Fallback: try Imagen 3 via Gemini API
-            const imagenResponse = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`,
+          // Find the generated file
+          const possibleExts = ['.png', '.jpg', '.webp'];
+          for (const ext of possibleExts) {
+            try {
+              const filePath = `${outputPath}${ext}`;
+              const fileData = await readFile(filePath);
+              const base64 = fileData.toString('base64');
+              const mimeType = ext === '.png' ? 'image/png' : ext === '.jpg' ? 'image/jpeg' : 'image/webp';
+              images.push({
+                url: `data:${mimeType};base64,${base64}`,
+                index: i,
+              });
+              break;
+            } catch {
+              // Try next extension
+            }
+          }
+
+          // Also check if file was saved with default naming
+          if (!images.find(img => img.index === i)) {
+            // Serve from public directory
+            images.push({
+              url: `/generated-slides/${outputName}.png`,
+              index: i,
+            });
+          }
+        } catch (cliError) {
+          console.log(`nano-banana CLI not available for slide ${i + 1}, falling back to Gemini API`);
+
+          // Fallback to direct Gemini API call
+          const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+          if (!apiKey) {
+            console.error('No Gemini API key configured');
+            continue;
+          }
+
+          try {
+            const geminiModel = model || 'gemini-2.0-flash-exp';
+            const response = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`,
               {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  instances: [{ prompt: slidePrompt }],
-                  parameters: {
-                    sampleCount: 1,
-                    aspectRatio: '9:16',
-                    personGeneration: 'allow_adult',
+                  contents: [{ parts: [{ text: `Generate a photorealistic image: ${slidePrompt}` }] }],
+                  generationConfig: {
+                    responseModalities: ['IMAGE', 'TEXT'],
                   },
                 }),
               }
             );
 
-            if (imagenResponse.ok) {
-              const imagenData = await imagenResponse.json();
-              if (imagenData.predictions?.[0]?.bytesBase64Encoded) {
-                images.push({
-                  url: `data:image/png;base64,${imagenData.predictions[0].bytesBase64Encoded}`,
-                  index: i,
-                });
+            if (response.ok) {
+              const data = await response.json();
+              const parts = data.candidates?.[0]?.content?.parts || [];
+              for (const part of parts) {
+                if (part.inlineData?.mimeType?.startsWith('image/')) {
+                  images.push({
+                    url: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
+                    index: i,
+                  });
+                  break;
+                }
               }
             } else {
-              console.error(`Gemini image gen failed for slide ${i + 1}`);
-            }
-            continue;
-          }
+              // Try Imagen 3 as last resort
+              const imagenResponse = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    instances: [{ prompt: slidePrompt }],
+                    parameters: { sampleCount: 1, aspectRatio: '9:16' },
+                  }),
+                }
+              );
 
-          const data = await response.json();
-          // Extract inline image from Gemini response
-          const parts = data.candidates?.[0]?.content?.parts || [];
-          for (const part of parts) {
-            if (part.inlineData?.mimeType?.startsWith('image/')) {
-              images.push({
-                url: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
-                index: i,
-              });
-              break;
+              if (imagenResponse.ok) {
+                const imagenData = await imagenResponse.json();
+                if (imagenData.predictions?.[0]?.bytesBase64Encoded) {
+                  images.push({
+                    url: `data:image/png;base64,${imagenData.predictions[0].bytesBase64Encoded}`,
+                    index: i,
+                  });
+                }
+              }
             }
+          } catch (apiErr) {
+            console.error(`Gemini API failed for slide ${i + 1}:`, apiErr);
           }
-        } catch (err) {
-          console.error(`Gemini slide ${i + 1} error:`, err);
-          continue;
         }
       }
     }
 
-    // ==================== OPENAI (FALLBACK) ====================
+    // ==================== OPENAI (ALTERNATIVE) ====================
     else if (provider === 'openai') {
       const apiKey = process.env.OPENAI_API_KEY;
       if (!apiKey) {
-        return NextResponse.json(
-          { error: 'OPENAI_API_KEY not configured on server.' },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: 'OPENAI_API_KEY not configured.' }, { status: 500 });
       }
 
       for (let i = 0; i < count; i++) {
-        const slidePrompt = `${prompt}. Scene ${i + 1}: ${slideContexts[i]}. ${
-          slideTexts?.[i] ? `Context: "${slideTexts[i]}"` : ''
-        } Style: iPhone photo, realistic lighting, portrait orientation 9:16.`;
-
+        const slidePrompt = `${prompt}. Scene ${i + 1}: ${slideContexts[i]}. iPhone photo, realistic lighting, portrait 9:16.`;
         const response = await fetch('https://api.openai.com/v1/images/generations', {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: model || 'gpt-image-1',
-            prompt: slidePrompt,
-            n: 1,
-            size: '1024x1792',
-          }),
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: model || 'gpt-image-1', prompt: slidePrompt, n: 1, size: '1024x1792' }),
         });
 
         if (!response.ok) continue;
-
         const data = await response.json();
-        if (data.data?.[0]?.url) {
-          images.push({ url: data.data[0].url, index: i });
-        } else if (data.data?.[0]?.b64_json) {
-          images.push({
-            url: `data:image/png;base64,${data.data[0].b64_json}`,
-            index: i,
-          });
-        }
+        if (data.data?.[0]?.url) images.push({ url: data.data[0].url, index: i });
+        else if (data.data?.[0]?.b64_json) images.push({ url: `data:image/png;base64,${data.data[0].b64_json}`, index: i });
       }
     }
 
-    // ==================== STABILITY AI (FALLBACK) ====================
+    // ==================== STABILITY AI (ALTERNATIVE) ====================
     else if (provider === 'stability') {
       const apiKey = process.env.STABILITY_API_KEY;
       if (!apiKey) {
-        return NextResponse.json(
-          { error: 'STABILITY_API_KEY not configured on server.' },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: 'STABILITY_API_KEY not configured.' }, { status: 500 });
       }
 
       for (let i = 0; i < count; i++) {
         const slidePrompt = `${prompt}. ${slideContexts[i]}. Photorealistic, portrait orientation.`;
-
-        const response = await fetch(
-          'https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image',
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              text_prompts: [{ text: slidePrompt, weight: 1 }],
-              height: 1536,
-              width: 1024,
-              samples: 1,
-            }),
-          }
-        );
+        const response = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text_prompts: [{ text: slidePrompt, weight: 1 }], height: 1536, width: 1024, samples: 1 }),
+        });
 
         if (!response.ok) continue;
-
         const data = await response.json();
-        if (data.artifacts?.[0]?.base64) {
-          images.push({
-            url: `data:image/png;base64,${data.artifacts[0].base64}`,
-            index: i,
-          });
-        }
+        if (data.artifacts?.[0]?.base64) images.push({ url: `data:image/png;base64,${data.artifacts[0].base64}`, index: i });
       }
     }
 
     return NextResponse.json({ images, count: images.length });
   } catch (error) {
     console.error('Generate slides error:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate slides' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to generate slides' }, { status: 500 });
   }
 }

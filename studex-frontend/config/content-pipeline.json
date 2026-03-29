@@ -1,8 +1,8 @@
 {
   "storage": {
     "provider": "google-drive",
-    "folderId": "1hoMlNAVfKWHb4ttczoyqAp6rlyqF7ehM",
-    "folderUrl": "https://drive.google.com/drive/folders/1hoMlNAVfKWHb4ttczoyqAp6rlyqF7ehM",
+    "folderId": "1IaPyzw7PXTz0BPgHfcYB-N_1WbuHgXsH",
+    "folderUrl": "https://drive.google.com/drive/folders/1IaPyzw7PXTz0BPgHfcYB-N_1WbuHgXsH",
     "structure": {
       "images": "generated-images/",
       "videos": "generated-videos/",

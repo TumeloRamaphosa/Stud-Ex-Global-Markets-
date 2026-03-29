@@ -9,6 +9,18 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    viewportFit: 'cover',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: '$TUD#X D#V0P$',
+  },
+  themeColor: '#1a1a2e',
 };
 
 export default function RootLayout({
