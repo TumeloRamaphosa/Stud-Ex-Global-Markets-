@@ -739,7 +739,7 @@ footer{
 <div id="tabs">
   <div class="tab active" id="tab-matrix" onclick="sw('matrix')">Price Matrix</div>
   <div class="tab" id="tab-suppliers" onclick="sw('suppliers')">Supplier View</div>
-  <div class="tab" id="tab-quote" onclick="sw('quote')">Quote Builder</div>
+  <div class="tab" id="tab-quote" onclick="sw('quote')">Quote Builder <span id="q-badge" style="display:none;background:var(--gold);color:var(--bg);font-size:10px;padding:1px 6px;border-radius:8px;margin-left:4px;font-weight:600"></span></div>
   <div class="tab-r">
     <button class="tbtn tbtn-g" onclick="dlXL()">↓ Excel</button>
     <button class="tbtn tbtn-s" onclick="sw('quote')">Build Quote ▶</button>
@@ -783,11 +783,14 @@ footer{
         <div class="qtitle">Quote Builder</div>
         <div class="qref" id="qref">Studex Group · Internal · Studex Cost + Markup + 15% VAT</div>
       </div>
-      <div class="mk-row">
+      <div class="mk-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <span class="mk-lbl">Markup:</span>
         <button class="mk-btn" onclick="setMk(20,this)">20%</button>
         <button class="mk-btn" onclick="setMk(25,this)">25%</button>
         <button class="mk-btn on" onclick="setMk(30,this)">30%</button>
+        <span style="width:1px;height:20px;background:var(--border2);margin:0 4px"></span>
+        <button onclick="addAllToQuote();renderQ();" style="cursor:pointer;background:transparent;border:1px solid var(--gold);color:var(--gold);padding:4px 10px;border-radius:4px;font-size:11px;font-family:'DM Mono',monospace">+ Add All</button>
+        <button onclick="clearQuote();" style="cursor:pointer;background:transparent;border:1px solid var(--red);color:var(--red);padding:4px 10px;border-radius:4px;font-size:11px;font-family:'DM Mono',monospace">✕ Clear Quote</button>
       </div>
     </div>
 
@@ -807,6 +810,7 @@ footer{
           <th class="r">Client (excl. VAT)</th>
           <th class="r">VAT 15%</th>
           <th class="r">Invoice (incl. VAT)</th>
+          <th style="width:36px"></th>
         </tr></thead>
         <tbody id="qbody"></tbody>
       </table>
@@ -837,6 +841,21 @@ const SUPS = [{"id": 1, "name": "Alibaba.com", "url": "alibaba.com", "contact": 
 const RAW  = [["Bakery", "Bread Tortillas & Wraps", "packet", 60, 18, [null, null, null, 18, 20, 19]], ["Baking Ingredients", "Margarine Feuilletage 10kg", "kg", 2400, 85, [null, null, 85, 88, null, 90]], ["Baking Ingredients", "Sugar Cube White 1kg", "kg", 5000, 9.2, [null, null, null, 9.5, 8.9, 9.8]], ["Baking Ingredients", "Baking Powder 1kg", "packet", 400, 22, [null, null, 22, 24, 21, 23]], ["Baking Ingredients", "Chocolate Pastry Baton", "unit", 240, 14.5, [null, null, null, null, null, 15]], ["Baking Ingredients", "Flour Corn Starch 400g", "unit", 1500, 18, [null, null, null, 18, 17, 19]], ["Baking Ingredients", "Flour Wheat 50kg", "unit", 500, 285, [null, null, null, 290, 268, null]], ["Baking Ingredients", "Sugar Crystal White", "unit", 2400, 52, [null, null, null, 56, 49, 54]], ["Beverages", "Coffee Jacobs Kronung 500g", "carton", 240, 125, [null, null, null, 132, 120, 128]], ["Beverages", "Fruit Cocktail Juice 1L", "litre", 24000, 22, [null, null, null, 24, 21, 23]], ["Beverages", "Coffee Nescafe Instant 200g", "unit", 1500, 85, [null, null, null, 90, 82, 88]], ["Breakfast Cereals", "Kellogg's Cookie Crisp", "unit", 240, 75, [null, null, null, 82, 75, 80]], ["Breakfast Cereals", "Kellogg's Frosties", "unit", 240, 78, [null, null, null, 82, 75, 80]], ["Breakfast Cereals", "Kellogg's Honey Pops", "unit", 240, 76, [null, null, null, 80, 74, 78]], ["Breakfast Cereals", "Kellogg's Special K 550g", "unit", 120, 92, [null, null, null, 98, 88, 95]], ["Breakfast Cereals", "Muesli Cereals 750g", "unit", 120, 65, [null, null, null, null, 62, 68]], ["Canned Goods", "Tomato Paste 5/1 4.25kg", "unit", 120, 95, [52, 56, 85, 102, 88, 98]], ["Canned Goods", "Green Beans Fine 5/1", "tray", 120, 88, [null, null, null, null, 85, 92]], ["Canned Goods", "Apricot in Syrup 800g", "unit", 1200, 42, [null, null, null, 44, 40, 43]], ["Canned Goods", "White Beans 5/1", "unit", 120, 68, [null, null, 62, 72, 65, 70]], ["Canned Goods", "Red Kidney Beans 5/1", "unit", 850, 72, [null, null, 65, 76, 68, 74]], ["Canned Goods", "Chickpeas 5/1", "unit", 1200, 68, [null, null, 60, 72, 62, 68]], ["Canned Goods", "Fruit Cocktail 800g", "unit", 600, 45, [null, null, null, 48, 43, 46]], ["Canned Goods", "Lentils Prepared 5/1", "unit", 600, 72, [null, null, null, 75, 68, 72]], ["Canned Goods", "Coconut Milk 1/2", "unit", 600, 38, [null, null, null, 40, 36, 39]], ["Canned Goods", "Mixed Vegetables 5/1", "unit", 240, 75, [null, null, null, 78, 72, 76]], ["Canned Goods", "Mushrooms 5/1", "unit", 190, 82, [null, null, null, 86, 80, 84]], ["Canned Goods", "Black Olives 5/1", "unit", 240, 95, [null, null, null, null, 88, 96]], ["Canned Goods", "Black Olives Pitted 3/1", "unit", 360, 88, [null, null, null, null, 82, 90]], ["Canned Goods", "Green Olives 5/1", "unit", 240, 92, [null, null, null, null, 86, 94]], ["Canned Goods", "Sardines 125g", "unit", 360, 32, [null, null, null, 34, 30, 33]], ["Canned Goods", "Sweet Corn 3/1", "unit", 15000, 45, [null, null, 41, 49, 43, 47]], ["Canned Goods", "Peeled Tomato 5/1 4.25kg", "unit", 1200, 88, [null, null, null, null, 82, 90]], ["Canned Goods", "Tuna in Oil 1.7kg", "unit", 2400, 185, [null, null, null, 192, 175, 188]], ["Condiments", "Salt Fine 250g", "unit", 1000, 8.5, [null, null, null, null, 13, 15]], ["Condiments", "White Vinegar 1L", "litre", 600, 12, [null, null, null, 14, 11, 13]], ["Condiments", "Salt Fine 1kg", "unit", 360, 14, [null, null, null, 16, 13, 15]], ["Dairy", "Processed Cheese La Bonne Vache", "unit", 400, 95, [null, null, null, null, null, 98]], ["Dairy", "UHT Whole Milk 1L", "litre", 5000, 18, [null, null, null, 20, 17, 19]], ["Dairy", "Unsalted Butter Micro 10g x100", "packet", 600, 145, [null, null, null, 152, 138, 148]], ["Dairy", "Camembert 125g", "unit", 800, 55, [null, null, null, null, 52, 58]], ["Dairy", "Emmental Cheese", "unit", 600, 125, [null, null, null, null, 118, 128]], ["Dairy", "Fresh Cream UHT 1L", "unit", 480, 42, [null, null, null, 44, 40, 43]], ["Dairy", "Pastry Cream No Sugar", "unit", 120, 48, [null, null, null, null, null, 50]], ["Dairy", "Nido Milk Powder 800g", "unit", 600, 178, [null, null, null, 188, 162, 182]], ["Dairy", "Milk Powder 25kg bag", "unit", 150, 620, [null, null, null, null, null, 640]], ["Meat - Beef", "SA Beef Blade Boneless", "kg", 5000, 82, [null, null, null, null, 78, 85]], ["Meat - Beef", "SA Beef Rump Steak", "kg", 7500, 175, [null, null, null, null, 172, 180]], ["Meat - Beef", "SA Beef Striploin Boneless", "kg", 11000, 210, [null, null, null, null, 205, 218]], ["Meat - Beef", "SA Beef Fillet/Tenderloin", "kg", 11000, 245, [null, null, null, null, 238, 252]], ["Meat - Lamb", "Lamb Leg Bone-In", "kg", 800, 145, [null, null, null, null, 140, 148]], ["Meat - Lamb", "Lamb Loin Chops Halal", "kg", 2000, 185, [null, null, null, null, 180, 190]], ["Meat - Lamb", "Lamb Shoulder Boneless", "kg", 87, 132, [null, null, null, null, 128, 136]], ["Meat - Lamb", "Lamb Cote (packet)", "packet", 3600, 185, [null, null, null, null, 178, 190]], ["Meat - Lamb", "Lamb Shoulder (whole unit)", "unit", 410, 245, [null, null, null, null, 238, 252]], ["Meat - Lamb", "Lamb Leg (whole unit)", "unit", 300, 385, [null, null, null, null, 375, 395]], ["Meat - Lamb", "Navarin Lamb (unit)", "unit", 350, 295, [null, null, null, null, 288, 302]], ["Meat - Pork", "Pork Bacon Sliced 200g", "kg", 1500, 95, [null, null, null, null, 90, 98]], ["Meat - Pork", "Pork Ham Boneless", "kg", 200, 145, [null, null, null, null, 138, 150]], ["Meat - Pork", "Pork Ham Parma Style", "kg", 200, 185, [null, null, null, null, 178, 192]], ["Meat - Poultry", "Chicken Breast", "kg", 9000, 82, [null, null, null, 88, 80, 85]], ["Meat - Poultry", "Chicken Drumstick", "kg", 20000, 46, [null, null, null, 50, 44, 48]], ["Meat - Poultry", "Chicken Legs", "kg", 20000, 50, [null, null, null, 54, 48, 52]], ["Meat - Poultry", "Chicken Wings", "kg", 5000, 40, [null, null, null, 48, 42, 45]], ["Meat - Poultry", "Chicken Sausages Frankfurt x10", "packet", 1200, 52, [null, null, null, 56, null, 54]], ["Non-Food", "Garbage Bags 100L x10", "packet", 3400, 58, [22, 25, 52, 62, 55, 60]], ["Non-Food", "Cling Film 300m Roll", "roll", 2200, 170, [95, 100, null, null, null, 175]], ["Non-Food", "Zip Lock Bags (box)", "unit", 800, 28, [12, 15, null, null, null, 30]], ["Non-Food", "Dishcloths Cotton", "unit", 3400, 32, [null, null, null, null, null, 34]], ["Non-Food", "Paper Coffee Cups 20cl x100", "unit", 12000, 85, [null, null, null, null, null, 88]], ["Non-Food", "Rubber Cleaning Gloves", "unit", 2200, 22, [null, null, null, null, null, 24]], ["Non-Food", "Liquid Hand Soap 500ml", "unit", 3400, 36, [null, null, null, null, null, 38]], ["Non-Food", "Paper Handtowel Roll", "unit", 3600, 45, [null, null, null, null, null, 48]], ["Non-Food", "Paper Napkins x100", "unit", 24000, 30, [10, 12, null, 26, null, 32]], ["Non-Food", "Soap Bar Diama", "unit", 1200, 18, [null, null, null, null, null, 20]], ["Nuts & Seeds", "Sliced Almonds 1kg", "kg", 240, 172, [95, 100, null, null, 168, 178]], ["Nuts & Seeds", "Almond Powder 1kg", "kg", 240, 185, [100, 108, null, null, 180, 190]], ["Oils & Fats", "Vegetable Cooking Oil 20L", "unit", 800, 455, [320, 335, null, null, 445, 465]], ["Oils & Fats", "Olive Oil 1L", "unit", 200, 85, [55, 60, null, null, null, 88]], ["Pasta & Grains", "Pasta Farfalle 500g", "unit", 2400, 21, [9, 10, null, null, null, 22]], ["Pasta & Grains", "Pasta Penne Rigate 500g", "unit", 3600, 20, [9, 10, null, null, null, 21]], ["Pasta & Grains", "Pasta Spaghetti 500g", "unit", 600, 19, [8, 9, null, null, null, 20]], ["Pasta & Grains", "Pasta Vermicelli 500g", "unit", 3600, 19, [8, 9, null, null, null, 20]], ["Pasta & Grains", "Pasta Macaroni 500g", "unit", 1200, 20, [9, 10, null, null, null, 21]], ["Pasta & Grains", "Indian Rice 50kg", "unit", 1200, 580, [380, 395, null, null, 560, 620]], ["Sauces & Condiments", "Asian Light Soy Sauce 500ml", "unit", 360, 38, [null, null, null, null, null, 40]], ["Sauces & Condiments", "Sesame Oil 500ml", "unit", 1000, 65, [null, null, null, null, null, 68]], ["Sauces & Condiments", "Chili Sauce 500ml", "unit", 120, 32, [null, null, null, null, null, 34]], ["Sauces & Condiments", "HP Sauce 255ml", "unit", 240, 48, [null, null, null, null, null, 50]], ["Sauces & Condiments", "Heinz Ketchup 340g", "unit", 120, 26, [null, null, null, null, null, 28]], ["Sauces & Condiments", "Mustard 1kg", "unit", 2400, 48, [null, null, null, null, null, 50]], ["Sauces & Condiments", "Soy Sauce 1L", "unit", 36, 35, [null, null, null, null, null, 38]], ["Spices & Herbs", "Sept Epices Assortment 1kg", "kg", 60, 85, [null, null, null, null, null, 88]], ["Spices & Herbs", "Turmeric Ground 1kg", "kg", 269, 45, [null, null, null, null, null, 48]], ["Spices & Herbs", "Herbes de Provence 1kg", "kg", 16, 72, [null, null, null, null, null, 75]], ["Spices & Herbs", "Paprika 500g", "unit", 60, 55, [null, null, null, null, null, 58]], ["Spices & Herbs", "White Pepper Ground", "kg", 60, 95, [null, null, null, null, null, 98]], ["Spices & Herbs", "Couscous Spice Mix 230g", "packet", 60, 28, [null, null, null, null, null, 30]], ["Spices & Herbs", "Okra Powder (Gombo)", "packet", 60, 22, [null, null, null, null, null, 24]], ["Spices & Herbs", "Tandoori Spice 1kg", "unit", 360, 132, [null, null, null, null, null, 138]], ["Spices & Herbs", "5 Spice Blend 1kg", "unit", 120, 95, [null, null, null, null, null, 98]], ["Spices & Herbs", "Tikhalal Red Chili 500g", "unit", 120, 62, [null, null, null, null, null, 65]], ["Spices & Herbs", "Fish Masala", "unit", 120, 55, [null, null, null, null, null, 58]], ["Spices & Herbs", "Sambhar Masala", "unit", 120, 58, [null, null, null, null, null, 60]], ["Spices & Herbs", "Saffron x100 sachets", "unit", 120, 260, [155, 165, null, null, 248, 268]]];
 const MS=1.15, VAT=0.15;
 let aCat='all', aMk=30;
+
+// ═══════════════════════ QUOTE SELECTION ═══════════════════════
+let quoteItems=new Set(JSON.parse(localStorage.getItem('studex_quote_items')||'[]'));
+function saveQuote(){localStorage.setItem('studex_quote_items',JSON.stringify([...quoteItems]));}
+function toggleQuote(idx){
+  if(quoteItems.has(idx))quoteItems.delete(idx); else quoteItems.add(idx);
+  saveQuote();renderMx();updateQuoteBadge();
+}
+function clearQuote(){quoteItems.clear();saveQuote();renderMx();renderQ();updateQuoteBadge();}
+function addAllToQuote(){RAW.forEach((_,i)=>quoteItems.add(i));saveQuote();renderMx();updateQuoteBadge();}
+function updateQuoteBadge(){
+  const b=document.getElementById('q-badge');
+  if(b)b.textContent=quoteItems.size>0?quoteItems.size:'';
+  if(b)b.style.display=quoteItems.size>0?'inline-flex':'none';
+}
 
 function sc(b){return+(b*MS).toFixed(2)}
 function zar(v){return v==null?'—':'R '+v.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -1071,7 +1090,7 @@ function renderMx(){
   const s=document.getElementById('srch').value.toLowerCase();
   const filt=RAW.filter(([c,n])=>(aCat==='all'||c===aCat)&&(!s||n.toLowerCase().includes(s)));
 
-  let hh=`<tr><th class="frz" style="min-width:210px">Product</th><th>Unit</th><th style="text-align:right">RFQ Qty</th>`;
+  let hh=`<tr><th style="width:40px;text-align:center">Quote</th><th class="frz" style="min-width:210px">Product</th><th>Unit</th><th style="text-align:right">RFQ Qty</th>`;
   SUPS.forEach(sup=>{
     hh+=`<th class="sh" style="--sc:${sup.color}">
       <span class="shn" style="color:${sup.color}">S${sup.id}</span>
@@ -1079,18 +1098,29 @@ function renderMx(){
     </th>`;
   });
   hh+='<th style="text-align:center;color:var(--green);min-width:120px">★ Best</th><th style="text-align:right;color:var(--amber);min-width:110px">Studex Cost</th></tr>';
+  // Track raw index for quote buttons
+  let rawIdx=0;const rawMap=[];
   document.getElementById('mx-head').innerHTML=hh;
 
   const sB=SUPS.map(()=>0),sC=SUPS.map(()=>0);
   let html='',curC='',ri=0;
-  filt.forEach(([cat,name,unit,qty,,prices])=>{
-    if(cat!==curC){curC=cat;html+=`<tr><td class="frz cath" colspan="${SUPS.length+3}">${cat}</td></tr>`;}
+  // Build index map for filtered items
+  const filtWithIdx=[];
+  RAW.forEach((row,origIdx)=>{
+    const [c,n]=row;
+    if((aCat==='all'||c===aCat)&&(!s||n.toLowerCase().includes(s)))filtWithIdx.push({row,origIdx});
+  });
+  filtWithIdx.forEach(({row,origIdx})=>{
+    const [cat,name,unit,qty,,prices]=row;
+    if(cat!==curC){curC=cat;html+=`<tr><td colspan="1"></td><td class="frz cath" colspan="${SUPS.length+3}">${cat}</td></tr>`;}
     const sdx=prices.map(p=>p!=null?sc(p):null);
     const valid=sdx.filter(p=>p!=null);
     const best=valid.length?Math.min(...valid):null;
     const bi=best!=null?sdx.indexOf(best):-1;
     prices.forEach((p,si)=>{if(p!=null){sB[si]+=sc(p)*qty;sC[si]++;}  });
-    html+=`<tr class="${ri++%2?'':'even'}">
+    const inQ=quoteItems.has(origIdx);
+    html+=`<tr class="${ri++%2?'':'even'}" style="${inQ?'background:rgba(201,168,76,0.08);':''}">
+      <td style="text-align:center;padding:2px"><button onclick="toggleQuote(${origIdx})" style="cursor:pointer;border:1px solid ${inQ?'var(--gold)':'var(--border2)'};background:${inQ?'var(--gold3)':'transparent'};color:${inQ?'var(--gold)':'var(--ink3)'};border-radius:4px;width:28px;height:24px;font-size:14px;line-height:1" title="${inQ?'Remove from quote':'Add to quote'}">${inQ?'✓':'+'}</button></td>
       <td class="frz">${name}</td>
       <td style="text-align:center;color:var(--ink4);font-size:11px">${unit}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink4)">${qty.toLocaleString()}</td>
@@ -1101,12 +1131,12 @@ function renderMx(){
   });
 
   // Total rows
-  html+=`<tr class="trow"><td class="frz">STUDEX COST TOTAL</td><td colspan="2"></td>${SUPS.map((_,i)=>sC[i]>0?`<td class="tv">${zar(sB[i])}</td>`:'<td>—</td>').join('')}<td class="tv">${zar(Math.min(...sB.filter((_,i)=>sC[i]>0)))}</td><td></td></tr>`;
-  html+=`<tr class="crow"><td class="frz" style="text-align:left;padding-left:12px;font-size:10px">Products stocked</td><td colspan="2"></td>${SUPS.map((_,i)=>`<td>${sC[i]} / ${RAW.length}</td>`).join('')}<td></td><td></td></tr>`;
-  html+=`<tr class="trow mk20"><td class="frz">+ 20% MARKUP</td><td colspan="2"></td>${SUPS.map((_,i)=>sC[i]>0?`<td class="tv">${zar(sB[i]*1.20)}</td>`:'<td>—</td>').join('')}<td></td><td></td></tr>`;
-  html+=`<tr class="trow mk25"><td class="frz">+ 25% MARKUP</td><td colspan="2"></td>${SUPS.map((_,i)=>sC[i]>0?`<td class="tv">${zar(sB[i]*1.25)}</td>`:'<td>—</td>').join('')}<td></td><td></td></tr>`;
-  html+=`<tr class="trow mk30"><td class="frz">+ 30% MARKUP</td><td colspan="2"></td>${SUPS.map((_,i)=>sC[i]>0?`<td class="tv">${zar(sB[i]*1.30)}</td>`:'<td>—</td>').join('')}<td></td><td></td></tr>`;
-  html+=`<tr class="vrow"><td class="frz">INVOICE (30% + 15% VAT)</td><td colspan="2"></td>${SUPS.map((_,i)=>sC[i]>0?`<td class="tv">${zar(sB[i]*1.30*1.15)}</td>`:'<td>—</td>').join('')}<td class="tv">${zar(Math.min(...sB.filter((_,i)=>sC[i]>0))*1.30*1.15)}</td><td></td></tr>`;
+  html+=`<tr class="trow"><td></td><td class="frz">STUDEX COST TOTAL</td><td colspan="2"></td>${SUPS.map((_,i)=>sC[i]>0?`<td class="tv">${zar(sB[i])}</td>`:'<td>—</td>').join('')}<td class="tv">${zar(Math.min(...sB.filter((_,i)=>sC[i]>0)))}</td><td></td></tr>`;
+  html+=`<tr class="crow"><td></td><td class="frz" style="text-align:left;padding-left:12px;font-size:10px">Products stocked</td><td colspan="2"></td>${SUPS.map((_,i)=>`<td>${sC[i]} / ${RAW.length}</td>`).join('')}<td></td><td></td></tr>`;
+  html+=`<tr class="trow mk20"><td></td><td class="frz">+ 20% MARKUP</td><td colspan="2"></td>${SUPS.map((_,i)=>sC[i]>0?`<td class="tv">${zar(sB[i]*1.20)}</td>`:'<td>—</td>').join('')}<td></td><td></td></tr>`;
+  html+=`<tr class="trow mk25"><td></td><td class="frz">+ 25% MARKUP</td><td colspan="2"></td>${SUPS.map((_,i)=>sC[i]>0?`<td class="tv">${zar(sB[i]*1.25)}</td>`:'<td>—</td>').join('')}<td></td><td></td></tr>`;
+  html+=`<tr class="trow mk30"><td></td><td class="frz">+ 30% MARKUP</td><td colspan="2"></td>${SUPS.map((_,i)=>sC[i]>0?`<td class="tv">${zar(sB[i]*1.30)}</td>`:'<td>—</td>').join('')}<td></td><td></td></tr>`;
+  html+=`<tr class="vrow"><td></td><td class="frz">INVOICE (30% + 15% VAT)</td><td colspan="2"></td>${SUPS.map((_,i)=>sC[i]>0?`<td class="tv">${zar(sB[i]*1.30*1.15)}</td>`:'<td>—</td>').join('')}<td class="tv">${zar(Math.min(...sB.filter((_,i)=>sC[i]>0))*1.30*1.15)}</td><td></td></tr>`;
 
   document.getElementById('mx-body').innerHTML=html;
 }
@@ -1181,19 +1211,24 @@ function setMk(mk,btn){aMk=mk;document.querySelectorAll('.mk-btn').forEach(b=>b.
 
 function renderQ(){
   let html='',curC='',ln=1,gS=0,gE=0,gV=0,gI=0,pCnt=0;
-  RAW.forEach(([cat,name,unit,,base,prices])=>{
-    if(cat!==curC){curC=cat;html+=`<tr class="cat-r"><td colspan="8">${cat.toUpperCase()}</td></tr>`;}
+  const items=quoteItems.size>0?[...quoteItems].sort((a,b)=>a-b):RAW.map((_,i)=>i);
+  if(quoteItems.size===0){
+    html+=`<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--ink3);font-style:italic">Showing all products. Use the <strong style="color:var(--gold)">+</strong> buttons in the Price Matrix to select specific products for your quote.</td></tr>`;
+  }
+  items.forEach(idx=>{
+    const [cat,name,unit,,base,prices]=RAW[idx];
+    if(cat!==curC){curC=cat;html+=`<tr class="cat-r"><td colspan="9">${cat.toUpperCase()}</td></tr>`;}
     const all=[sc(base),...prices.map(p=>p!=null?sc(p):null).filter(p=>p!=null)];
     const bSC=Math.min(...all);
     const ex=+(bSC*(1+aMk/100)).toFixed(2);
     const vt=+(ex*VAT).toFixed(2);
     const inc=+(ex+vt).toFixed(2);
     gS+=bSC;gE+=ex;gV+=vt;gI+=inc;pCnt++;
-    html+=`<tr><td>${ln++}</td><td><strong>${name}</strong></td><td>${cat}</td><td style="text-align:center;color:var(--ink4)">${unit}</td><td class="r">${zar(bSC)}</td><td class="r">${zar(ex)}</td><td class="r">${zar(vt)}</td><td class="r">${zar(inc)}</td></tr>`;
+    html+=`<tr><td>${ln++}</td><td><strong>${name}</strong></td><td>${cat}</td><td style="text-align:center;color:var(--ink4)">${unit}</td><td class="r">${zar(bSC)}</td><td class="r">${zar(ex)}</td><td class="r">${zar(vt)}</td><td class="r">${zar(inc)}</td><td style="text-align:center"><button onclick="toggleQuote(${idx});renderQ();" style="cursor:pointer;border:1px solid var(--red);background:transparent;color:var(--red);border-radius:3px;width:22px;height:20px;font-size:11px" title="Remove from quote">✕</button></td></tr>`;
   });
-  html+=`<tr class="sub-r"><td colspan="4"><strong>Subtotal (excl. VAT)</strong></td><td class="r">${zar(gS)}</td><td class="r">${zar(gE)}</td><td></td><td></td></tr>`;
-  html+=`<tr class="sub-r"><td colspan="4"><strong>VAT @ 15%</strong></td><td></td><td></td><td class="r">${zar(gV)}</td><td></td></tr>`;
-  html+=`<tr class="grand-r"><td colspan="4"><strong>GRAND TOTAL (incl. VAT)</strong></td><td class="r">${zar(gS)}</td><td class="r">${zar(gE)}</td><td class="r">${zar(gV)}</td><td class="r"><strong>${zar(gI)}</strong></td></tr>`;
+  html+=`<tr class="sub-r"><td colspan="4"><strong>Subtotal (excl. VAT)</strong></td><td class="r">${zar(gS)}</td><td class="r">${zar(gE)}</td><td></td><td></td><td></td></tr>`;
+  html+=`<tr class="sub-r"><td colspan="4"><strong>VAT @ 15%</strong></td><td></td><td></td><td class="r">${zar(gV)}</td><td></td><td></td></tr>`;
+  html+=`<tr class="grand-r"><td colspan="4"><strong>GRAND TOTAL (incl. VAT)</strong></td><td class="r">${zar(gS)}</td><td class="r">${zar(gE)}</td><td class="r">${zar(gV)}</td><td class="r"><strong>${zar(gI)}</strong></td><td></td></tr>`;
   document.getElementById('qbody').innerHTML=html;
 
   // Summary cards
@@ -1240,7 +1275,7 @@ setInterval(()=>addLog('PARTNER'),7200);
 
 // ═══════════════════════ COUNTDOWN ═══════════════════════
 function tick(){
-  const dl=new Date('2026-03-26T17:00:00+02:00')-new Date();
+  const dl=new Date('2026-04-30T17:00:00+02:00')-new Date();
   if(dl<=0){document.getElementById('countdown').textContent='DEADLINE';return;}
   const d=Math.floor(dl/86400000),h=Math.floor(dl/3600000)%24,m=Math.floor(dl/60000)%60,s=Math.floor(dl/1000)%60;
   document.getElementById('countdown').textContent=d+'d '+[h,m,s].map(n=>String(n).padStart(2,'0')).join(':');
@@ -1304,6 +1339,7 @@ function sw(name){
 
 renderMx();
 buildSupView();
+updateQuoteBadge();
 document.querySelector('.sv-tab:last-child')?.classList.add('on');
 document.getElementById('sv-5')?.classList.add('on');
 </script>
