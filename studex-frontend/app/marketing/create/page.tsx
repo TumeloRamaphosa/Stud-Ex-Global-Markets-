@@ -52,6 +52,11 @@ export default function CreatePostPage() {
   const [profile, setProfile] = useState<MarketingProfile | null>(null);
   const [currentStep, setCurrentStep] = useState<Step>('hook');
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [generatedImageUrls, setGeneratedImageUrls] = useState<string[]>([
+    '', '', '', '', '', '',
+  ]);
 
   // Form state
   const [hookCategory, setHookCategory] = useState<HookCategory>('person-conflict');
@@ -130,6 +135,151 @@ export default function CreatePostPage() {
     setSlideTexts(newTexts);
   };
 
+  // ========== AI IMAGE GENERATION ==========
+  const handleGenerateImages = async () => {
+    if (!imagePrompt) {
+      toast.error('Please enter an image generation prompt first');
+      return;
+    }
+    if (!profile) {
+      toast.error('Please set up your marketing profile first');
+      return;
+    }
+
+    setGenerating(true);
+    const toastId = toast.loading('Generating 6 slideshow images with AI...');
+
+    try {
+      // Call the backend slide generation endpoint
+      const response = await fetch('/api/marketing/generate-slides', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: imagePrompt,
+          slideTexts,
+          provider: profile.imageGen.provider,
+          model: profile.imageGen.model,
+          count: 6,
+        }),
+      });
+
+      if (!response.ok) {
+        // Fallback: generate via client-side OpenAI if backend unavailable
+        const errorText = await response.text();
+        throw new Error(errorText || 'Backend generation failed');
+      }
+
+      const data = await response.json();
+      if (data.images && data.images.length > 0) {
+        const newPreviews = [...slideImagePreviews];
+        const newUrls = [...generatedImageUrls];
+        data.images.forEach((img: { url: string; index: number }) => {
+          newPreviews[img.index] = img.url;
+          newUrls[img.index] = img.url;
+        });
+        setSlideImagePreviews(newPreviews);
+        setGeneratedImageUrls(newUrls);
+        toast.success('Generated 6 slideshow images!', { id: toastId });
+      }
+    } catch (err) {
+      console.error('Image generation failed:', err);
+      toast.error('Image generation failed. Upload images manually or check your API key in Settings.', { id: toastId });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // ========== UPLOAD IMAGES TO STORAGE ==========
+  const uploadImagesToStorage = async (postId: string): Promise<SlideData[]> => {
+    if (!profile?.id) throw new Error('No profile');
+
+    const slides: SlideData[] = [];
+    for (let i = 0; i < 6; i++) {
+      let imageUrl = generatedImageUrls[i] || '';
+
+      // If user uploaded a file, upload to Firebase Storage
+      if (slideImages[i]) {
+        imageUrl = await marketingApi.storage.uploadSlideImage(
+          profile.id, postId, slideImages[i]!, i
+        );
+      }
+
+      slides.push({
+        imageUrl,
+        overlayText: slideTexts[i],
+        prompt: imagePrompt,
+        order: i,
+      });
+    }
+    return slides;
+  };
+
+  // ========== POST TO PLATFORMS VIA UPLOAD-POST ==========
+  const handlePostToPlatforms = async (postId: string, slides: SlideData[]) => {
+    if (!profile?.uploadPost.apiKey) {
+      toast.error('Upload-Post API key not configured. Go to Settings.');
+      return;
+    }
+
+    setPosting(true);
+    const toastId = toast.loading(`Posting to ${selectedPlatforms.length} platforms...`);
+
+    try {
+      // Convert slide image URLs to File objects for Upload-Post API
+      const imageFiles: File[] = [];
+      for (const slide of slides) {
+        if (slide.imageUrl) {
+          const response = await fetch(slide.imageUrl);
+          const blob = await response.blob();
+          imageFiles.push(new File([blob], `slide-${slide.order}.png`, { type: 'image/png' }));
+        }
+      }
+
+      if (imageFiles.length === 0) {
+        throw new Error('No images to upload. Generate or upload images first.');
+      }
+
+      const { requestId } = await marketingApi.uploadPost.postToplatforms(
+        profile.uploadPost.apiKey,
+        profile.uploadPost.profile,
+        selectedPlatforms,
+        imageFiles,
+        captionText,
+        hookText
+      );
+
+      // Update the post with the request ID and status
+      await marketingApi.posts.updatePost(postId, {
+        requestId,
+        status: 'posting',
+      });
+
+      // Track the hook performance
+      if (profile.id) {
+        await marketingApi.hooks.trackHook({
+          profileId: profile.id,
+          postId,
+          hookText,
+          hookCategory,
+          requestId,
+          date: new Date().toISOString().split('T')[0],
+          impressions: 0,
+          conversions: 0,
+          ctaText,
+          status: 'testing',
+        });
+      }
+
+      toast.success(`Posted to ${selectedPlatforms.length} platforms! Request ID: ${requestId}`, { id: toastId });
+    } catch (err) {
+      console.error('Upload-Post failed:', err);
+      await marketingApi.posts.updatePost(postId, { status: 'failed' });
+      toast.error(`Posting failed: ${(err as Error).message}`, { id: toastId });
+    } finally {
+      setPosting(false);
+    }
+  };
+
   const handleSaveDraft = async () => {
     if (!profile?.id) {
       toast.error('Please set up your marketing profile first');
@@ -176,35 +326,52 @@ export default function CreatePostPage() {
       return;
     }
 
+    // Verify we have images
+    const hasImages = slideImagePreviews.some((p) => p !== '') || slideImages.some((f) => f !== null);
+    if (!hasImages) {
+      toast.error('Please generate or upload slide images before posting');
+      return;
+    }
+
+    if (!profile.uploadPost.apiKey) {
+      toast.error('Upload-Post API key not configured. Go to Marketing > Settings first.');
+      return;
+    }
+
     setSaving(true);
     try {
-      const slides: SlideData[] = slideTexts.map((text, i) => ({
-        imageUrl: slideImagePreviews[i] || '',
-        overlayText: text,
-        prompt: imagePrompt,
-        order: i,
-      }));
-
-      await marketingApi.posts.createPost({
+      // Step 1: Create post in Firestore
+      const postId = await marketingApi.posts.createPost({
         profileId: profile.id,
         requestId: '',
         hookText,
         hookCategory,
         captionText,
         ctaText,
-        slides,
+        slides: [],
         platforms: selectedPlatforms,
         platformResults: {},
-        status: 'queued',
+        status: 'generating',
         scheduledAt: null,
         postedAt: null,
       });
 
-      toast.success('Post queued for publishing!');
-      router.push('/marketing');
+      toast.loading('Uploading images to storage...');
+
+      // Step 2: Upload images to Firebase Storage
+      const slides = await uploadImagesToStorage(postId);
+
+      // Step 3: Update post with slide URLs
+      await marketingApi.posts.updatePost(postId, { slides, status: 'ready' });
+
+      // Step 4: Post to platforms via Upload-Post API
+      await handlePostToPlatforms(postId, slides);
+
+      toast.success('Post published!');
+      router.push('/marketing/campaigns');
     } catch (err) {
       console.error('Failed to create post:', err);
-      toast.error('Failed to create post');
+      toast.error(`Failed to post: ${(err as Error).message}`);
     } finally {
       setSaving(false);
     }
@@ -334,9 +501,36 @@ export default function CreatePostPage() {
               <div className="space-y-6">
                 <Card>
                   <h2 className="text-xl font-bold mb-2">Slide Images</h2>
-                  <p className="text-gray-400 text-sm mb-6">
+                  <p className="text-gray-400 text-sm mb-4">
                     Upload 6 images (1024x1536 portrait) or use AI generation. All slides should share consistent visual elements.
                   </p>
+
+                  {/* AI Generation Button */}
+                  <div className="mb-6 p-4 rounded-lg border border-primary-600/30 bg-primary-900/10">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div>
+                        <h3 className="font-medium text-primary-300 flex items-center gap-2">
+                          <Sparkles size={16} /> AI Image Generation
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Generate all 6 slides from your prompt using {profile?.imageGen.provider || 'OpenAI'}
+                        </p>
+                      </div>
+                      <Button
+                        icon={<Wand2 size={16} />}
+                        isLoading={generating}
+                        onClick={handleGenerateImages}
+                        disabled={!imagePrompt || generating}
+                      >
+                        {generating ? 'Generating...' : 'Generate 6 Slides'}
+                      </Button>
+                    </div>
+                    {!imagePrompt && (
+                      <p className="text-xs text-amber-400 mt-2">
+                        Go back to Step 1 and enter an image generation prompt first.
+                      </p>
+                    )}
+                  </div>
 
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {slideLabels.map((label, idx) => (
@@ -533,6 +727,29 @@ export default function CreatePostPage() {
                   </div>
                 </Card>
 
+                {/* Validation Warnings */}
+                {!slideImagePreviews.some((p) => p !== '') && (
+                  <Card>
+                    <div className="text-center py-4">
+                      <p className="text-amber-400 font-medium">No slide images yet</p>
+                      <p className="text-gray-400 text-sm mt-1">
+                        Go back to Step 2 to generate images with AI or upload manually.
+                      </p>
+                    </div>
+                  </Card>
+                )}
+
+                {!profile?.uploadPost.apiKey && (
+                  <Card>
+                    <div className="text-center py-4">
+                      <p className="text-amber-400 font-medium">Upload-Post API not configured</p>
+                      <p className="text-gray-400 text-sm mt-1">
+                        Go to <button onClick={() => router.push('/marketing/settings')} className="text-primary-300 underline">Marketing Settings</button> to add your Upload-Post API key before posting.
+                      </p>
+                    </div>
+                  </Card>
+                )}
+
                 {/* Action Buttons */}
                 <div className="flex gap-3">
                   <Button
@@ -546,11 +763,11 @@ export default function CreatePostPage() {
                   <Button
                     fullWidth
                     icon={<Send size={18} />}
-                    isLoading={saving}
+                    isLoading={saving || posting}
+                    disabled={!slideImagePreviews.some((p) => p !== '') || !profile?.uploadPost.apiKey}
                     onClick={handlePost}
                   >
-                    Post to {selectedPlatforms.length} Platform
-                    {selectedPlatforms.length !== 1 ? 's' : ''}
+                    {posting ? 'Publishing...' : `Post to ${selectedPlatforms.length} Platform${selectedPlatforms.length !== 1 ? 's' : ''}`}
                   </Button>
                 </div>
               </div>
