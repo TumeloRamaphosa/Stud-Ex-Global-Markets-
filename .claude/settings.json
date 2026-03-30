@@ -1,0 +1,19 @@
+{
+  "skillSources": [
+    {
+      "name": "superpowers",
+      "path": ".claude/skills/superpowers/skills",
+      "description": "TDD, debugging, collaboration patterns, and proven development techniques"
+    },
+    {
+      "name": "denchclaw",
+      "path": ".claude/skills/denchclaw/skills",
+      "description": "CRM, app builder, browser automation, and structured dev workflow (gstack)"
+    },
+    {
+      "name": "claude-mem",
+      "path": ".claude/skills/claude-mem/plugin/skills",
+      "description": "Persistent memory system with semantic search across sessions"
+    }
+  ]
+}

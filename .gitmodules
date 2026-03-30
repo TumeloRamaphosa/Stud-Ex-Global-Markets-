@@ -1,0 +1,9 @@
+[submodule ".claude/skills/superpowers"]
+	path = .claude/skills/superpowers
+	url = https://github.com/obra/superpowers.git
+[submodule ".claude/skills/denchclaw"]
+	path = .claude/skills/denchclaw
+	url = https://github.com/DenchHQ/DenchClaw.git
+[submodule ".claude/skills/claude-mem"]
+	path = .claude/skills/claude-mem
+	url = https://github.com/thedotmack/claude-mem.git
