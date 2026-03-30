@@ -4,12 +4,23 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useEffect, useState, useRef } from 'react';
 import {
-  ChevronRight, Clock, Globe, Bot, Play, Pause, Send,
-  Brain, Cpu, Zap, BarChart3, Rocket, TrendingUp,
-  MessageSquare, Calendar, Users, Shield, Radio,
+  ChevronRight, Clock, Globe, Play, Pause, Send,
+  Cpu, Zap, BarChart3, Rocket, TrendingUp,
+  MessageSquare, Calendar, Shield,
 } from 'lucide-react';
 
-// ==================== SA TIME HOOK ====================
+const SA_TIMEZONE = 'Africa/Johannesburg';
+
+const timeFmt = new Intl.DateTimeFormat('en-ZA', {
+  timeZone: SA_TIMEZONE, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+});
+const dateFmt = new Intl.DateTimeFormat('en-ZA', {
+  timeZone: SA_TIMEZONE, weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+});
+const dayFmt = new Intl.DateTimeFormat('en-ZA', {
+  timeZone: SA_TIMEZONE, weekday: 'long',
+});
+
 function useSATime() {
   const [time, setTime] = useState('');
   const [date, setDate] = useState('');
@@ -17,18 +28,9 @@ function useSATime() {
   useEffect(() => {
     const tick = () => {
       const now = new Date();
-      const sa = new Intl.DateTimeFormat('en-ZA', {
-        timeZone: 'Africa/Johannesburg', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
-      }).format(now);
-      const saDate = new Intl.DateTimeFormat('en-ZA', {
-        timeZone: 'Africa/Johannesburg', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-      }).format(now);
-      const saDay = new Intl.DateTimeFormat('en-ZA', {
-        timeZone: 'Africa/Johannesburg', weekday: 'long',
-      }).format(now);
-      setTime(sa);
-      setDate(saDate);
-      setDay(saDay);
+      setTime(timeFmt.format(now));
+      setDate(dateFmt.format(now));
+      setDay(dayFmt.format(now));
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -37,7 +39,6 @@ function useSATime() {
   return { time, date, day };
 }
 
-// ==================== ANIMATED BRAIN (Canvas) ====================
 function AnimatedBrain({ size = 120 }: { size?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -100,19 +101,17 @@ function AnimatedBrain({ size = 120 }: { size?: number }) {
   return <canvas ref={canvasRef} width={size} height={size} className="inline-block" />;
 }
 
-// ==================== COW MASCOT PLACEHOLDER ====================
 function CowMascot() {
   return (
     <div className="flex flex-col items-center">
       <div className="text-7xl sm:text-8xl md:text-9xl leading-none select-none" aria-label="Cow mascot">
         🐄
       </div>
-      <p className="text-sm text-gray-400 mt-2 font-mono">[ replace with mascot image ]</p>
+      {/* TODO: replace emoji with actual mascot image from public/ */}
     </div>
   );
 }
 
-// ==================== AGENT CARD ====================
 function AgentCard({ agent, onToggle, onRename, onChat }: {
   agent: { name: string; role: string; status: 'online' | 'paused' | 'busy'; tasks: string; activity: string };
   onToggle: () => void;
@@ -183,7 +182,6 @@ function AgentCard({ agent, onToggle, onRename, onChat }: {
   );
 }
 
-// ==================== SA TIME CALENDAR ====================
 function SATimeCalendar({ time, date, day }: { time: string; date: string; day: string }) {
   const schedule = [
     { time: '07:00', label: 'Morning Analytics Report', status: 'done' },
@@ -237,7 +235,6 @@ function SATimeCalendar({ time, date, day }: { time: string; date: string; day: 
   );
 }
 
-// ==================== MAIN PAGE ====================
 export default function Home() {
   const router = useRouter();
   const { user } = useAuth();
@@ -269,7 +266,8 @@ export default function Home() {
   };
 
   const chatAgent = (idx: number, msg: string) => {
-    setAgents(prev => prev.map((a, i) => i === idx ? { ...a, activity: `Task assigned: "${msg.slice(0, 40)}..."` } : a));
+    const preview = msg.length > 40 ? msg.slice(0, 40) + '...' : msg;
+    setAgents(prev => prev.map((a, i) => i === idx ? { ...a, activity: `Task assigned: "${preview}"` } : a));
   };
 
   return (
@@ -428,20 +426,25 @@ export default function Home() {
           </div>
 
           {/* Agent Status Bar */}
-          <div className="flex flex-wrap items-center justify-center gap-4 mb-6 font-mono text-base">
-            <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 border border-green-200 text-green-700">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              {agents.filter(a => a.status === 'online').length} Online
-            </span>
-            <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
-              <div className="w-2 h-2 rounded-full bg-amber-500" />
-              {agents.filter(a => a.status === 'paused').length} Paused
-            </span>
-            <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700">
-              <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-              {agents.filter(a => a.status === 'busy').length} Busy
-            </span>
-          </div>
+          {(() => {
+            const counts = agents.reduce((acc, a) => { acc[a.status] = (acc[a.status] || 0) + 1; return acc; }, {} as Record<string, number>);
+            return (
+              <div className="flex flex-wrap items-center justify-center gap-4 mb-6 font-mono text-base">
+                <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 border border-green-200 text-green-700">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  {counts.online || 0} Online
+                </span>
+                <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
+                  <div className="w-2 h-2 rounded-full bg-amber-500" />
+                  {counts.paused || 0} Paused
+                </span>
+                <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700">
+                  <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                  {counts.busy || 0} Busy
+                </span>
+              </div>
+            );
+          })()}
 
           {/* Agent Grid */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
