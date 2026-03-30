@@ -1,0 +1,61 @@
+# Studex Global Markets - Automated Trading Bot
+# Core dependencies
+
+# Web framework & API
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+websockets==12.0
+python-multipart==0.0.9
+httpx==0.27.2
+
+# Trading & Market Data
+ccxt==4.4.26                    # Crypto exchange connector (Binance, LUNO, etc.)
+yfinance==0.2.43                # Yahoo Finance market data
+pandas==2.2.3                   # Data manipulation
+numpy==1.26.4                   # Numerical computing
+ta==0.11.0                      # Technical analysis indicators
+pandas-ta==0.3.14b1             # Extended technical analysis
+
+# TradingView Integration
+tradingview-ta==3.3.0           # TradingView technical analysis
+flask==3.0.3                    # Webhook receiver for TradingView alerts
+
+# AI & LLM
+openai==1.51.0                  # Ollama-compatible API client
+anthropic==0.37.1               # Claude API for advanced analysis
+
+# Scheduling & Background Tasks
+apscheduler==3.10.4             # Job scheduling
+celery==5.4.0                   # Distributed task queue
+redis==5.1.1                    # Celery backend + caching
+
+# Database
+sqlalchemy==2.0.35              # ORM
+alembic==1.13.3                 # Database migrations
+aiosqlite==0.20.0               # Async SQLite (lightweight local DB)
+
+# Sentiment & NLP
+beautifulsoup4==4.12.3          # Web scraping for news
+feedparser==6.0.11              # RSS feeds parsing
+textblob==0.18.0                # Basic sentiment analysis
+
+# Backtesting
+backtesting==0.3.3              # Strategy backtesting framework
+vectorbt==0.26.2                # Vectorized backtesting
+
+# Monitoring & Logging
+loguru==0.7.2                   # Structured logging
+rich==13.9.2                    # Rich console output
+prometheus-client==0.21.0       # Metrics export
+
+# Configuration
+python-dotenv==1.0.1            # Environment variables
+pyyaml==6.0.2                   # YAML config files
+pydantic==2.9.2                 # Data validation
+pydantic-settings==2.5.2        # Settings management
+
+# Utilities
+schedule==1.2.2                 # Simple job scheduling
+python-dateutil==2.9.0          # Date utilities
+pytz==2024.2                    # Timezone support
+requests==2.32.3                # HTTP client

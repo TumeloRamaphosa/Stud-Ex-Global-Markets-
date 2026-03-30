@@ -1,0 +1,294 @@
+# ============================================================
+# Studex Global Markets - Automated Trading Bot Configuration
+# ============================================================
+
+app:
+  name: "Studex Trading Bot"
+  version: "1.0.0"
+  environment: "paper"  # paper | live
+  log_level: "INFO"
+  timezone: "Africa/Johannesburg"
+
+# ============================================================
+# Hardware Configuration
+# ============================================================
+hardware:
+  # Desktop (Trading Engine - The Brain)
+  desktop:
+    host: "192.168.1.100"  # Update with your desktop IP
+    ollama_port: 11434
+    api_port: 8000
+    websocket_port: 8765
+    role: "engine"  # Runs strategies, LLM inference, execution
+
+  # Laptop (Dashboard & Monitor)
+  laptop:
+    host: "192.168.1.101"  # Update with your laptop IP
+    dashboard_port: 3000
+    role: "monitor"  # Runs dashboard, alerts, monitoring
+
+# ============================================================
+# Ollama LLM Configuration (Desktop GPU)
+# ============================================================
+ollama:
+  base_url: "http://localhost:11434"
+  models:
+    # Primary strategy analysis model
+    strategy: "mistral:7b-instruct-v0.3-q5_K_M"
+    # Fast screening model
+    screening: "llama3.1:8b-instruct-q4_K_M"
+    # Sentiment analysis model
+    sentiment: "mistral:7b-instruct-v0.3-q5_K_M"
+  max_concurrent: 2  # 2 GPUs = 2 concurrent inferences
+  timeout: 120
+
+# ============================================================
+# Claude API (Advanced Analysis - Optional)
+# ============================================================
+claude:
+  enabled: false
+  api_key: "${ANTHROPIC_API_KEY}"
+  model: "claude-sonnet-4-6-20250514"
+  # Use Claude for: complex multi-factor analysis, edge detection
+  # Falls back to Ollama when disabled
+
+# ============================================================
+# Exchange Connectors
+# ============================================================
+exchanges:
+  # Cryptocurrency - LUNO (South Africa primary)
+  luno:
+    enabled: true
+    api_key: "${LUNO_API_KEY}"
+    api_secret: "${LUNO_API_SECRET}"
+    sandbox: true
+    default_pairs:
+      - "XBTZAR"   # Bitcoin/ZAR
+      - "ETHZAR"   # Ethereum/ZAR
+      - "XRPZAR"   # Ripple/ZAR
+      - "SOLZAR"   # Solana/ZAR
+
+  # Cryptocurrency - Binance (Global)
+  binance:
+    enabled: true
+    api_key: "${BINANCE_API_KEY}"
+    api_secret: "${BINANCE_API_SECRET}"
+    sandbox: true
+    default_pairs:
+      - "BTC/USDT"
+      - "ETH/USDT"
+      - "SOL/USDT"
+      - "XRP/USDT"
+      - "BNB/USDT"
+
+  # JSE - via EasyEquities (South Africa)
+  easyequities:
+    enabled: true
+    username: "${EASY_USERNAME}"
+    password: "${EASY_PASSWORD}"
+    account_type: "ZAR"  # ZAR | TFSA | USD
+    watchlist:
+      - "NPN"    # Naspers
+      - "ANG"    # AngloGold Ashanti
+      - "SOL"    # Sasol
+      - "SBK"    # Standard Bank
+      - "FSR"    # FirstRand
+      - "BHP"    # BHP Group
+      - "MTN"    # MTN Group
+      - "VOD"    # Vodacom
+      - "SHP"    # Shoprite
+      - "ABG"    # Absa Group
+
+# ============================================================
+# TradingView Integration
+# ============================================================
+tradingview:
+  webhook:
+    enabled: true
+    port: 8080
+    secret: "${TV_WEBHOOK_SECRET}"
+    # TradingView alerts POST to: http://your-ip:8080/webhook
+
+  analysis:
+    enabled: true
+    interval: "1h"  # Analysis interval
+    screener: "southafrica"  # southafrica | crypto | america
+
+# ============================================================
+# Trading Strategy Configuration
+# ============================================================
+strategies:
+  # ---- Market Regime Detection (from Claude Trading Skills) ----
+  regime_detection:
+    enabled: true
+    schedule: "0 8 * * 1-5"  # Every weekday at 8 AM SAST
+    indicators:
+      - breadth_ratio
+      - yield_curve
+      - credit_spreads
+      - sector_rotation
+      - vix_level
+
+  # ---- Breadth Analysis ----
+  breadth_analysis:
+    enabled: true
+    schedule: "0 */4 * * 1-5"  # Every 4 hours on weekdays
+    composite_threshold: 60  # Minimum score to allow new entries
+
+  # ---- Crypto Momentum Strategy ----
+  crypto_momentum:
+    enabled: true
+    timeframes: ["1h", "4h", "1d"]
+    indicators:
+      rsi_period: 14
+      rsi_oversold: 30
+      rsi_overbought: 70
+      ema_fast: 12
+      ema_slow: 26
+      macd_signal: 9
+      bb_period: 20
+      bb_std: 2.0
+      atr_period: 14
+    entry_rules:
+      min_volume_ratio: 1.5  # Volume must be 1.5x average
+      trend_alignment: true   # All timeframes must agree
+      rsi_confirmation: true
+    risk:
+      max_position_pct: 5.0   # Max 5% per position
+      stop_loss_atr: 2.0      # 2 ATR stop loss
+      take_profit_atr: 4.0    # 4 ATR take profit (2:1 R:R)
+
+  # ---- JSE Value + Momentum Strategy ----
+  jse_value_momentum:
+    enabled: true
+    timeframes: ["1d", "1w"]
+    screening:
+      min_market_cap_zar: 10000000000  # R10B minimum
+      max_pe_ratio: 20
+      min_dividend_yield: 2.0
+      min_roe: 15
+    entry_rules:
+      vcp_detection: true      # Volatility Contraction Pattern
+      breakout_volume: 1.5     # Volume spike on breakout
+      above_200ma: true        # Must be above 200-day MA
+    risk:
+      max_position_pct: 8.0
+      stop_loss_pct: 7.0
+      trailing_stop_pct: 15.0
+
+  # ---- Sentiment-Driven Strategy (MiroFish-inspired) ----
+  sentiment_swarm:
+    enabled: true
+    schedule: "0 */2 * * *"  # Every 2 hours
+    sources:
+      - twitter
+      - reddit
+      - news_rss
+      - tradingview_ideas
+    agent_count: 50           # Number of simulated sentiment agents
+    consensus_threshold: 0.7  # 70% agreement needed for signal
+    contrarian_mode: false    # Set true to trade against consensus
+
+  # ---- Pair Trading (Statistical Arbitrage) ----
+  pair_trading:
+    enabled: true
+    pairs:
+      - ["BTC/USDT", "ETH/USDT"]
+      - ["NPN", "MTN"]         # JSE tech pair
+      - ["ANG", "GFI"]         # Gold miners pair
+    lookback_period: 60        # Days for cointegration test
+    zscore_entry: 2.0
+    zscore_exit: 0.5
+
+# ============================================================
+# Risk Management
+# ============================================================
+risk:
+  # Portfolio-level constraints
+  max_portfolio_risk_pct: 2.0      # Max 2% portfolio risk per trade
+  max_daily_loss_pct: 5.0          # Stop trading if daily loss > 5%
+  max_open_positions: 10
+  max_correlated_positions: 3      # Max positions in same sector/asset class
+  max_drawdown_pct: 15.0           # Pause all trading if drawdown > 15%
+
+  # Exposure management (from Claude Trading Skills Exposure Coach)
+  exposure:
+    max_equity_exposure: 80        # Max % in equities
+    max_crypto_exposure: 30        # Max % in crypto
+    min_cash_reserve: 10           # Always keep 10% cash
+    rebalance_threshold: 5.0       # Rebalance when drift > 5%
+
+  # Position sizing methods
+  position_sizing:
+    method: "atr"  # fixed_fractional | atr | kelly
+    fixed_risk_pct: 1.0
+    kelly_fraction: 0.25  # Quarter-Kelly for safety
+
+# ============================================================
+# Scheduling
+# ============================================================
+schedule:
+  # Market hours (SAST = UTC+2)
+  jse:
+    open: "09:00"
+    close: "17:00"
+    timezone: "Africa/Johannesburg"
+    trading_days: [1, 2, 3, 4, 5]  # Mon-Fri
+
+  crypto:
+    # 24/7 but with preferred analysis windows
+    analysis_times:
+      - "06:00"   # Before JSE open
+      - "12:00"   # Midday check
+      - "18:00"   # After JSE close
+      - "00:00"   # Midnight scan
+
+  # Daily routine (inspired by Claude Trading Skills workflow)
+  daily_routine:
+    "06:00": "market_news_scan"
+    "06:30": "sentiment_analysis"
+    "07:00": "regime_detection"
+    "07:30": "breadth_analysis"
+    "08:00": "strategy_signals"
+    "08:30": "risk_check"
+    "09:00": "jse_market_open"
+    "12:00": "midday_review"
+    "17:00": "jse_market_close"
+    "17:30": "daily_report"
+    "22:00": "crypto_night_scan"
+
+# ============================================================
+# Notifications
+# ============================================================
+notifications:
+  telegram:
+    enabled: false
+    bot_token: "${TELEGRAM_BOT_TOKEN}"
+    chat_id: "${TELEGRAM_CHAT_ID}"
+
+  email:
+    enabled: false
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    username: "${EMAIL_USERNAME}"
+    password: "${EMAIL_PASSWORD}"
+    recipient: "${EMAIL_RECIPIENT}"
+
+# ============================================================
+# Data Storage
+# ============================================================
+database:
+  # Local SQLite for trade history (lightweight)
+  url: "sqlite:///data/trading_bot.db"
+  # Redis for caching & real-time data
+  redis_url: "redis://localhost:6379/0"
+
+# ============================================================
+# Backtesting
+# ============================================================
+backtesting:
+  start_date: "2023-01-01"
+  end_date: "2025-12-31"
+  initial_capital: 100000  # ZAR
+  commission_pct: 0.1
+  slippage_pct: 0.05
