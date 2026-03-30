@@ -14,6 +14,11 @@
       "name": "claude-mem",
       "path": ".claude/skills/claude-mem/plugin/skills",
       "description": "Persistent memory system with semantic search across sessions"
+    },
+    {
+      "name": "mcp-token-optimization",
+      "path": ".claude/skills/mcp-token-optimization",
+      "description": "Strategies to reduce MCP token bloat and optimize tool usage"
     }
   ]
 }
