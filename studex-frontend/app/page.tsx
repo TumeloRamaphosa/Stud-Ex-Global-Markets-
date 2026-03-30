@@ -288,6 +288,7 @@ export default function Home() {
             <a href="#about" className="text-gray-500 hover:text-blue-600 hover:no-underline transition-colors">ABOUT</a>
             <a href="#agents" className="text-gray-500 hover:text-blue-600 hover:no-underline transition-colors">AGENTS</a>
             <a href="#schedule" className="text-gray-500 hover:text-blue-600 hover:no-underline transition-colors">SCHEDULE</a>
+            <a href="/marketing/hex-dashboard" className="text-gray-500 hover:text-blue-600 hover:no-underline transition-colors">ANALYTICS</a>
             <a href="/marketing" className="text-blue-600 hover:text-blue-800 hover:no-underline transition-colors border border-blue-200 px-3 py-1 rounded-lg">DASHBOARD</a>
           </div>
 
