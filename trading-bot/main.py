@@ -10,6 +10,9 @@ Orchestrates all components:
 5. MiroFish-inspired swarm sentiment analysis
 6. Ollama LLM analyst (local GPU)
 7. FastAPI dashboard server
+8. RALF Loop (Reason-Act-Learn-Feedback) for self-improvement
+9. RAG System for trade memory and strategy knowledge retrieval
+10. Google Vertex AI for cloud-scale analytics (optional)
 
 Usage:
     python main.py                    # Start with default config
@@ -45,6 +48,10 @@ from strategies.pair_trading import PairTradingStrategy
 from sentiment.swarm_engine import SwarmSentimentEngine
 from sentiment.llm_analyst import OllamaAnalyst
 from api.server import create_app
+from ralf.ralf_engine import RALFEngine
+from ralf.ralf_runner import RALFRunner
+from rag.rag_engine import TradingRAG
+from vertex.vertex_integration import VertexAIIntegration
 
 
 # ============================================================
@@ -192,6 +199,31 @@ async def main(config: dict, args):
     # ---- Initialize Swarm Sentiment Engine ----
     swarm = SwarmSentimentEngine(config)
 
+    # ---- Initialize RALF Loop (Reason-Act-Learn-Feedback) ----
+    ralf = RALFEngine()
+    ralf_runner = RALFRunner(ralf, llm_analyst=analyst if ollama_ok else None)
+    engine.ralf = ralf  # Attach RALF to engine for trade recording
+    logger.info("RALF Loop initialized — self-improving feedback enabled")
+
+    # ---- Initialize RAG System ----
+    rag = TradingRAG(config)
+    knowledge_dir = str(Path(__file__).parent / "knowledge_base")
+    await rag.ingest_strategy_docs(knowledge_dir)
+    rag_stats = await rag.get_stats()
+    engine.rag = rag  # Attach RAG to engine for context retrieval
+    logger.info(f"RAG System initialized — {rag_stats.get('total_documents', 0)} docs, {rag_stats.get('total_chunks', 0)} chunks")
+
+    # ---- Initialize Google Vertex AI (optional cloud enhancement) ----
+    vertex = VertexAIIntegration(config)
+    vertex_ok = await vertex.initialize()
+    if vertex_ok:
+        await vertex.setup_bigquery_tables()
+        engine.vertex = vertex
+        logger.info("Google Vertex AI connected — cloud analytics enabled")
+    else:
+        engine.vertex = None
+        logger.info("Vertex AI not configured — running with Ollama only (fully functional)")
+
     # ---- Register Trading Strategies ----
     strategies_config = config.get("strategies", {})
 
@@ -227,6 +259,10 @@ async def main(config: dict, args):
             connectors=connectors,
         )
         engine.register_strategy("pair_trading", pair_strategy)
+
+    # ---- Register strategies with RALF runner ----
+    for strategy_name in engine.strategies:
+        ralf_runner.register_strategy(strategy_name)
 
     # ---- Start TradingView Webhook Server ----
     tv_config = config.get("tradingview", {})
@@ -266,8 +302,8 @@ async def main(config: dict, args):
         )
         logger.info(f"\n{'='*60}\nMORNING BRIEFING:\n{briefing}\n{'='*60}")
 
-    # ---- Start Trading Engine ----
-    logger.info("Starting trading engine...")
+    # ---- Start Trading Engine + RALF Loop ----
+    logger.info("Starting trading engine + RALF feedback loop...")
 
     # Graceful shutdown handler
     def shutdown_handler(sig, frame):
@@ -278,7 +314,11 @@ async def main(config: dict, args):
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     try:
-        await engine.start()
+        # Run engine and RALF loop concurrently
+        await asyncio.gather(
+            engine.start(),
+            ralf_runner.run_loop(daily_hour=17, weekly_day=5),  # Daily at 5PM SAST, weekly Saturday
+        )
     except KeyboardInterrupt:
         logger.info("Keyboard interrupt received")
     finally:

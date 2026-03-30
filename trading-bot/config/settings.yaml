@@ -4,7 +4,7 @@
 
 app:
   name: "Studex Trading Bot"
-  version: "1.0.0"
+  version: "2.0.0"
   environment: "paper"  # paper | live
   log_level: "INFO"
   timezone: "Africa/Johannesburg"
@@ -282,6 +282,60 @@ database:
   url: "sqlite:///data/trading_bot.db"
   # Redis for caching & real-time data
   redis_url: "redis://localhost:6379/0"
+
+# ============================================================
+# RALF Loop (Reason-Act-Learn-Feedback)
+# ============================================================
+ralf:
+  enabled: true
+  # Daily feedback cycle at 17:00 SAST (after JSE close)
+  daily_feedback_hour: 17
+  # Weekly learning extraction on Saturdays
+  weekly_learning_day: 5
+  # Minimum trades before generating feedback
+  min_trades_for_feedback: 5
+  # Strategy health thresholds
+  health:
+    min_win_rate: 0.4
+    min_profit_factor: 1.0
+    max_stop_rate: 0.4          # Pause if > 40% stopped out
+    confidence_decay_threshold: 0.7  # Tighten if recent WR < 70% of overall
+
+# ============================================================
+# RAG System (Retrieval-Augmented Generation)
+# ============================================================
+rag:
+  enabled: true
+  # Embedding model for Ollama (pulled automatically)
+  embed_model: "nomic-embed-text"
+  # Knowledge base directory (strategy docs, guides)
+  knowledge_base_dir: "knowledge_base"
+  # Retrieval settings
+  top_k: 5                     # Number of chunks to retrieve
+  min_similarity: 0.3          # Minimum cosine similarity
+  # Auto-ingest trade memories after each closed trade
+  auto_ingest_trades: true
+  # Auto-ingest RALF learnings
+  auto_ingest_learnings: true
+
+# ============================================================
+# Google Vertex AI (Optional Cloud Enhancement)
+# ============================================================
+vertex:
+  enabled: false               # Set true to enable cloud features
+  project_id: "${GCP_PROJECT_ID}"
+  region: "us-central1"
+  model: "gemini-2.0-flash"   # Gemini Flash for cost efficiency
+  use_embeddings: false        # Use Vertex embeddings instead of Ollama
+  # BigQuery for trade analytics at scale
+  bigquery:
+    enabled: false
+    dataset: "studex_trading"
+  # High-value trade validation threshold (ZAR)
+  # Trades above this value are validated by Gemini
+  gemini_validation_threshold: 50000
+  # Weekly strategy review via Gemini
+  weekly_review: true
 
 # ============================================================
 # Backtesting
