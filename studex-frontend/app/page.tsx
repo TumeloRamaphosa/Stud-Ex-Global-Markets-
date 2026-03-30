@@ -241,13 +241,14 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const { time, date, day } = useSATime();
 
-  const [agents, setAgents] = useState([
-    { name: 'LARRY', role: 'Chief Strategy Agent', status: 'online' as const, tasks: 'Hook optimization + Content strategy', activity: 'Generating carousel hooks...' },
-    { name: 'NANO', role: 'Image Generation Agent', status: 'online' as const, tasks: 'Slide creation + Visual assets', activity: 'Rendering 4 product slides...' },
-    { name: 'REMOTION', role: 'Video Production Agent', status: 'busy' as const, tasks: 'TikTok videos + Instagram Reels', activity: 'Encoding 15s reel @ 1080p...' },
-    { name: 'UPLOAD', role: 'Distribution Agent', status: 'online' as const, tasks: 'Multi-platform posting + Scheduling', activity: 'Queued: 3 posts for 16:30 SAST' },
-    { name: 'ANALYTICS', role: 'Intelligence Agent', status: 'online' as const, tasks: 'Performance tracking + Diagnostics', activity: 'Processing 24h engagement data...' },
-    { name: 'CLAUDE', role: 'Strategy Advisor', status: 'online' as const, tasks: 'Hook writing + Caption generation', activity: 'A/B testing caption variants...' },
+  type AgentStatus = 'online' | 'paused' | 'busy';
+  const [agents, setAgents] = useState<{ name: string; role: string; status: AgentStatus; tasks: string; activity: string }[]>([
+    { name: 'LARRY', role: 'Chief Strategy Agent', status: 'online', tasks: 'Hook optimization + Content strategy', activity: 'Generating carousel hooks...' },
+    { name: 'NANO', role: 'Image Generation Agent', status: 'online', tasks: 'Slide creation + Visual assets', activity: 'Rendering 4 product slides...' },
+    { name: 'REMOTION', role: 'Video Production Agent', status: 'busy', tasks: 'TikTok videos + Instagram Reels', activity: 'Encoding 15s reel @ 1080p...' },
+    { name: 'UPLOAD', role: 'Distribution Agent', status: 'online', tasks: 'Multi-platform posting + Scheduling', activity: 'Queued: 3 posts for 16:30 SAST' },
+    { name: 'ANALYTICS', role: 'Intelligence Agent', status: 'online', tasks: 'Performance tracking + Diagnostics', activity: 'Processing 24h engagement data...' },
+    { name: 'CLAUDE', role: 'Strategy Advisor', status: 'online', tasks: 'Hook writing + Caption generation', activity: 'A/B testing caption variants...' },
   ]);
 
   useEffect(() => { setMounted(true); }, []);
