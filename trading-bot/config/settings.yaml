@@ -319,23 +319,19 @@ rag:
   auto_ingest_learnings: true
 
 # ============================================================
-# Google Vertex AI (Optional Cloud Enhancement)
+# Vercel Integration (Cloud Dashboard + AI)
 # ============================================================
-vertex:
-  enabled: false               # Set true to enable cloud features
-  project_id: "${GCP_PROJECT_ID}"
-  region: "us-central1"
-  model: "gemini-2.0-flash"   # Gemini Flash for cost efficiency
-  use_embeddings: false        # Use Vertex embeddings instead of Ollama
-  # BigQuery for trade analytics at scale
-  bigquery:
-    enabled: false
-    dataset: "studex_trading"
+vercel:
+  enabled: false               # Set true when deployed to Vercel
+  api_url: ""                  # e.g., https://studex-trading.vercel.app
+  api_secret: "${VERCEL_API_SECRET}"
+  # Features available via Vercel:
+  # - Cloud dashboard accessible from anywhere
+  # - Vercel Postgres for trade analytics
+  # - Claude AI SDK for high-value trade validation
+  # - Vercel Cron for weekly RALF reports
   # High-value trade validation threshold (ZAR)
-  # Trades above this value are validated by Gemini
-  gemini_validation_threshold: 50000
-  # Weekly strategy review via Gemini
-  weekly_review: true
+  ai_validation_threshold: 50000
 
 # ============================================================
 # Backtesting

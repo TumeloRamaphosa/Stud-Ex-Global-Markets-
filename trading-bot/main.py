@@ -12,7 +12,7 @@ Orchestrates all components:
 7. FastAPI dashboard server
 8. RALF Loop (Reason-Act-Learn-Feedback) for self-improvement
 9. RAG System for trade memory and strategy knowledge retrieval
-10. Google Vertex AI for cloud-scale analytics (optional)
+10. Vercel integration for cloud dashboard and AI analysis
 
 Usage:
     python main.py                    # Start with default config
@@ -51,7 +51,7 @@ from api.server import create_app
 from ralf.ralf_engine import RALFEngine
 from ralf.ralf_runner import RALFRunner
 from rag.rag_engine import TradingRAG
-from vertex.vertex_integration import VertexAIIntegration
+from vercel.vercel_integration import VercelIntegration
 
 
 # ============================================================
@@ -213,16 +213,15 @@ async def main(config: dict, args):
     engine.rag = rag  # Attach RAG to engine for context retrieval
     logger.info(f"RAG System initialized — {rag_stats.get('total_documents', 0)} docs, {rag_stats.get('total_chunks', 0)} chunks")
 
-    # ---- Initialize Google Vertex AI (optional cloud enhancement) ----
-    vertex = VertexAIIntegration(config)
-    vertex_ok = await vertex.initialize()
-    if vertex_ok:
-        await vertex.setup_bigquery_tables()
-        engine.vertex = vertex
-        logger.info("Google Vertex AI connected — cloud analytics enabled")
+    # ---- Initialize Vercel Integration (cloud dashboard + AI) ----
+    vercel = VercelIntegration(config)
+    vercel_health = await vercel.health_check()
+    if vercel_health.get("status") == "ok":
+        engine.vercel = vercel
+        logger.info(f"Vercel connected — cloud dashboard at {vercel.api_url}")
     else:
-        engine.vertex = None
-        logger.info("Vertex AI not configured — running with Ollama only (fully functional)")
+        engine.vercel = None
+        logger.info("Vercel not configured — using local dashboard only (fully functional)")
 
     # ---- Register Trading Strategies ----
     strategies_config = config.get("strategies", {})

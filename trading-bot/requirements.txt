@@ -60,7 +60,6 @@ python-dateutil==2.9.0          # Date utilities
 pytz==2024.2                    # Timezone support
 requests==2.32.3                # HTTP client
 
-# ---- Google Vertex AI (optional, install only if using cloud features) ----
-# pip install google-cloud-aiplatform google-cloud-bigquery
-# google-cloud-aiplatform>=1.71.0
-# google-cloud-bigquery>=3.27.0
+# ---- Vercel integration uses the Next.js frontend (no extra Python deps) ----
+# The cloud dashboard, AI analysis, and cron jobs run on Vercel via Next.js.
+# Desktop bot communicates with Vercel via HTTP (httpx already included).
