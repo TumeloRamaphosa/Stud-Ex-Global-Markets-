@@ -15,6 +15,7 @@ import {
   ApiKeyConfig,
 } from '@/lib/content-studio/types';
 import Link from 'next/link';
+import SaveToDrive from './save-to-drive';
 
 const GENERATION_MODES: { id: GenerationMode; label: string; icon: string; providers: AiProvider[] }[] = [
   { id: 'text-to-video', label: 'Text to Video', icon: '🎬', providers: ['higgsfield', 'kling', 'runway', 'pika', 'luma'] },
@@ -569,6 +570,13 @@ export default function GeneratePage() {
               </pre>
             </div>
           )}
+
+          {/* Save to Google Drive */}
+          <SaveToDrive
+            fileUrl={undefined /* will be populated when real API returns a URL */}
+            fileName={`ai-content-${provider}-${mode}-${Date.now()}.${mode.includes('video') ? 'mp4' : 'png'}`}
+            mimeType={mode.includes('video') ? 'video/mp4' : 'image/png'}
+          />
         </div>
 
         {/* Right Column: Guide Panel */}

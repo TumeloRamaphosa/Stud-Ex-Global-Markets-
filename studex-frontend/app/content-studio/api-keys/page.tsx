@@ -9,6 +9,7 @@ import {
   maskKey,
 } from '@/lib/content-studio/api-key-store';
 import { ApiKeyConfig, AiProvider, ProviderInfo } from '@/lib/content-studio/types';
+import GoogleDriveCard from './google-drive-card';
 
 export default function ApiKeysPage() {
   const [keys, setKeys] = useState<ApiKeyConfig[]>([]);
@@ -279,6 +280,14 @@ export default function ApiKeysPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* Google Drive Integration */}
+      <div>
+        <h3 className="mb-4 text-lg font-semibold text-white">
+          Cloud Storage
+        </h3>
+        <GoogleDriveCard />
       </div>
 
       {/* Custom Provider */}
