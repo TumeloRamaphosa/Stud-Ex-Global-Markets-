@@ -52,6 +52,8 @@ from ralf.ralf_engine import RALFEngine
 from ralf.ralf_runner import RALFRunner
 from rag.rag_engine import TradingRAG
 from vercel.vercel_integration import VercelIntegration
+from agents.cloddsbot_agent import CloddsBotAgent
+from agents.orchestrator import AgentOrchestrator
 
 
 # ============================================================
@@ -223,6 +225,19 @@ async def main(config: dict, args):
         engine.vercel = None
         logger.info("Vercel not configured — using local dashboard only (fully functional)")
 
+    # ---- Initialize CloddsBot Agent (Core Trading Brain) ----
+    cloddsbot = CloddsBotAgent(config)
+    cloddsbot_ok = await cloddsbot.start()
+    if cloddsbot_ok:
+        orchestrator = AgentOrchestrator(config, cloddsbot, rag, ralf, swarm)
+        engine.cloddsbot = cloddsbot
+        engine.orchestrator = orchestrator
+        logger.info("CloddsBot Agent connected — 119 skills, arbitrage, prediction markets active")
+    else:
+        engine.cloddsbot = None
+        engine.orchestrator = None
+        logger.info("CloddsBot not available — running with Python strategies (fully functional)")
+
     # ---- Register Trading Strategies ----
     strategies_config = config.get("strategies", {})
 
@@ -322,7 +337,9 @@ async def main(config: dict, args):
         logger.info("Keyboard interrupt received")
     finally:
         # Cleanup
-        logger.info("Shutting down connectors...")
+        logger.info("Shutting down...")
+        if cloddsbot_ok:
+            await cloddsbot.stop()
         for name, connector in connectors.items():
             try:
                 await connector.disconnect()

@@ -53,6 +53,21 @@ claude:
   # Falls back to Ollama when disabled
 
 # ============================================================
+# CloddsBot Agent (Core Trading Brain)
+# ============================================================
+cloddsbot:
+  enabled: true
+  mode: "local"                # local (same machine) | remote (separate server)
+  api_url: "http://localhost:3117"
+  api_key: "${CLODDSBOT_API_KEY}"
+  install_path: ""             # Leave empty to use global npx
+  timeout: 60
+  # CloddsBot provides: 119 skills, 10 prediction markets, 7 futures exchanges,
+  # Solana/EVM DeFi, arbitrage detection, risk engine, and Claude AI.
+  # Install: npm install -g clodds
+  # If CloddsBot is unavailable, Python strategies run independently.
+
+# ============================================================
 # Exchange Connectors
 # ============================================================
 exchanges:
