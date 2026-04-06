@@ -7,3 +7,9 @@
 [submodule ".claude/skills/claude-mem"]
 	path = .claude/skills/claude-mem
 	url = https://github.com/thedotmack/claude-mem.git
+[submodule ".claude/skills/transcript-critic"]
+	path = .claude/skills/transcript-critic
+	url = https://github.com/jftuga/transcript-critic.git
+[submodule ".claude/skills/deapi-skills"]
+	path = .claude/skills/deapi-skills
+	url = https://github.com/deapi-ai/claude-code-skills.git

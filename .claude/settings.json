@@ -19,6 +19,16 @@
       "name": "mcp-token-optimization",
       "path": ".claude/skills/mcp-token-optimization",
       "description": "Strategies to reduce MCP token bloat and optimize tool usage"
+    },
+    {
+      "name": "transcript-critic",
+      "path": ".claude/skills/transcript-critic",
+      "description": "YouTube and video transcription with critical analysis using whisper.cpp"
+    },
+    {
+      "name": "deapi-skills",
+      "path": ".claude/skills/deapi-skills/deapi",
+      "description": "AI skills marketplace: transcription, image gen, TTS, OCR, and more"
     }
   ]
 }
