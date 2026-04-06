@@ -36,6 +36,9 @@ import {
   Calendar,
   FileText,
   AlertCircle,
+  Download,
+  Timer,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   analyzeInstagramPost,
@@ -132,12 +135,37 @@ export default function InstagramAnalyticsPage() {
   const [analysis, setAnalysis] = useState<InstagramAnalysis | null>(null);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<string>('');
+  const [expired, setExpired] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const EXPIRY_MINUTES = 30;
 
   // Auto-focus input
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // 30-minute auto-expiry countdown
+  useEffect(() => {
+    if (!expiresAt) return;
+    const interval = setInterval(() => {
+      const remaining = expiresAt - Date.now();
+      if (remaining <= 0) {
+        setAnalysis(null);
+        setExpired(true);
+        setExpiresAt(null);
+        setTimeLeft('');
+        clearInterval(interval);
+        return;
+      }
+      const mins = Math.floor(remaining / 60000);
+      const secs = Math.floor((remaining % 60000) / 1000);
+      setTimeLeft(`${mins}:${secs.toString().padStart(2, '0')}`);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
 
   async function handleAnalyze() {
     const trimmedUrl = url.trim();
@@ -182,6 +210,8 @@ export default function InstagramAnalyticsPage() {
 
     setAnalysis(result);
     setIsAnalyzing(false);
+    setExpired(false);
+    setExpiresAt(Date.now() + EXPIRY_MINUTES * 60 * 1000);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -195,6 +225,34 @@ export default function InstagramAnalyticsPage() {
     if (isValidInstagramUrl(pasted)) {
       setTimeout(() => handleAnalyze(), 100);
     }
+  }
+
+  function downloadReport() {
+    if (!analysis) return;
+    const report = {
+      meta: {
+        tool: 'Stud-Ex Proprietary Data Science Engine',
+        analyzedAt: analysis.analyzedAt,
+        postUrl: analysis.postUrl,
+        postType: analysis.postType,
+      },
+      performanceScore: analysis.scores,
+      engagement: analysis.engagement,
+      audience: analysis.audience,
+      hashtags: analysis.hashtags,
+      benchmark: analysis.benchmark,
+      optimization: analysis.optimization,
+      recommendations: analysis.recommendations,
+    };
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `studex-ig-analysis-${analysis.postId}-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   async function copyResults() {
@@ -374,6 +432,19 @@ Analyzed by Stud-Ex Proprietary Analytics Engine`;
             {/* Analysis Results */}
             {analysis && !isAnalyzing && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Expiry Warning Banner */}
+                <div className="flex items-center justify-between p-3 rounded-lg bg-amber-900/15 border border-amber-500/20">
+                  <div className="flex items-center gap-2">
+                    <Timer size={16} className="text-amber-400" />
+                    <span className="text-sm text-amber-300">
+                      Report expires in <span className="font-bold font-mono">{timeLeft}</span>
+                    </span>
+                  </div>
+                  <span className="text-xs text-amber-400/60">
+                    Download to keep your report
+                  </span>
+                </div>
+
                 {/* Top Bar */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -392,14 +463,25 @@ Analyzed by Stud-Ex Proprietary Analytics Engine`;
                       {analysis.postUrl}
                     </span>
                   </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    icon={copied ? <CheckCircle size={16} /> : <Copy size={16} />}
-                    onClick={copyResults}
-                  >
-                    {copied ? 'Copied!' : 'Copy Report'}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      icon={<Download size={16} />}
+                      onClick={downloadReport}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 border-0"
+                    >
+                      Download Report
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      icon={copied ? <CheckCircle size={16} /> : <Copy size={16} />}
+                      onClick={copyResults}
+                    >
+                      {copied ? 'Copied!' : 'Copy'}
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Overall Score + Sub-scores */}
@@ -699,17 +781,46 @@ Analyzed by Stud-Ex Proprietary Analytics Engine`;
                 </Card>
 
                 {/* Footer Disclaimer */}
-                <div className="text-center py-4">
+                <div className="text-center py-4 space-y-1">
                   <p className="text-xs text-gray-600">
                     Analysis generated by Stud-Ex Proprietary Data Science Engine.
                     Results are based on advanced algorithmic modeling of publicly available data.
+                  </p>
+                  <p className="text-xs text-amber-600/60">
+                    This report will auto-expire in {EXPIRY_MINUTES} minutes. Download to keep permanently.
                   </p>
                 </div>
               </div>
             )}
 
+            {/* Expired State */}
+            {expired && !isAnalyzing && !analysis && (
+              <Card className="mb-8 border-amber-500/30 bg-amber-900/5">
+                <div className="text-center py-8">
+                  <div className="inline-flex p-3 rounded-full bg-amber-500/10 mb-4">
+                    <AlertTriangle size={32} className="text-amber-400" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Report Expired</h3>
+                  <p className="text-gray-400 max-w-md mx-auto mb-6">
+                    Your analysis report has expired after 30 minutes. Reports are not stored
+                    on the platform — download your report next time to keep it permanently.
+                  </p>
+                  <Button
+                    icon={<Sparkles size={18} />}
+                    onClick={() => {
+                      setExpired(false);
+                      inputRef.current?.focus();
+                    }}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0"
+                  >
+                    Run New Analysis
+                  </Button>
+                </div>
+              </Card>
+            )}
+
             {/* Empty State */}
-            {!analysis && !isAnalyzing && (
+            {!analysis && !isAnalyzing && !expired && (
               <div className="text-center py-16">
                 <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-orange-400/10 border border-purple-500/20 mb-6">
                   <Instagram size={48} className="text-pink-400" />
