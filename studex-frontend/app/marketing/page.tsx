@@ -24,6 +24,7 @@ import {
   CheckCircle,
   AlertTriangle,
   Image as ImageIcon,
+  Instagram,
 } from 'lucide-react';
 import { marketingApi } from '@/lib/marketing-api';
 import type { MarketingProfile, MarketingPost } from '@/lib/marketing-types';
@@ -146,6 +147,15 @@ export default function MarketingDashboardPage() {
                   onClick={() => router.push('/marketing/analytics')}
                 >
                   Analytics
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<Instagram size={18} />}
+                  onClick={() => router.push('/marketing/instagram-analytics')}
+                  className="border-pink-500/30 hover:border-pink-500/60"
+                >
+                  IG Analytics
                 </Button>
                 <Button
                   size="sm"
@@ -309,6 +319,14 @@ export default function MarketingDashboardPage() {
                       onClick={() => router.push('/marketing/analytics')}
                     >
                       View Analytics
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      fullWidth
+                      icon={<Instagram size={18} />}
+                      onClick={() => router.push('/marketing/instagram-analytics')}
+                    >
+                      IG Post Analyzer
                     </Button>
                     <Button
                       variant="secondary"
