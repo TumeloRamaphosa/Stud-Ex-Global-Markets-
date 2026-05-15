@@ -1,0 +1,270 @@
+{
+  "name": "Stud-Ex: Instagram Analytics",
+  "nodes": [
+    {
+      "id": "schedule-trigger",
+      "name": "Every 6 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fetch-recent-media",
+      "name": "Fetch Recent Media",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [480, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v18.0/{{ $json.igBusinessAccountId || '17841400000000000' }}/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,caption,media_type,media_url,permalink,timestamp,like_count,comments_count"
+            },
+            {
+              "name": "limit",
+              "value": "25"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "instagram-cred-placeholder",
+          "name": "Instagram Graph API"
+        }
+      }
+    },
+    {
+      "id": "split-media",
+      "name": "Split Media Items",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "parameters": {
+        "fieldToSplitOut": "data"
+      }
+    },
+    {
+      "id": "fetch-media-insights",
+      "name": "Fetch Media Insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [920, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v18.0/{{ $json.id }}/insights",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "impressions,reach,saved,engagement,shares"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "instagram-cred-placeholder",
+          "name": "Instagram Graph API"
+        }
+      }
+    },
+    {
+      "id": "format-data",
+      "name": "Format Analytics Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [1140, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-media-id",
+              "name": "mediaId",
+              "value": "={{ $('Split Media Items').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "field-caption",
+              "name": "caption",
+              "value": "={{ $('Split Media Items').item.json.caption }}",
+              "type": "string"
+            },
+            {
+              "id": "field-media-type",
+              "name": "mediaType",
+              "value": "={{ $('Split Media Items').item.json.media_type }}",
+              "type": "string"
+            },
+            {
+              "id": "field-permalink",
+              "name": "permalink",
+              "value": "={{ $('Split Media Items').item.json.permalink }}",
+              "type": "string"
+            },
+            {
+              "id": "field-likes",
+              "name": "likeCount",
+              "value": "={{ $('Split Media Items').item.json.like_count }}",
+              "type": "number"
+            },
+            {
+              "id": "field-comments",
+              "name": "commentCount",
+              "value": "={{ $('Split Media Items').item.json.comments_count }}",
+              "type": "number"
+            },
+            {
+              "id": "field-impressions",
+              "name": "impressions",
+              "value": "={{ $json.data?.[0]?.values?.[0]?.value || 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "field-reach",
+              "name": "reach",
+              "value": "={{ $json.data?.[1]?.values?.[0]?.value || 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "field-saved",
+              "name": "saved",
+              "value": "={{ $json.data?.[2]?.values?.[0]?.value || 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "field-timestamp",
+              "name": "collectedAt",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "field-source",
+              "name": "source",
+              "value": "instagram_analytics",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "send-to-studex",
+      "name": "Send to Stud-Ex Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1360, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.studexglobalmarkets.com/webhooks/instagram-analytics",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ platform: 'instagram', data: $json, timestamp: $now.toISO() }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every 6 Hours": {
+      "main": [
+        [
+          {
+            "node": "Fetch Recent Media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Recent Media": {
+      "main": [
+        [
+          {
+            "node": "Split Media Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Media Items": {
+      "main": [
+        [
+          {
+            "node": "Fetch Media Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Media Insights": {
+      "main": [
+        [
+          {
+            "node": "Format Analytics Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Analytics Data": {
+      "main": [
+        [
+          {
+            "node": "Send to Stud-Ex Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "Instagram",
+      "id": "tag-instagram"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}

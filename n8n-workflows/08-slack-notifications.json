@@ -1,0 +1,349 @@
+{
+  "name": "Stud-Ex: Slack Notification Hub",
+  "nodes": [
+    {
+      "id": "event-webhook",
+      "name": "Receive Events",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "parameters": {
+        "path": "studex-slack-hub",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "webhookId": "studex-slack-hub-001"
+    },
+    {
+      "id": "parse-event",
+      "name": "Parse Event Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [460, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-event-type",
+              "name": "eventType",
+              "value": "={{ $json.body.eventType }}",
+              "type": "string"
+            },
+            {
+              "id": "field-source",
+              "name": "source",
+              "value": "={{ $json.body.source }}",
+              "type": "string"
+            },
+            {
+              "id": "field-title",
+              "name": "title",
+              "value": "={{ $json.body.title }}",
+              "type": "string"
+            },
+            {
+              "id": "field-message",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "field-severity",
+              "name": "severity",
+              "value": "={{ $json.body.severity || 'info' }}",
+              "type": "string"
+            },
+            {
+              "id": "field-data",
+              "name": "data",
+              "value": "={{ JSON.stringify($json.body.data || {}) }}",
+              "type": "string"
+            },
+            {
+              "id": "field-timestamp",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "route-by-source",
+      "name": "Route to Channel",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [680, 300],
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.source }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "facebook",
+              "output": 0
+            },
+            {
+              "value2": "instagram",
+              "output": 1
+            },
+            {
+              "value2": "shopify",
+              "output": 2
+            },
+            {
+              "value2": "google_ads",
+              "output": 3
+            },
+            {
+              "value2": "whatsapp",
+              "output": 4
+            }
+          ],
+          "fallbackOutput": 5
+        }
+      }
+    },
+    {
+      "id": "slack-facebook",
+      "name": "Post to #facebook",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [940, 40],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#facebook",
+          "mode": "name"
+        },
+        "messageType": "block",
+        "blocksUi": "={{ JSON.stringify([{ type: 'header', text: { type: 'plain_text', text: $json.title } }, { type: 'section', text: { type: 'mrkdwn', text: $json.message } }, { type: 'context', elements: [{ type: 'mrkdwn', text: ':facebook: Facebook | ' + $json.timestamp }] }, { type: 'divider' }]) }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "slack-instagram",
+      "name": "Post to #instagram",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [940, 160],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#instagram",
+          "mode": "name"
+        },
+        "messageType": "block",
+        "blocksUi": "={{ JSON.stringify([{ type: 'header', text: { type: 'plain_text', text: $json.title } }, { type: 'section', text: { type: 'mrkdwn', text: $json.message } }, { type: 'context', elements: [{ type: 'mrkdwn', text: ':camera: Instagram | ' + $json.timestamp }] }, { type: 'divider' }]) }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "slack-shopify",
+      "name": "Post to #orders",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [940, 280],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#orders",
+          "mode": "name"
+        },
+        "messageType": "block",
+        "blocksUi": "={{ JSON.stringify([{ type: 'header', text: { type: 'plain_text', text: $json.title } }, { type: 'section', text: { type: 'mrkdwn', text: $json.message } }, { type: 'context', elements: [{ type: 'mrkdwn', text: ':shopping_bags: Shopify | ' + $json.timestamp }] }, { type: 'divider' }]) }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "slack-google-ads",
+      "name": "Post to #google-ads",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [940, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#google-ads",
+          "mode": "name"
+        },
+        "messageType": "block",
+        "blocksUi": "={{ JSON.stringify([{ type: 'header', text: { type: 'plain_text', text: $json.title } }, { type: 'section', text: { type: 'mrkdwn', text: $json.message } }, { type: 'context', elements: [{ type: 'mrkdwn', text: ':bar_chart: Google Ads | ' + $json.timestamp }] }, { type: 'divider' }]) }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "slack-whatsapp",
+      "name": "Post to #whatsapp",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [940, 520],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#whatsapp",
+          "mode": "name"
+        },
+        "messageType": "block",
+        "blocksUi": "={{ JSON.stringify([{ type: 'header', text: { type: 'plain_text', text: $json.title } }, { type: 'section', text: { type: 'mrkdwn', text: $json.message } }, { type: 'context', elements: [{ type: 'mrkdwn', text: ':speech_balloon: WhatsApp | ' + $json.timestamp }] }, { type: 'divider' }]) }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "slack-general",
+      "name": "Post to #general-notifications",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [940, 640],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#general-notifications",
+          "mode": "name"
+        },
+        "messageType": "block",
+        "blocksUi": "={{ JSON.stringify([{ type: 'header', text: { type: 'plain_text', text: $json.title } }, { type: 'section', text: { type: 'mrkdwn', text: $json.message } }, { type: 'context', elements: [{ type: 'mrkdwn', text: ':bell: ' + ($json.source || 'Unknown') + ' | ' + $json.timestamp }] }, { type: 'divider' }]) }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Receive Events": {
+      "main": [
+        [
+          {
+            "node": "Parse Event Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Event Data": {
+      "main": [
+        [
+          {
+            "node": "Route to Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Channel": {
+      "main": [
+        [
+          {
+            "node": "Post to #facebook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Post to #instagram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Post to #orders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Post to #google-ads",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Post to #whatsapp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Post to #general-notifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "Slack",
+      "id": "tag-slack"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}

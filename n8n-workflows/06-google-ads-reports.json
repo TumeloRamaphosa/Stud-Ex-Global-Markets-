@@ -1,0 +1,258 @@
+{
+  "name": "Stud-Ex: Google Ads Daily Reports",
+  "nodes": [
+    {
+      "id": "daily-schedule",
+      "name": "Daily at 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fetch-campaign-data",
+      "name": "Fetch Campaign Performance",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [480, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://googleads.googleapis.com/v15/customers/YOUR_CUSTOMER_ID/googleAds:searchStream",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleAdsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"query\": \"SELECT campaign.name, campaign.id, campaign.status, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.conversions_value, metrics.ctr, metrics.average_cpc, metrics.cost_per_conversion FROM campaign WHERE segments.date DURING YESTERDAY AND campaign.status = 'ENABLED' ORDER BY metrics.cost_micros DESC\" }",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "googleAdsOAuth2Api": {
+          "id": "gads-cred-placeholder",
+          "name": "Google Ads OAuth2"
+        }
+      }
+    },
+    {
+      "id": "calculate-metrics",
+      "name": "Calculate Key Metrics",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [720, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-campaign-name",
+              "name": "campaignName",
+              "value": "={{ $json.campaign?.name }}",
+              "type": "string"
+            },
+            {
+              "id": "field-campaign-id",
+              "name": "campaignId",
+              "value": "={{ $json.campaign?.id }}",
+              "type": "string"
+            },
+            {
+              "id": "field-impressions",
+              "name": "impressions",
+              "value": "={{ Number($json.metrics?.impressions || 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "field-clicks",
+              "name": "clicks",
+              "value": "={{ Number($json.metrics?.clicks || 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "field-spend",
+              "name": "spend",
+              "value": "={{ (Number($json.metrics?.cost_micros || 0) / 1000000).toFixed(2) }}",
+              "type": "string"
+            },
+            {
+              "id": "field-ctr",
+              "name": "ctr",
+              "value": "={{ (Number($json.metrics?.ctr || 0) * 100).toFixed(2) }}%",
+              "type": "string"
+            },
+            {
+              "id": "field-cpc",
+              "name": "cpc",
+              "value": "={{ (Number($json.metrics?.average_cpc || 0) / 1000000).toFixed(2) }}",
+              "type": "string"
+            },
+            {
+              "id": "field-conversions",
+              "name": "conversions",
+              "value": "={{ Number($json.metrics?.conversions || 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "field-conv-value",
+              "name": "conversionValue",
+              "value": "={{ Number($json.metrics?.conversions_value || 0).toFixed(2) }}",
+              "type": "string"
+            },
+            {
+              "id": "field-roas",
+              "name": "roas",
+              "value": "={{ Number($json.metrics?.cost_micros) > 0 ? (Number($json.metrics?.conversions_value || 0) / (Number($json.metrics?.cost_micros || 1) / 1000000)).toFixed(2) : '0.00' }}",
+              "type": "string"
+            },
+            {
+              "id": "field-cost-per-conv",
+              "name": "costPerConversion",
+              "value": "={{ (Number($json.metrics?.cost_per_conversion || 0) / 1000000).toFixed(2) }}",
+              "type": "string"
+            },
+            {
+              "id": "field-date",
+              "name": "reportDate",
+              "value": "={{ $now.minus(1, 'day').toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "send-slack-summary",
+      "name": "Send Daily Summary to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [960, 200],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#google-ads",
+          "mode": "name"
+        },
+        "text": "=:bar_chart: *Google Ads Daily Report - {{ $json.reportDate }}*\n\n*Campaign:* {{ $json.campaignName }}\n---\n:eye: Impressions: {{ $json.impressions.toLocaleString() }}\n:point_up: Clicks: {{ $json.clicks.toLocaleString() }}\n:dart: CTR: {{ $json.ctr }}\n:moneybag: Spend: ${{ $json.spend }}\n:dollar: CPC: ${{ $json.cpc }}\n:chart_with_upwards_trend: Conversions: {{ $json.conversions }}\n:gem: Conv. Value: ${{ $json.conversionValue }}\n:rocket: ROAS: {{ $json.roas }}x\n:receipt: Cost/Conv: ${{ $json.costPerConversion }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "log-to-sheets",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.3,
+      "position": [960, 420],
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "your-ads-spreadsheet-id",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Google Ads Daily",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.reportDate }}",
+            "Campaign": "={{ $json.campaignName }}",
+            "Impressions": "={{ $json.impressions }}",
+            "Clicks": "={{ $json.clicks }}",
+            "CTR": "={{ $json.ctr }}",
+            "Spend": "={{ $json.spend }}",
+            "CPC": "={{ $json.cpc }}",
+            "Conversions": "={{ $json.conversions }}",
+            "Conv Value": "={{ $json.conversionValue }}",
+            "ROAS": "={{ $json.roas }}",
+            "Cost Per Conv": "={{ $json.costPerConversion }}"
+          }
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gsheets-cred-placeholder",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily at 8am": {
+      "main": [
+        [
+          {
+            "node": "Fetch Campaign Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Campaign Performance": {
+      "main": [
+        [
+          {
+            "node": "Calculate Key Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Key Metrics": {
+      "main": [
+        [
+          {
+            "node": "Send Daily Summary to Slack",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "Google Ads",
+      "id": "tag-google-ads"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}

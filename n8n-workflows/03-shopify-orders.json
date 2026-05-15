@@ -1,0 +1,205 @@
+{
+  "name": "Stud-Ex: Shopify Order Notifications",
+  "nodes": [
+    {
+      "id": "shopify-trigger",
+      "name": "Shopify New Order",
+      "type": "n8n-nodes-base.shopifyTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {
+        "topic": "orders/create"
+      },
+      "credentials": {
+        "shopifyApi": {
+          "id": "shopify-cred-placeholder",
+          "name": "Shopify API"
+        }
+      },
+      "webhookId": "studex-shopify-order-001"
+    },
+    {
+      "id": "extract-order-details",
+      "name": "Extract Order Details",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [480, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-order-id",
+              "name": "orderId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "field-order-number",
+              "name": "orderNumber",
+              "value": "={{ $json.order_number }}",
+              "type": "string"
+            },
+            {
+              "id": "field-customer-name",
+              "name": "customerName",
+              "value": "={{ $json.customer.first_name }} {{ $json.customer.last_name }}",
+              "type": "string"
+            },
+            {
+              "id": "field-customer-email",
+              "name": "customerEmail",
+              "value": "={{ $json.customer.email }}",
+              "type": "string"
+            },
+            {
+              "id": "field-total",
+              "name": "totalPrice",
+              "value": "={{ $json.total_price }}",
+              "type": "string"
+            },
+            {
+              "id": "field-currency",
+              "name": "currency",
+              "value": "={{ $json.currency }}",
+              "type": "string"
+            },
+            {
+              "id": "field-items",
+              "name": "lineItems",
+              "value": "={{ $json.line_items.map(item => `${item.quantity}x ${item.title} ($${item.price})`).join(', ') }}",
+              "type": "string"
+            },
+            {
+              "id": "field-created",
+              "name": "createdAt",
+              "value": "={{ $json.created_at }}",
+              "type": "string"
+            },
+            {
+              "id": "field-financial-status",
+              "name": "financialStatus",
+              "value": "={{ $json.financial_status }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "send-slack-notification",
+      "name": "Notify Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [720, 200],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#orders",
+          "mode": "name"
+        },
+        "text": "=:shopping_bags: *New Shopify Order #{{ $json.orderNumber }}*\n\n*Customer:* {{ $json.customerName }} ({{ $json.customerEmail }})\n*Items:* {{ $json.lineItems }}\n*Total:* {{ $json.currency }} {{ $json.totalPrice }}\n*Status:* {{ $json.financialStatus }}\n*Time:* {{ $json.createdAt }}",
+        "otherOptions": {
+          "unfurl_links": false,
+          "unfurl_media": false
+        }
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "log-to-google-sheets",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.3,
+      "position": [720, 420],
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "your-spreadsheet-id",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Orders",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Order ID": "={{ $json.orderId }}",
+            "Order Number": "={{ $json.orderNumber }}",
+            "Customer Name": "={{ $json.customerName }}",
+            "Customer Email": "={{ $json.customerEmail }}",
+            "Items": "={{ $json.lineItems }}",
+            "Total": "={{ $json.totalPrice }}",
+            "Currency": "={{ $json.currency }}",
+            "Status": "={{ $json.financialStatus }}",
+            "Created At": "={{ $json.createdAt }}"
+          }
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gsheets-cred-placeholder",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Shopify New Order": {
+      "main": [
+        [
+          {
+            "node": "Extract Order Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Order Details": {
+      "main": [
+        [
+          {
+            "node": "Notify Slack",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "Shopify",
+      "id": "tag-shopify"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}

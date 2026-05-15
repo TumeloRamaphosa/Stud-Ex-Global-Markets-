@@ -1,0 +1,351 @@
+{
+  "name": "Stud-Ex: Discord Notifications",
+  "nodes": [
+    {
+      "id": "discord-webhook-trigger",
+      "name": "Receive Event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "parameters": {
+        "path": "studex-discord-notify",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "webhookId": "studex-discord-001"
+    },
+    {
+      "id": "format-event-data",
+      "name": "Format Event Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [460, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-event-type",
+              "name": "eventType",
+              "value": "={{ $json.body.eventType }}",
+              "type": "string"
+            },
+            {
+              "id": "field-source",
+              "name": "source",
+              "value": "={{ $json.body.source }}",
+              "type": "string"
+            },
+            {
+              "id": "field-title",
+              "name": "title",
+              "value": "={{ $json.body.title }}",
+              "type": "string"
+            },
+            {
+              "id": "field-description",
+              "name": "description",
+              "value": "={{ $json.body.description || $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "field-metrics",
+              "name": "metrics",
+              "value": "={{ JSON.stringify($json.body.metrics || {}) }}",
+              "type": "string"
+            },
+            {
+              "id": "field-url",
+              "name": "url",
+              "value": "={{ $json.body.url || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "field-severity",
+              "name": "severity",
+              "value": "={{ $json.body.severity || 'info' }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "route-by-event",
+      "name": "Route by Event Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [680, 300],
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.eventType }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "marketing_update",
+              "output": 0
+            },
+            {
+              "value2": "order_notification",
+              "output": 1
+            },
+            {
+              "value2": "alert",
+              "output": 2
+            }
+          ],
+          "fallbackOutput": 3
+        }
+      }
+    },
+    {
+      "id": "discord-marketing",
+      "name": "Send to #marketing",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [940, 120],
+      "parameters": {
+        "resource": "webhook",
+        "operation": "sendLegacy",
+        "webhookUri": "https://discord.com/api/webhooks/YOUR_MARKETING_WEBHOOK_ID/YOUR_TOKEN",
+        "content": " ",
+        "options": {
+          "username": "Stud-Ex Analytics Bot",
+          "embeds": {
+            "values": [
+              {
+                "title": "={{ $json.title }}",
+                "description": "={{ $json.description }}",
+                "color": "3447003",
+                "url": "={{ $json.url }}",
+                "timestamp": "={{ $now.toISO() }}",
+                "footer": {
+                  "text": "Stud-Ex Global Markets | Marketing Analytics"
+                },
+                "fields": {
+                  "values": [
+                    {
+                      "name": "Source",
+                      "value": "={{ $json.source }}",
+                      "inline": true
+                    },
+                    {
+                      "name": "Type",
+                      "value": "={{ $json.eventType }}",
+                      "inline": true
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "discord-orders",
+      "name": "Send to #orders",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [940, 280],
+      "parameters": {
+        "resource": "webhook",
+        "operation": "sendLegacy",
+        "webhookUri": "https://discord.com/api/webhooks/YOUR_ORDERS_WEBHOOK_ID/YOUR_TOKEN",
+        "content": " ",
+        "options": {
+          "username": "Stud-Ex Orders Bot",
+          "embeds": {
+            "values": [
+              {
+                "title": "={{ $json.title }}",
+                "description": "={{ $json.description }}",
+                "color": "2067276",
+                "url": "={{ $json.url }}",
+                "timestamp": "={{ $now.toISO() }}",
+                "footer": {
+                  "text": "Stud-Ex Global Markets | Order Notifications"
+                },
+                "fields": {
+                  "values": [
+                    {
+                      "name": "Source",
+                      "value": "={{ $json.source }}",
+                      "inline": true
+                    },
+                    {
+                      "name": "Details",
+                      "value": "={{ $json.metrics }}",
+                      "inline": false
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "discord-alerts",
+      "name": "Send to #alerts",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [940, 440],
+      "parameters": {
+        "resource": "webhook",
+        "operation": "sendLegacy",
+        "webhookUri": "https://discord.com/api/webhooks/YOUR_ALERTS_WEBHOOK_ID/YOUR_TOKEN",
+        "content": "={{ $json.severity === 'critical' ? '@everyone' : '' }}",
+        "options": {
+          "username": "Stud-Ex Alert Bot",
+          "embeds": {
+            "values": [
+              {
+                "title": "={{ $json.severity === 'critical' ? 'CRITICAL ALERT' : 'Alert' }}: {{ $json.title }}",
+                "description": "={{ $json.description }}",
+                "color": "={{ $json.severity === 'critical' ? '15158332' : $json.severity === 'warning' ? '15105570' : '3447003' }}",
+                "timestamp": "={{ $now.toISO() }}",
+                "footer": {
+                  "text": "Stud-Ex Global Markets | Alert System"
+                },
+                "fields": {
+                  "values": [
+                    {
+                      "name": "Severity",
+                      "value": "={{ $json.severity.toUpperCase() }}",
+                      "inline": true
+                    },
+                    {
+                      "name": "Source",
+                      "value": "={{ $json.source }}",
+                      "inline": true
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "discord-general",
+      "name": "Send to #general",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [940, 600],
+      "parameters": {
+        "resource": "webhook",
+        "operation": "sendLegacy",
+        "webhookUri": "https://discord.com/api/webhooks/YOUR_GENERAL_WEBHOOK_ID/YOUR_TOKEN",
+        "content": " ",
+        "options": {
+          "username": "Stud-Ex Bot",
+          "embeds": {
+            "values": [
+              {
+                "title": "={{ $json.title }}",
+                "description": "={{ $json.description }}",
+                "color": "9807270",
+                "timestamp": "={{ $now.toISO() }}",
+                "footer": {
+                  "text": "Stud-Ex Global Markets"
+                },
+                "fields": {
+                  "values": [
+                    {
+                      "name": "Source",
+                      "value": "={{ $json.source || 'System' }}",
+                      "inline": true
+                    },
+                    {
+                      "name": "Type",
+                      "value": "={{ $json.eventType || 'General' }}",
+                      "inline": true
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Receive Event": {
+      "main": [
+        [
+          {
+            "node": "Format Event Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Event Data": {
+      "main": [
+        [
+          {
+            "node": "Route by Event Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Event Type": {
+      "main": [
+        [
+          {
+            "node": "Send to #marketing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send to #orders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send to #alerts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send to #general",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "Discord",
+      "id": "tag-discord"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}

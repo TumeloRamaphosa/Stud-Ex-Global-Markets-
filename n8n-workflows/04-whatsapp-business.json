@@ -1,0 +1,254 @@
+{
+  "name": "Stud-Ex: WhatsApp Business Messaging",
+  "nodes": [
+    {
+      "id": "whatsapp-webhook",
+      "name": "Incoming WhatsApp Message",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "parameters": {
+        "path": "studex-whatsapp-incoming",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "webhookId": "studex-whatsapp-001"
+    },
+    {
+      "id": "extract-message",
+      "name": "Extract Message Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [480, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-from",
+              "name": "senderPhone",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from }}",
+              "type": "string"
+            },
+            {
+              "id": "field-message-body",
+              "name": "messageBody",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.text?.body }}",
+              "type": "string"
+            },
+            {
+              "id": "field-message-type",
+              "name": "messageType",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.type }}",
+              "type": "string"
+            },
+            {
+              "id": "field-timestamp",
+              "name": "timestamp",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.timestamp }}",
+              "type": "string"
+            },
+            {
+              "id": "field-sender-name",
+              "name": "senderName",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile?.name }}",
+              "type": "string"
+            },
+            {
+              "id": "field-phone-number-id",
+              "name": "phoneNumberId",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "check-priority",
+      "name": "Is Priority Message?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [720, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "condition-urgent",
+              "leftValue": "={{ $json.messageBody }}",
+              "rightValue": "urgent",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "condition-help",
+              "leftValue": "={{ $json.messageBody }}",
+              "rightValue": "help",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "condition-order",
+              "leftValue": "={{ $json.messageBody }}",
+              "rightValue": "order",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      }
+    },
+    {
+      "id": "send-auto-reply",
+      "name": "Send Auto-Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [960, 420],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v18.0/{{ $json.phoneNumberId }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.senderPhone, type: 'template', template: { name: 'studex_auto_reply', language: { code: 'en' }, components: [{ type: 'body', parameters: [{ type: 'text', text: $json.senderName || 'Customer' }] }] } }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "whatsapp-cred-placeholder",
+          "name": "WhatsApp Cloud API"
+        }
+      }
+    },
+    {
+      "id": "forward-to-slack-priority",
+      "name": "Forward Priority to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [960, 180],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#whatsapp-priority",
+          "mode": "name"
+        },
+        "text": "=:rotating_light: *Priority WhatsApp Message*\n\n*From:* {{ $json.senderName }} ({{ $json.senderPhone }})\n*Message:* {{ $json.messageBody }}\n*Time:* {{ $json.timestamp }}\n\nPlease respond ASAP.",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "send-standard-reply",
+      "name": "Send Standard Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [960, 560],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v18.0/{{ $json.phoneNumberId }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.senderPhone, type: 'text', text: { body: 'Thank you for contacting Stud-Ex Global Markets! We received your message and will get back to you shortly. For urgent inquiries, please include the word \"urgent\" in your message.' } }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "whatsapp-cred-placeholder",
+          "name": "WhatsApp Cloud API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Incoming WhatsApp Message": {
+      "main": [
+        [
+          {
+            "node": "Extract Message Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Data": {
+      "main": [
+        [
+          {
+            "node": "Is Priority Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Priority Message?": {
+      "main": [
+        [
+          {
+            "node": "Forward Priority to Slack",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Auto-Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Standard Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "WhatsApp",
+      "id": "tag-whatsapp"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}

@@ -1,0 +1,375 @@
+{
+  "name": "Stud-Ex: Notion Database Sync",
+  "nodes": [
+    {
+      "id": "studex-webhook",
+      "name": "Receive from Stud-Ex App",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "parameters": {
+        "path": "studex-notion-sync",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "responseData": "allEntries"
+      },
+      "webhookId": "studex-notion-sync-001"
+    },
+    {
+      "id": "route-action",
+      "name": "Route by Action Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [480, 300],
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.action }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "create_campaign",
+              "output": 0
+            },
+            {
+              "value2": "update_campaign",
+              "output": 1
+            },
+            {
+              "value2": "create_report",
+              "output": 2
+            },
+            {
+              "value2": "sync_metrics",
+              "output": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "create-campaign-entry",
+      "name": "Create Campaign in Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [740, 100],
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "create",
+        "databaseId": {
+          "__rl": true,
+          "value": "your-notion-campaigns-db-id",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Campaign Name|title",
+              "title": "={{ $json.body.data.campaignName }}"
+            },
+            {
+              "key": "Platform|select",
+              "selectValue": "={{ $json.body.data.platform }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "={{ $json.body.data.status || 'Active' }}"
+            },
+            {
+              "key": "Budget|number",
+              "numberValue": "={{ $json.body.data.budget }}"
+            },
+            {
+              "key": "Start Date|date",
+              "date": "={{ $json.body.data.startDate }}"
+            },
+            {
+              "key": "End Date|date",
+              "date": "={{ $json.body.data.endDate }}"
+            },
+            {
+              "key": "Objective|rich_text",
+              "textContent": "={{ $json.body.data.objective }}"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "notionApi": {
+          "id": "notion-cred-placeholder",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "id": "update-campaign-entry",
+      "name": "Update Campaign in Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [740, 260],
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.body.data.notionPageId }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "={{ $json.body.data.status }}"
+            },
+            {
+              "key": "Impressions|number",
+              "numberValue": "={{ $json.body.data.impressions }}"
+            },
+            {
+              "key": "Clicks|number",
+              "numberValue": "={{ $json.body.data.clicks }}"
+            },
+            {
+              "key": "Conversions|number",
+              "numberValue": "={{ $json.body.data.conversions }}"
+            },
+            {
+              "key": "Spend|number",
+              "numberValue": "={{ $json.body.data.spend }}"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "notionApi": {
+          "id": "notion-cred-placeholder",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "id": "create-report-page",
+      "name": "Create Analytics Report Page",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [740, 420],
+      "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "parentPageId": {
+          "__rl": true,
+          "value": "your-notion-reports-page-id",
+          "mode": "id"
+        },
+        "title": "={{ $json.body.data.reportTitle || 'Analytics Report - ' + $now.toFormat('yyyy-MM-dd') }}",
+        "content": {
+          "blockUi": {
+            "blockValues": [
+              {
+                "type": "heading_2",
+                "richText": {
+                  "text": [
+                    {
+                      "textContent": "={{ $json.body.data.reportTitle || 'Weekly Analytics Report' }}"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "paragraph",
+                "richText": {
+                  "text": [
+                    {
+                      "textContent": "=Report Period: {{ $json.body.data.startDate }} to {{ $json.body.data.endDate }}"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "heading_3",
+                "richText": {
+                  "text": [
+                    {
+                      "textContent": "Key Metrics"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "bulleted_list_item",
+                "richText": {
+                  "text": [
+                    {
+                      "textContent": "=Total Impressions: {{ $json.body.data.totalImpressions }}"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "bulleted_list_item",
+                "richText": {
+                  "text": [
+                    {
+                      "textContent": "=Total Clicks: {{ $json.body.data.totalClicks }}"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "bulleted_list_item",
+                "richText": {
+                  "text": [
+                    {
+                      "textContent": "=Total Conversions: {{ $json.body.data.totalConversions }}"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "bulleted_list_item",
+                "richText": {
+                  "text": [
+                    {
+                      "textContent": "=Total Spend: ${{ $json.body.data.totalSpend }}"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "bulleted_list_item",
+                "richText": {
+                  "text": [
+                    {
+                      "textContent": "=Overall ROAS: {{ $json.body.data.overallRoas }}x"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "credentials": {
+        "notionApi": {
+          "id": "notion-cred-placeholder",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "id": "sync-metrics-to-db",
+      "name": "Sync Metrics to Notion DB",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [740, 580],
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "create",
+        "databaseId": {
+          "__rl": true,
+          "value": "your-notion-metrics-db-id",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Date|title",
+              "title": "={{ $now.toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "key": "Platform|select",
+              "selectValue": "={{ $json.body.data.platform }}"
+            },
+            {
+              "key": "Impressions|number",
+              "numberValue": "={{ $json.body.data.impressions }}"
+            },
+            {
+              "key": "Clicks|number",
+              "numberValue": "={{ $json.body.data.clicks }}"
+            },
+            {
+              "key": "CTR|number",
+              "numberValue": "={{ $json.body.data.ctr }}"
+            },
+            {
+              "key": "Spend|number",
+              "numberValue": "={{ $json.body.data.spend }}"
+            },
+            {
+              "key": "Revenue|number",
+              "numberValue": "={{ $json.body.data.revenue }}"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "notionApi": {
+          "id": "notion-cred-placeholder",
+          "name": "Notion API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Receive from Stud-Ex App": {
+      "main": [
+        [
+          {
+            "node": "Route by Action Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action Type": {
+      "main": [
+        [
+          {
+            "node": "Create Campaign in Notion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Campaign in Notion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Analytics Report Page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sync Metrics to Notion DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "Notion",
+      "id": "tag-notion"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}

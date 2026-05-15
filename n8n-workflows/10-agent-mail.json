@@ -1,0 +1,437 @@
+{
+  "name": "Stud-Ex: Agent Mail Automation",
+  "nodes": [
+    {
+      "id": "schedule-check",
+      "name": "Check Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fetch-agent-mail",
+      "name": "Fetch Agent Mail Inbox",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [480, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.agentmail.to/v1/inboxes/{{ $json.inboxId || 'default' }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "unread"
+            },
+            {
+              "name": "limit",
+              "value": "50"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "agentmail-cred-placeholder",
+          "name": "Agent Mail API Key"
+        }
+      }
+    },
+    {
+      "id": "split-messages",
+      "name": "Split Messages",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "parameters": {
+        "fieldToSplitOut": "messages"
+      }
+    },
+    {
+      "id": "parse-email",
+      "name": "Parse Email Content",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [920, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-message-id",
+              "name": "messageId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "field-from",
+              "name": "from",
+              "value": "={{ $json.from }}",
+              "type": "string"
+            },
+            {
+              "id": "field-subject",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "field-body",
+              "name": "body",
+              "value": "={{ $json.text || $json.html_stripped || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "field-received-at",
+              "name": "receivedAt",
+              "value": "={{ $json.created_at }}",
+              "type": "string"
+            },
+            {
+              "id": "field-category",
+              "name": "category",
+              "value": "={{ $json.subject.toLowerCase().includes('unsubscribe') ? 'unsubscribe' : $json.subject.toLowerCase().includes('pricing') || $json.subject.toLowerCase().includes('quote') ? 'sales_inquiry' : $json.subject.toLowerCase().includes('support') || $json.subject.toLowerCase().includes('help') ? 'support' : $json.subject.toLowerCase().includes('partnership') || $json.subject.toLowerCase().includes('collaborate') ? 'partnership' : 'general' }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "route-by-category",
+      "name": "Route by Category",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1140, 300],
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.category }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "sales_inquiry",
+              "output": 0
+            },
+            {
+              "value2": "support",
+              "output": 1
+            },
+            {
+              "value2": "unsubscribe",
+              "output": 2
+            },
+            {
+              "value2": "partnership",
+              "output": 3
+            }
+          ],
+          "fallbackOutput": 4
+        }
+      }
+    },
+    {
+      "id": "auto-reply-sales",
+      "name": "Auto-Reply: Sales Inquiry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1400, 80],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.agentmail.to/v1/messages/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ to: $json.from, subject: 'Re: ' + $json.subject, text: 'Thank you for your interest in Stud-Ex Global Markets!\\n\\nWe have received your inquiry and our sales team will contact you within 24 hours with detailed pricing and service information.\\n\\nIn the meantime, you can explore our services at https://studexglobalmarkets.com\\n\\nBest regards,\\nStud-Ex Global Markets Sales Team', in_reply_to: $json.messageId }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "agentmail-cred-placeholder",
+          "name": "Agent Mail API Key"
+        }
+      }
+    },
+    {
+      "id": "auto-reply-support",
+      "name": "Auto-Reply: Support",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1400, 220],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.agentmail.to/v1/messages/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ to: $json.from, subject: 'Re: ' + $json.subject, text: 'Thank you for reaching out to Stud-Ex Global Markets Support!\\n\\nWe have received your support request and a team member will assist you shortly. Your ticket reference is: STUDEX-' + Date.now() + '\\n\\nFor urgent issues, please contact us directly at support@studexglobalmarkets.com\\n\\nBest regards,\\nStud-Ex Support Team', in_reply_to: $json.messageId }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "agentmail-cred-placeholder",
+          "name": "Agent Mail API Key"
+        }
+      }
+    },
+    {
+      "id": "process-unsubscribe",
+      "name": "Process Unsubscribe",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1400, 360],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.studexglobalmarkets.com/webhooks/unsubscribe",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ email: $json.from, action: 'unsubscribe', source: 'agent_mail', timestamp: $now.toISO() }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      }
+    },
+    {
+      "id": "forward-sales-slack",
+      "name": "Forward Sales to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [1640, 80],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#sales-leads",
+          "mode": "name"
+        },
+        "text": "=:email: *New Sales Inquiry via Agent Mail*\n\n*From:* {{ $json.from }}\n*Subject:* {{ $json.subject }}\n*Preview:* {{ $json.body.substring(0, 300) }}...\n*Received:* {{ $json.receivedAt }}\n\nAuto-reply has been sent. Please follow up within 24 hours.",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "forward-support-slack",
+      "name": "Forward Support to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [1640, 220],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#support",
+          "mode": "name"
+        },
+        "text": "=:ticket: *New Support Request via Agent Mail*\n\n*From:* {{ $json.from }}\n*Subject:* {{ $json.subject }}\n*Preview:* {{ $json.body.substring(0, 300) }}...\n*Received:* {{ $json.receivedAt }}\n\nAuto-reply with ticket number has been sent.",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "forward-partnership-slack",
+      "name": "Forward Partnership to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [1400, 500],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#partnerships",
+          "mode": "name"
+        },
+        "text": "=:handshake: *New Partnership Inquiry via Agent Mail*\n\n*From:* {{ $json.from }}\n*Subject:* {{ $json.subject }}\n*Preview:* {{ $json.body.substring(0, 500) }}\n*Received:* {{ $json.receivedAt }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "forward-general-slack",
+      "name": "Forward General to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [1400, 640],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#inbox",
+          "mode": "name"
+        },
+        "text": "=:email: *New Email via Agent Mail*\n\n*From:* {{ $json.from }}\n*Subject:* {{ $json.subject }}\n*Category:* General\n*Preview:* {{ $json.body.substring(0, 300) }}...\n*Received:* {{ $json.receivedAt }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Check Every 15 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Fetch Agent Mail Inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Agent Mail Inbox": {
+      "main": [
+        [
+          {
+            "node": "Split Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Messages": {
+      "main": [
+        [
+          {
+            "node": "Parse Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Email Content": {
+      "main": [
+        [
+          {
+            "node": "Route by Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Category": {
+      "main": [
+        [
+          {
+            "node": "Auto-Reply: Sales Inquiry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Auto-Reply: Support",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process Unsubscribe",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Forward Partnership to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Forward General to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-Reply: Sales Inquiry": {
+      "main": [
+        [
+          {
+            "node": "Forward Sales to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-Reply: Support": {
+      "main": [
+        [
+          {
+            "node": "Forward Support to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "Agent Mail",
+      "id": "tag-agent-mail"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}

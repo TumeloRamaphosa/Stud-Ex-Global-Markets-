@@ -1,0 +1,268 @@
+{
+  "name": "Stud-Ex: Gmail Automation",
+  "nodes": [
+    {
+      "id": "gmail-trigger",
+      "name": "New Email Received",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "includeSpamTrash": false
+        },
+        "options": {
+          "downloadAttachments": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-cred-placeholder",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "id": "extract-email-content",
+      "name": "Extract Email Content",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [480, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-subject",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "field-from",
+              "name": "from",
+              "value": "={{ $json.from.text }}",
+              "type": "string"
+            },
+            {
+              "id": "field-body",
+              "name": "body",
+              "value": "={{ $json.text || $json.snippet }}",
+              "type": "string"
+            },
+            {
+              "id": "field-date",
+              "name": "receivedDate",
+              "value": "={{ $json.date }}",
+              "type": "string"
+            },
+            {
+              "id": "field-message-id",
+              "name": "messageId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "field-thread-id",
+              "name": "threadId",
+              "value": "={{ $json.threadId }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "categorize-email",
+      "name": "Categorize Email",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [720, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "condition-lead",
+              "leftValue": "={{ $json.subject }}",
+              "rightValue": "inquiry|quote|pricing|demo|partnership",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      }
+    },
+    {
+      "id": "label-important",
+      "name": "Label as Lead/Important",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [960, 180],
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.messageId }}",
+        "labelIds": ["Label_Leads", "IMPORTANT"]
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-cred-placeholder",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "id": "forward-to-slack-important",
+      "name": "Forward to Slack (Important)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [1200, 120],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": {
+          "__rl": true,
+          "value": "#leads",
+          "mode": "name"
+        },
+        "text": "=:email: *New Lead Email Received*\n\n*From:* {{ $json.from }}\n*Subject:* {{ $json.subject }}\n*Preview:* {{ $json.body.substring(0, 300) }}...\n*Received:* {{ $json.receivedDate }}\n\nCheck Gmail for full details.",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred-placeholder",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "id": "auto-reply-lead",
+      "name": "Auto-Reply to Lead",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1200, 260],
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $json.messageId }}",
+        "message": "Thank you for your interest in Stud-Ex Global Markets!\n\nWe have received your inquiry and a member of our team will get back to you within 24 hours.\n\nIn the meantime, feel free to explore our services at https://studexglobalmarkets.com\n\nBest regards,\nStud-Ex Global Markets Team",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-cred-placeholder",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "id": "label-general",
+      "name": "Label as General",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [960, 440],
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.messageId }}",
+        "labelIds": ["Label_General"]
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-cred-placeholder",
+          "name": "Gmail OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "New Email Received": {
+      "main": [
+        [
+          {
+            "node": "Extract Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Email Content": {
+      "main": [
+        [
+          {
+            "node": "Categorize Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Categorize Email": {
+      "main": [
+        [
+          {
+            "node": "Label as Lead/Important",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Label as General",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label as Lead/Important": {
+      "main": [
+        [
+          {
+            "node": "Forward to Slack (Important)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Auto-Reply to Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "Gmail",
+      "id": "tag-gmail"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}

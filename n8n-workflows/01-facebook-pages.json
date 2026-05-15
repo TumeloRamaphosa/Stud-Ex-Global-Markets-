@@ -1,0 +1,217 @@
+{
+  "name": "Stud-Ex: Facebook Page Management",
+  "nodes": [
+    {
+      "id": "trigger-webhook",
+      "name": "Receive Post Data",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "parameters": {
+        "path": "studex-facebook-post",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "webhookId": "studex-fb-post-001"
+    },
+    {
+      "id": "post-to-page",
+      "name": "Post to Facebook Page",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [480, 200],
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "node": "={{ $json.pageId }}",
+        "edge": "feed",
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "message",
+                "value": "={{ $json.message }}"
+              },
+              {
+                "name": "link",
+                "value": "={{ $json.link }}"
+              }
+            ]
+          }
+        }
+      },
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "facebook-cred-placeholder",
+          "name": "Facebook Graph API"
+        }
+      }
+    },
+    {
+      "id": "fetch-page-insights",
+      "name": "Fetch Page Insights",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [480, 420],
+      "parameters": {
+        "httpRequestMethod": "GET",
+        "node": "={{ $json.pageId }}",
+        "edge": "insights",
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "metric",
+                "value": "page_impressions,page_engaged_users,page_post_engagements,page_fan_adds"
+              },
+              {
+                "name": "period",
+                "value": "day"
+              },
+              {
+                "name": "since",
+                "value": "={{ $now.minus(1, 'day').toISO() }}"
+              }
+            ]
+          }
+        }
+      },
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "facebook-cred-placeholder",
+          "name": "Facebook Graph API"
+        }
+      }
+    },
+    {
+      "id": "merge-results",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [720, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-post-id",
+              "name": "postId",
+              "value": "={{ $('Post to Facebook Page').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "field-insights",
+              "name": "insights",
+              "value": "={{ $('Fetch Page Insights').item.json.data }}",
+              "type": "string"
+            },
+            {
+              "id": "field-timestamp",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "field-source",
+              "name": "source",
+              "value": "facebook_pages",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "send-to-dashboard",
+      "name": "Send to Stud-Ex Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [960, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.studexglobalmarkets.com/webhooks/facebook-insights",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Receive Post Data": {
+      "main": [
+        [
+          {
+            "node": "Post to Facebook Page",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Page Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to Facebook Page": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Page Insights": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Send to Stud-Ex Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "Facebook",
+      "id": "tag-facebook"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}
