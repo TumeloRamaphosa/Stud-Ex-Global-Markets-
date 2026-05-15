@@ -1,15 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/components/providers/AuthProvider';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import {
-  ArrowLeft,
   Link2,
   Sparkles,
   Heart,
@@ -126,9 +121,6 @@ function MetricCard({
 }
 
 export default function InstagramAnalyticsPage() {
-  const { user } = useAuth();
-  const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [url, setUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [stages, setStages] = useState<AnalysisStage[]>([]);
@@ -294,23 +286,10 @@ Analyzed by Stud-Ex Proprietary Analytics Engine`;
 
   return (
     <div className="min-h-screen bg-gradient-dark text-white">
-      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <div className="flex">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <main className="flex-1 overflow-auto">
-          <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+      <main className="flex-1 overflow-auto">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={<ArrowLeft size={18} />}
-                onClick={() => router.push('/marketing')}
-              >
-                Back
-              </Button>
               <div>
                 <h1 className="text-3xl font-bold flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400">
@@ -851,7 +830,6 @@ Analyzed by Stud-Ex Proprietary Analytics Engine`;
             )}
           </div>
         </main>
-      </div>
     </div>
   );
 }

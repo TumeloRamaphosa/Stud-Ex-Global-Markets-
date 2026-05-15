@@ -33,7 +33,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     if (!mounted || loading) return;
 
     const publicRoutes = ['/', '/login', '/signup'];
-    const isPublicRoute = publicRoutes.includes(pathname);
+    const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/marketing/instagram-analytics') || pathname.startsWith('/preview');
 
     if (!user && !isPublicRoute) {
       router.push('/login');
