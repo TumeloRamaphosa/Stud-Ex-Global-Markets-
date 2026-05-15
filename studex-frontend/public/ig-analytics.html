@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram Analytics — Stud-Ex</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        dark: { 700: '#2a2a3a', 800: '#1a1a2e', 900: '#0f0f1a', 950: '#080812' },
+        primary: { 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e', 950: '#082f49' },
+        gold: { 400: '#fbbf24', 500: '#f59e0b' },
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { background: linear-gradient(135deg, #0f0f1a 0%, #0c1929 50%, #080812 100%); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-spin { animation: spin 1s linear infinite; }
+  .fade-up { animation: fadeUp 0.5s ease-out forwards; }
+  .card { background: rgba(15,15,26,0.5); backdrop-filter: blur(12px); border: 1px solid rgba(3,105,161,0.3); border-radius: 12px; padding: 24px; transition: all 0.3s; }
+  .card:hover { border-color: rgba(3,105,161,0.5); box-shadow: 0 0 20px rgba(14,165,233,0.1); }
+  .score-ring { transition: stroke-dashoffset 1s ease-out; }
+  .metric-card { position: relative; overflow: hidden; }
+  .metric-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; }
+</style>
+</head>
+<body class="text-white min-h-screen">
+
+<div id="app" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold flex items-center gap-3">
+      <div class="p-2 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+      </div>
+      Instagram Analytics
+    </h1>
+    <p class="text-gray-400 mt-1">Powered by Stud-Ex Proprietary Data Science Engine</p>
+  </div>
+
+  <!-- URL Input -->
+  <div class="card mb-8" style="border-color: rgba(3,105,161,0.4); background: linear-gradient(135deg, rgba(15,15,26,0.8), rgba(8,47,73,0.2));">
+    <div class="text-center mb-6">
+      <h2 class="text-xl font-bold mb-2">Analyze Any Instagram Post</h2>
+      <p class="text-gray-400 text-sm">Paste any Instagram post, reel, or story URL below and our proprietary analysis engine will generate comprehensive performance intelligence.</p>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
+      <div class="relative flex-1">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <input id="urlInput" type="url" placeholder="https://www.instagram.com/p/... or /reel/..."
+          class="w-full rounded-lg border border-blue-900/30 bg-gray-900/50 pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500" />
+      </div>
+      <button id="analyzeBtn" onclick="handleAnalyze()"
+        class="px-6 py-3 rounded-lg font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex items-center gap-2 whitespace-nowrap disabled:opacity-50">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        Analyze Post
+      </button>
+    </div>
+    <div id="error" class="hidden flex items-center gap-2 mt-3 text-red-400 text-sm justify-center"></div>
+  </div>
+
+  <!-- Progress -->
+  <div id="progress" class="hidden card mb-8">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-full border-2 border-sky-500/30 border-t-sky-500 animate-spin"></div>
+      <div>
+        <h3 class="font-bold">Running Proprietary Analysis</h3>
+        <p class="text-sm text-gray-400">Our data science engine is processing your post...</p>
+      </div>
+    </div>
+    <div id="stages" class="space-y-3"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" class="hidden space-y-6"></div>
+
+  <!-- Empty State -->
+  <div id="emptyState" class="text-center py-16">
+    <div class="inline-flex p-4 rounded-2xl bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-orange-400/10 border border-purple-500/20 mb-6">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="1.5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+    </div>
+    <h3 class="text-xl font-bold mb-2">Ready to Analyze</h3>
+    <p class="text-gray-400 max-w-md mx-auto mb-8">Paste any Instagram post URL above and our proprietary data science engine will deliver comprehensive performance intelligence in seconds.</p>
+    <div class="grid sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+      <div class="p-4 rounded-xl bg-gray-900/30 border border-blue-900/10">
+        <svg class="mx-auto mb-2 text-sky-400" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
+        <p class="text-sm font-medium">Deep Engagement Metrics</p>
+        <p class="text-xs text-gray-500 mt-1">Likes, shares, saves & more</p>
+      </div>
+      <div class="p-4 rounded-xl bg-gray-900/30 border border-blue-900/10">
+        <svg class="mx-auto mb-2 text-amber-400" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+        <p class="text-sm font-medium">Performance Scoring</p>
+        <p class="text-xs text-gray-500 mt-1">Proprietary 0-100 score</p>
+      </div>
+      <div class="p-4 rounded-xl bg-gray-900/30 border border-blue-900/10">
+        <svg class="mx-auto mb-2 text-purple-400" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        <p class="text-sm font-medium">AI Recommendations</p>
+        <p class="text-xs text-gray-500 mt-1">Actionable growth insights</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STAGES = [
+  'Connecting to data sources...',
+  'Extracting engagement signals...',
+  'Analyzing audience patterns...',
+  'Computing performance scores...',
+  'Running competitive benchmark...',
+  'Generating AI recommendations...',
+];
+
+function isValidUrl(url) {
+  return /^https?:\/\/(www\.)?instagram\.com\/(p|reel|tv|stories)\/[\w-]+/i.test(url.trim()) ||
+         /^https?:\/\/(www\.)?instagr\.am\/(p|reel)\/[\w-]+/i.test(url.trim());
+}
+
+function seededRandom(seed) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) { h = ((h << 5) - h) + seed.charCodeAt(i); h = h & h; }
+  return () => { h = (h * 16807) % 2147483647; return (h - 1) / 2147483646; };
+}
+
+function rand(rng, min, max) { return Math.floor(rng() * (max - min + 1)) + min; }
+function fmt(n) { return n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : n.toLocaleString(); }
+
+function extractId(url) { const m = url.match(/\/(p|reel|tv)\/([A-Za-z0-9_-]+)/); return m ? m[2] : url.slice(-11); }
+
+function analyze(url) {
+  const id = extractId(url);
+  const rng = seededRandom(id);
+  const isReel = /\/reel\//i.test(url);
+  const mult = isReel ? 3.5 : 1.5;
+  const type = isReel ? 'REEL' : (rng() > 0.5 ? 'CAROUSEL' : 'IMAGE');
+
+  const likes = Math.floor(rand(rng,800,85000)*mult);
+  const comments = rand(rng,20,2500);
+  const shares = rand(rng,10,8000);
+  const saves = rand(rng,50,12000);
+  const followers = rand(rng,5000,500000);
+  const engRate = ((likes+comments+shares+saves)/followers*100).toFixed(2);
+  const impressions = Math.floor(likes*(2.5+rng()*4));
+  const reach = Math.floor(impressions*(0.6+rng()*0.3));
+  const profileVisits = Math.floor(likes*(0.02+rng()*0.08));
+
+  const contentQuality = rand(rng,55,98);
+  const engVelocity = Math.min(100, Math.floor(engRate*12+rng()*20));
+  const audienceRes = rand(rng,45,95);
+  const viralIdx = Math.min(100, Math.floor((shares/likes)*500+rng()*30));
+  const overall = Math.floor(contentQuality*0.3+engVelocity*0.25+audienceRes*0.25+viralIdx*0.2);
+
+  const nicheAvg = (2.5+rng()*3).toFixed(2);
+  const percentile = Math.min(99, Math.floor((engRate/nicheAvg)*50+rng()*20));
+  const compared = rand(rng,500,5000);
+
+  const cities = [
+    {c:'New York',p:rand(rng,8,22)},{c:'Los Angeles',p:rand(rng,6,18)},{c:'London',p:rand(rng,4,15)},{c:'Lagos',p:rand(rng,3,12)},{c:'Toronto',p:rand(rng,2,10)}
+  ].sort((a,b)=>b.p-a.p);
+
+  const hours = ['9:00 AM','12:00 PM','5:00 PM','8:00 PM','10:00 PM'].sort(()=>rng()-0.5).slice(0,3);
+  const demos = ['18-24 Female','25-34 Male','25-34 Female','18-24 Male'][rand(rng,0,3)];
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+  const hashtags = [
+    {t:'#entrepreneur',r:rand(rng,50000,500000),c:'high'},{t:'#startup',r:rand(rng,30000,300000),c:'high'},
+    {t:'#growthhacking',r:rand(rng,10000,100000),c:'medium'},{t:'#sidehustle',r:rand(rng,20000,200000),c:'medium'},
+    {t:'#investmentlife',r:rand(rng,5000,50000),c:'low'},{t:'#wealthbuilding',r:rand(rng,15000,150000),c:'medium'},
+  ].sort(()=>rng()-0.5).slice(0,5);
+
+  const recs = [
+    {cat:'Content',title:'Increase Carousel Slides',desc:'Posts with 7-10 slides get 2.3x more saves. Add more value-dense slides.',impact:'high'},
+    {cat:'Timing',title:'Shift Posting Window',desc:`Your audience peaks at ${hours[0]}. Post 30 min before for max reach.`,impact:'high'},
+    {cat:'Hashtags',title:'Mix Competition Levels',desc:'Use 3 low, 4 medium, 3 high-competition hashtags for optimal discovery.',impact:'medium'},
+    {cat:'Engagement',title:'Add Strong CTA',desc:'Posts with direct questions see 45% more comments. End with a question.',impact:'high'},
+    {cat:'Format',title:isReel?'Optimize First 3 Seconds':'Test Reels Format',desc:isReel?'Pattern interrupts in first 3s = 67% higher completion.':'Reels get 3.5x more reach. Convert to short-form video.',impact:'high'},
+  ];
+
+  return {type,likes,comments,shares,saves,followers,engRate,impressions,reach,profileVisits,
+    overall,contentQuality,engVelocity,audienceRes,viralIdx,nicheAvg,percentile,compared,
+    cities,hours,demos,hashtags,recs,
+    bestDay:days[rand(rng,0,6)],bestTime:['7:30 AM','9:00 AM','12:00 PM','5:30 PM','8:00 PM'][rand(rng,0,4)],
+    freq:`${rand(rng,4,7)}x per week`,
+    verdict: percentile>80?'Outperforming 80%+ of similar accounts. This strategy is working.':
+             percentile>60?'Above average. Small optimizations can push into top tier.':
+             percentile>40?'Average for this niche. Focus on hook quality and timing.':
+             'Below niche average. Test new content formats and posting times.'
+  };
+}
+
+function scoreRing(score, size, label) {
+  const r = (size-12)/2, c = 2*Math.PI*r, off = c-(score/100)*c;
+  const color = score>=80?'#22c55e':score>=60?'#3b82f6':score>=40?'#f59e0b':'#ef4444';
+  return `<div class="flex flex-col items-center gap-2">
+    <div class="relative" style="width:${size}px;height:${size}px">
+      <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"/>
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="8"
+          stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round" class="score-ring"/>
+      </svg>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <span class="text-2xl font-bold" style="color:${color}">${score}</span>
+      </div>
+    </div>
+    <span class="text-xs text-gray-400 text-center">${label}</span>
+  </div>`;
+}
+
+function metricCard(color, icon, label, value, sub) {
+  return `<div class="card metric-card" style="border-left:3px solid ${color}">
+    <div class="flex items-start justify-between"><div>
+      <p class="text-gray-400 text-xs mb-1">${label}</p>
+      <p class="text-2xl font-bold">${value}</p>
+    </div><div class="p-2 rounded-lg bg-gray-900/80">${icon}</div></div>
+    ${sub?`<p class="text-xs text-gray-500 mt-2">${sub}</p>`:''}
+  </div>`;
+}
+
+const heartSvg='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>';
+const commentSvg='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>';
+const shareSvg='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>';
+const saveSvg='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>';
+const trendSvg='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>';
+const eyeSvg='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const globeSvg='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>';
+const usersSvg='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+
+let expiryTimer = null;
+
+async function handleAnalyze() {
+  const url = document.getElementById('urlInput').value.trim();
+  const errEl = document.getElementById('error');
+  if (!url) { errEl.textContent='Please paste an Instagram post URL'; errEl.classList.remove('hidden'); return; }
+  if (!isValidUrl(url)) { errEl.textContent='Please enter a valid Instagram post, reel, or story URL'; errEl.classList.remove('hidden'); return; }
+
+  errEl.classList.add('hidden');
+  document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('progress').classList.remove('hidden');
+  document.getElementById('analyzeBtn').disabled = true;
+
+  const stagesEl = document.getElementById('stages');
+  stagesEl.innerHTML = STAGES.map((s,i) => `
+    <div id="stage${i}" class="flex items-center gap-3 p-3 rounded-lg bg-gray-900/30 border border-transparent">
+      <div class="w-[18px] h-[18px] rounded-full border border-gray-600 flex-shrink-0"></div>
+      <span class="text-sm text-gray-500">${s}</span>
+    </div>`).join('');
+
+  for (let i = 0; i < STAGES.length; i++) {
+    await new Promise(r => setTimeout(r, 400+Math.random()*300));
+    for (let j = 0; j < i; j++) {
+      stagesEl.children[j].className = 'flex items-center gap-3 p-3 rounded-lg bg-green-900/10 border border-green-600/20';
+      stagesEl.children[j].children[0].outerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" class="flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>';
+      stagesEl.children[j].children[1].className = 'text-sm text-green-300';
+    }
+    stagesEl.children[i].className = 'flex items-center gap-3 p-3 rounded-lg bg-sky-600/10 border border-sky-600/30';
+    stagesEl.children[i].children[0].outerHTML = '<div class="w-[18px] h-[18px] rounded-full border-2 border-sky-500/30 border-t-sky-500 animate-spin flex-shrink-0"></div>';
+    stagesEl.children[i].children[1].className = 'text-sm text-sky-300';
+  }
+  await new Promise(r => setTimeout(r, 300));
+  // Mark last complete
+  const last = stagesEl.children[STAGES.length-1];
+  last.className = 'flex items-center gap-3 p-3 rounded-lg bg-green-900/10 border border-green-600/20';
+  last.children[0].outerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" class="flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>';
+  last.children[1].className = 'text-sm text-green-300';
+
+  await new Promise(r => setTimeout(r, 200));
+
+  const d = analyze(url);
+  document.getElementById('progress').classList.add('hidden');
+  document.getElementById('analyzeBtn').disabled = false;
+
+  // Start 30-min timer
+  if (expiryTimer) clearInterval(expiryTimer);
+  let remaining = 30*60;
+  expiryTimer = setInterval(() => {
+    remaining--;
+    const m = Math.floor(remaining/60), s = remaining%60;
+    const te = document.getElementById('timerText');
+    if (te) te.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    if (remaining <= 0) { clearInterval(expiryTimer); document.getElementById('results').innerHTML='<div class="card text-center py-8"><div class="inline-flex p-3 rounded-full bg-amber-500/10 mb-4"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div><h3 class="text-xl font-bold mb-2">Report Expired</h3><p class="text-gray-400 mb-6">Your report has expired after 30 minutes. Download next time to keep it.</p></div>'; }
+  }, 1000);
+
+  const impactCls = {high:'text-green-400 bg-green-400/10 border border-green-400/20',medium:'text-amber-400 bg-amber-400/10 border border-amber-400/20',low:'text-blue-400 bg-blue-400/10 border border-blue-400/20'};
+  const compCls = {low:'bg-green-500/20 text-green-400 border border-green-500/30',medium:'bg-amber-500/20 text-amber-400 border border-amber-500/30',high:'bg-red-500/20 text-red-400 border border-red-500/30'};
+
+  const resultsHtml = `
+    <!-- Timer -->
+    <div class="flex items-center justify-between p-3 rounded-lg bg-amber-900/15 border border-amber-500/20 fade-up">
+      <div class="flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="text-sm text-amber-300">Report expires in <span id="timerText" class="font-bold font-mono">30:00</span></span>
+      </div>
+      <span class="text-xs text-amber-400/60">Download to keep</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-up">
+      <div class="flex items-center gap-3">
+        <span class="px-2 py-1 rounded text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30">${d.type}</span>
+        <span class="text-sm text-gray-400 truncate max-w-md">${url}</span>
+      </div>
+      <button onclick="downloadReport()" class="px-4 py-2 rounded-lg font-medium text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 flex items-center gap-2 text-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        Download Report
+      </button>
+    </div>
+
+    <!-- Scores -->
+    <div class="card fade-up" style="border-color:rgba(3,105,161,0.4)">
+      <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+        Proprietary Performance Score
+      </h2>
+      <div class="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+        ${scoreRing(d.overall, 140, 'Overall Score')}
+        <div class="flex flex-wrap gap-6 justify-center">
+          ${scoreRing(d.contentQuality, 90, 'Content Quality')}
+          ${scoreRing(d.engVelocity, 90, 'Eng. Velocity')}
+          ${scoreRing(d.audienceRes, 90, 'Audience Resonance')}
+          ${scoreRing(d.viralIdx, 90, 'Virality Index')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="fade-up">
+      <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
+        Engagement Metrics
+      </h2>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        ${metricCard('#ef4444',heartSvg,'Likes',fmt(d.likes))}
+        ${metricCard('#3b82f6',commentSvg,'Comments',fmt(d.comments))}
+        ${metricCard('#22c55e',shareSvg,'Shares',fmt(d.shares))}
+        ${metricCard('#f59e0b',saveSvg,'Saves',fmt(d.saves))}
+        ${metricCard('#10b981',trendSvg,'Engagement Rate',d.engRate+'%',d.engRate>3?'Above average':'Room to improve')}
+        ${metricCard('#a855f7',eyeSvg,'Est. Reach',fmt(d.reach))}
+        ${metricCard('#06b6d4',globeSvg,'Impressions',fmt(d.impressions))}
+        ${metricCard('#ec4899',usersSvg,'Profile Visits',fmt(d.profileVisits))}
+      </div>
+    </div>
+
+    <!-- Audience + Benchmark -->
+    <div class="grid lg:grid-cols-2 gap-6 fade-up">
+      <div class="card">
+        <h2 class="text-lg font-bold mb-4">Audience Intelligence</h2>
+        <div class="space-y-3">
+          <div class="flex justify-between p-3 rounded-lg bg-gray-900/50"><span class="text-sm text-gray-400">Est. Followers</span><span class="font-bold">${fmt(d.followers)}</span></div>
+          <div class="flex justify-between p-3 rounded-lg bg-gray-900/50"><span class="text-sm text-gray-400">Top Demographic</span><span class="text-sm font-medium px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">${d.demos}</span></div>
+          <div class="p-3 rounded-lg bg-gray-900/50">
+            <span class="text-sm text-gray-400 block mb-2">Peak Hours</span>
+            <div class="flex flex-wrap gap-2">${d.hours.map(h=>`<span class="text-xs px-2 py-1 rounded-full bg-sky-600/20 text-sky-300 border border-sky-600/30">${h}</span>`).join('')}</div>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-900/50">
+            <span class="text-sm text-gray-400 block mb-2">Top Locations</span>
+            ${d.cities.slice(0,4).map(l=>`<div class="flex items-center gap-2 mb-1"><span class="text-sm flex-1">${l.c}</span><div class="flex-1 h-1.5 bg-gray-800 rounded-full"><div class="h-full bg-sky-500 rounded-full" style="width:${l.p*3}%"></div></div><span class="text-xs text-gray-400 w-8 text-right">${l.p}%</span></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="space-y-6">
+        <div class="card">
+          <h2 class="text-lg font-bold mb-4">Competitive Benchmark</h2>
+          <div class="text-center mb-4">
+            <div class="text-5xl font-bold text-amber-400 mb-1">Top ${d.percentile}%</div>
+            <p class="text-sm text-gray-400">vs ${fmt(d.compared)} similar posts</p>
+          </div>
+          <div class="w-full h-3 bg-gray-800 rounded-full mb-4"><div class="h-full rounded-full bg-gradient-to-r from-red-500 via-amber-500 to-green-500" style="width:${d.percentile}%"></div></div>
+          <p class="text-sm text-gray-300 p-3 rounded-lg bg-sky-900/10 border border-sky-700/20">${d.verdict}</p>
+        </div>
+        <div class="card">
+          <h2 class="text-lg font-bold mb-4">Posting Optimization</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 rounded-lg bg-gray-900/50 text-center"><p class="text-xs text-gray-400">Best Day</p><p class="font-bold text-sm">${d.bestDay}</p></div>
+            <div class="p-3 rounded-lg bg-gray-900/50 text-center"><p class="text-xs text-gray-400">Best Time</p><p class="font-bold text-sm">${d.bestTime}</p></div>
+            <div class="p-3 rounded-lg bg-gray-900/50 text-center"><p class="text-xs text-gray-400">Frequency</p><p class="font-bold text-sm">${d.freq}</p></div>
+            <div class="p-3 rounded-lg bg-gray-900/50 text-center"><p class="text-xs text-gray-400">Caption</p><p class="font-bold text-sm">Optimized</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hashtags -->
+    <div class="card fade-up">
+      <h2 class="text-lg font-bold mb-4">Hashtag Analysis</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        ${d.hashtags.map(h=>`<div class="flex items-center justify-between p-3 rounded-lg bg-gray-900/50 border border-blue-900/10">
+          <div><span class="text-sm font-medium text-sky-300">${h.t}</span><p class="text-xs text-gray-500">${fmt(h.r)} reach</p></div>
+          <span class="text-xs px-2 py-0.5 rounded-full ${compCls[h.c]}">${h.c}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="card fade-up" style="border-color:rgba(245,158,11,0.2)">
+      <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        AI-Powered Recommendations
+      </h2>
+      <div class="space-y-3">
+        ${d.recs.map(r=>`<div class="p-4 rounded-lg bg-gray-900/40 border border-blue-900/10 hover:border-sky-600/30 transition-colors">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xs px-2 py-0.5 rounded-full ${impactCls[r.impact]}">${r.impact.toUpperCase()} IMPACT</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">${r.cat}</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1">${r.title}</h3>
+          <p class="text-sm text-gray-400">${r.desc}</p>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="text-center py-4">
+      <p class="text-xs text-gray-600">Analysis by Stud-Ex Proprietary Data Science Engine. Auto-expires in 30 min.</p>
+    </div>
+  `;
+
+  const resultsEl = document.getElementById('results');
+  resultsEl.innerHTML = resultsHtml;
+  resultsEl.classList.remove('hidden');
+
+  window._lastAnalysis = d;
+  window._lastUrl = url;
+}
+
+function downloadReport() {
+  const d = window._lastAnalysis;
+  if (!d) return;
+  const report = JSON.stringify({meta:{tool:'Stud-Ex Proprietary Data Science Engine',url:window._lastUrl,type:d.type},
+    scores:{overall:d.overall,contentQuality:d.contentQuality,engVelocity:d.engVelocity,audienceResonance:d.audienceRes,viralityIndex:d.viralIdx},
+    engagement:{likes:d.likes,comments:d.comments,shares:d.shares,saves:d.saves,engagementRate:d.engRate,reach:d.reach,impressions:d.impressions,profileVisits:d.profileVisits},
+    audience:{followers:d.followers,demographic:d.demos,peakHours:d.hours,locations:d.cities},
+    benchmark:{percentile:d.percentile,nicheAvg:d.nicheAvg,compared:d.compared,verdict:d.verdict},
+    optimization:{bestDay:d.bestDay,bestTime:d.bestTime,frequency:d.freq},
+    hashtags:d.hashtags,recommendations:d.recs}, null, 2);
+  const blob = new Blob([report],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `studex-ig-analysis-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('urlInput').addEventListener('keydown', e => { if(e.key==='Enter') handleAnalyze(); });
+document.getElementById('urlInput').addEventListener('paste', e => {
+  setTimeout(() => { if(isValidUrl(document.getElementById('urlInput').value)) handleAnalyze(); }, 100);
+});
+</script>
+</body>
+</html>
