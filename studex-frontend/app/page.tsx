@@ -50,7 +50,7 @@ export default function LandingPage() {
     setTimeout(() => {
       if (username === VALID_USER && password === VALID_PASS) {
         localStorage.setItem('studex_auth', 'true');
-        router.push('/command-center');
+        router.push('/os');
       } else {
         setError('Invalid credentials');
       }
