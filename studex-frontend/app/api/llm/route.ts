@@ -84,9 +84,58 @@ const PROVIDERS: Record<string, (config: LLMConfig, prompt: string, systemPrompt
     return { text: data.choices?.[0]?.message?.content || '', model: config.model, provider: 'openai', tokensUsed: data.usage?.total_tokens || 0 };
   },
 
+  perplexity: async (config, prompt, systemPrompt, options) => {
+    const res = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${config.apiKey || process.env.PERPLEXITY_API_KEY || ''}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: config.model || 'sonar',
+        messages: [...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []), { role: 'user', content: prompt }],
+        max_tokens: options.maxTokens || 2000,
+      }),
+    });
+    const data = await res.json();
+    return { text: data.choices?.[0]?.message?.content || '', model: config.model || 'sonar', provider: 'perplexity', tokensUsed: data.usage?.total_tokens || 0, citations: data.citations || [] };
+  },
+
+  openrouter: async (config, prompt, systemPrompt, options) => {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${config.apiKey || process.env.OPENROUTER_API_KEY || ''}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: config.model || 'meta-llama/llama-3-8b-instruct',
+        messages: [...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []), { role: 'user', content: prompt }],
+        max_tokens: options.maxTokens || 2000,
+        temperature: options.temperature || 0.7,
+      }),
+    });
+    const data = await res.json();
+    return { text: data.choices?.[0]?.message?.content || '', model: config.model, provider: 'openrouter', tokensUsed: data.usage?.total_tokens || 0 };
+  },
+
+  elevenlabs: async (config, prompt, _systemPrompt, options) => {
+    const voiceId = options.voiceId || 'EXAVITQu4vr4xnSDxMaL';
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: { 'xi-api-key': config.apiKey || process.env.ELEVENLABS_API_KEY || '', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: prompt,
+        model_id: config.model || 'eleven_multilingual_v2',
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+      }),
+    });
+    if (res.ok) {
+      const audioBuffer = await res.arrayBuffer();
+      const base64 = Buffer.from(audioBuffer).toString('base64');
+      return { audio: `data:audio/mpeg;base64,${base64}`, model: 'eleven_multilingual_v2', provider: 'elevenlabs', format: 'mp3' };
+    }
+    const err = await res.json();
+    return { error: err.detail?.message || 'ElevenLabs error', provider: 'elevenlabs' };
+  },
+
   gemma: async (config, prompt, systemPrompt, options) => {
     const key = config.apiKey || process.env.GOOGLE_AI_API_KEY || '';
-    const model = config.model || 'gemma-3-27b-it';
+    const model = config.model || 'gemma-4-31b-it';
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -160,11 +209,14 @@ export async function GET() {
     providers: Object.keys(PROVIDERS),
     usage: 'POST with { provider, prompt, model, baseUrl?, apiKey?, systemPrompt?, temperature?, maxTokens? }',
     examples: {
+      claude: { provider: 'claude', model: 'claude-sonnet-4-20250514', prompt: 'Write a caption for a business post' },
+      perplexity: { provider: 'perplexity', model: 'sonar', prompt: 'What are trending topics on Instagram today?' },
+      openrouter: { provider: 'openrouter', model: 'meta-llama/llama-3-8b-instruct', prompt: 'Write a viral hook' },
+      gemma: { provider: 'gemma', model: 'gemma-4-31b-it', prompt: 'Generate 5 hashtags for a tech startup' },
+      elevenlabs: { provider: 'elevenlabs', prompt: 'Welcome to Stud-Ex Global Markets', voiceId: 'EXAVITQu4vr4xnSDxMaL' },
       ollama: { provider: 'ollama', baseUrl: 'http://localhost:11434', model: 'llama3', prompt: 'Hello' },
       lmstudio: { provider: 'lmstudio', baseUrl: 'http://192.168.1.100:1234', model: 'local-model', prompt: 'Hello' },
-      claude: { provider: 'claude', model: 'claude-sonnet-4-20250514', prompt: 'Hello' },
-      gemma: { provider: 'gemma', model: 'gemma-3-27b-it', prompt: 'Hello' },
-      stable_diffusion: { provider: 'stable_diffusion', baseUrl: 'http://192.168.1.100:7860', prompt: 'a cat in space' },
+      stable_diffusion: { provider: 'stable_diffusion', baseUrl: 'http://192.168.1.100:7860', prompt: 'professional product photo' },
     },
   });
 }
