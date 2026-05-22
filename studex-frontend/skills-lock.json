@@ -79,6 +79,12 @@
       "skillPath": "skills/lottie/SKILL.md",
       "computedHash": "385ed944795f1e6b5efa883b069611497be4a7fa78ceed7bfe51cb58e4b0d890"
     },
+    "openclaw-memory-tencentdb-setup": {
+      "source": "Tencent/TencentDB-Agent-Memory",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "a28c772be161b390db64f1002f9268ed778d95c20ca30e25a275798588040e4f"
+    },
     "remotion-to-hyperframes": {
       "source": "heygen-com/hyperframes",
       "sourceType": "github",
