@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
+    "@pinecone-database/pinecone": "^7.2.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.42",
     "@types/react-dom": "^18.2.17",
@@ -33,6 +36,7 @@
     "recharts": "^2.10.3",
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "^3.4.1",
+    "three": "^0.184.0",
     "typescript": "^5.3.3",
     "zod": "^3.22.4"
   },
