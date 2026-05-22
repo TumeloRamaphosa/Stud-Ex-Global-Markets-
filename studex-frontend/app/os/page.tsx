@@ -9,7 +9,7 @@ import {
   Instagram, Facebook, Mail, MessageCircle, Heart, Users, TrendingUp, BarChart3,
   Image as ImageIcon, Video, Eye, Sparkles, Send, RefreshCw, Loader2,
   ExternalLink, Cpu, Globe, Target, Brain, Zap, ChevronRight, Plus,
-  MessageSquare, ArrowUpRight, Bot, Link2,
+  MessageSquare, ArrowUpRight, Bot, Link2, CheckCircle, Calendar,
 } from 'lucide-react';
 
 function fmt(n: number): string {
@@ -31,7 +31,7 @@ export default function OSDashboard() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'feeds' | 'content' | 'connect'>('feeds');
+  const [activeTab, setActiveTab] = useState<'feeds' | 'content' | 'approvals' | 'connect'>('feeds');
   const [chatMessages, setChatMessages] = useState<{ role: string; text: string }[]>([
     { role: 'ai', text: 'I\'m your AI Strategy Advisor. Ask me anything about your content strategy, post ideas, or analytics. I have access to your real Instagram, Gmail, and Discord data.' },
   ]);
@@ -182,6 +182,7 @@ export default function OSDashboard() {
             {[
               { id: 'feeds' as const, label: 'Platform Data', icon: <BarChart3 size={14} /> },
               { id: 'content' as const, label: 'Create Content', icon: <Sparkles size={14} /> },
+              { id: 'approvals' as const, label: 'Approvals', icon: <CheckCircle size={14} /> },
               { id: 'connect' as const, label: 'Connect API', icon: <Link2 size={14} /> },
             ].map(t => (
               <button key={t.id} onClick={() => setActiveTab(t.id)}
@@ -391,6 +392,41 @@ export default function OSDashboard() {
                     <span className="text-sm">Engagement rate</span>
                     <span className={`font-bold ${Number(ig?.stats?.engRate) > 1 ? 'text-green-400' : 'text-amber-400'}`}>{ig?.stats?.engRate}%</span>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* === APPROVALS TAB === */}
+          {activeTab === 'approvals' && (
+            <div className="space-y-6">
+              <div className="p-6 rounded-2xl border border-gold-500/20 bg-gradient-to-br from-gold-500/5 to-transparent text-center">
+                <Calendar size={48} className="mx-auto text-gold-500 mb-4" />
+                <h2 className="text-xl font-bold mb-2">Approval Pipeline & Calendar</h2>
+                <p className="text-sm text-gray-400 mb-6 max-w-md mx-auto">
+                  Create drafts, generate A/B test variants with AI, approve content, schedule posts, and view your content calendar.
+                </p>
+                <Button size="lg" onClick={() => router.push('/approvals')}
+                  icon={<ChevronRight size={18} />}
+                  className="bg-gradient-to-r from-gold-500 to-amber-600 text-black border-0 font-bold">
+                  Open Approval Pipeline
+                </Button>
+              </div>
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
+                  <CheckCircle size={24} className="mx-auto text-green-400 mb-2" />
+                  <p className="font-bold text-sm">Approve / Reject</p>
+                  <p className="text-xs text-gray-500">Review AI-generated content</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
+                  <Brain size={24} className="mx-auto text-purple-400 mb-2" />
+                  <p className="font-bold text-sm">A/B Testing</p>
+                  <p className="text-xs text-gray-500">AI generates 3 caption variants</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
+                  <Calendar size={24} className="mx-auto text-blue-400 mb-2" />
+                  <p className="font-bold text-sm">Calendar View</p>
+                  <p className="text-xs text-gray-500">See content gaps by week</p>
                 </div>
               </div>
             </div>
