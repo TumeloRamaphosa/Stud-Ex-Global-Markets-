@@ -43,6 +43,11 @@ export default function OSDashboard() {
   const [generating, setGenerating] = useState(false);
   const [posting, setPosting] = useState(false);
   const [postResult, setPostResult] = useState<any>(null);
+  const [recommendation, setRecommendation] = useState<any>(null);
+  const [recStats, setRecStats] = useState<any>(null);
+  const [recTopPosts, setRecTopPosts] = useState<any[]>([]);
+  const [loadingRec, setLoadingRec] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<string[]>(['/day1-market-maker.png']);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,6 +85,19 @@ export default function OSDashboard() {
       setChatMessages(prev => [...prev, { role: 'ai', text: json.reply || json.error || 'No response' }]);
     } catch { setChatMessages(prev => [...prev, { role: 'ai', text: 'Connection error. Please try again.' }]); }
     finally { setChatLoading(false); chatInputRef.current?.focus(); }
+  }
+
+  async function loadRecommendation() {
+    setLoadingRec(true);
+    try {
+      const res = await fetch('/api/content-recommend', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'recommend' }) });
+      const data = await res.json();
+      setRecommendation(data.recommendation);
+      setRecStats(data.stats);
+      setRecTopPosts(data.topPosts || []);
+      if (data.recommendation?.caption) setContentCaption(data.recommendation.caption);
+      if (data.recommendation?.imagePrompt) setContentMediaUrl('');
+    } catch {} finally { setLoadingRec(false); }
   }
 
   async function generateCaption() {
@@ -314,6 +332,96 @@ export default function OSDashboard() {
           {/* === CONTENT TAB === */}
           {activeTab === 'content' && (
             <div className="space-y-6">
+
+              {/* Generated Content Gallery */}
+              {generatedImages.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-bold mb-3 flex items-center gap-2"><ImageIcon size={18} className="text-gold-500" /> Generated Content</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {generatedImages.map((img, i) => (
+                      <div key={i} className="rounded-xl overflow-hidden border border-white/10 hover:border-gold-500/30 transition-colors cursor-pointer"
+                        onClick={() => setContentMediaUrl(img)}>
+                        <img src={img} alt={`Generated ${i + 1}`} className="w-full aspect-square object-cover" />
+                        <div className="p-2 bg-white/5 text-xs text-gray-400 text-center">Day {i + 1} — Higgsfield</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Recommendation */}
+              <div className="p-5 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-transparent">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold flex items-center gap-2"><Brain size={20} className="text-purple-400" /> Data-Driven Recommendations</h2>
+                  <Button variant="secondary" size="sm" icon={loadingRec ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    onClick={loadRecommendation} disabled={loadingRec}>
+                    {loadingRec ? 'Analyzing...' : 'Analyze & Recommend'}
+                  </Button>
+                </div>
+
+                {recommendation ? (
+                  <div className="space-y-4">
+                    {/* Urgent Action */}
+                    {recommendation.urgentAction && (
+                      <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                        <p className="text-xs text-red-400 font-bold mb-1">URGENT ACTION</p>
+                        <p className="text-sm text-gray-300">{recommendation.urgentAction}</p>
+                      </div>
+                    )}
+
+                    {/* Next Post Recommendation */}
+                    {recommendation.nextPost && (
+                      <div className="p-3 rounded-xl bg-gold-500/10 border border-gold-500/20">
+                        <p className="text-xs text-gold-400 font-bold mb-1">RECOMMENDED NEXT POST — Day {recommendation.nextPost.day}: {recommendation.nextPost.theme}</p>
+                        <p className="text-xs text-gray-500 mb-1">Slot: {recommendation.nextPost.slot} | {recommendation.nextPost.reason}</p>
+                      </div>
+                    )}
+
+                    {/* Content Mix */}
+                    {recommendation.contentMix && (
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="p-2 rounded-lg bg-white/5 text-center">
+                          <p className="text-xs text-gray-500">Reels</p>
+                          <p className="text-lg font-bold text-purple-400">{recommendation.contentMix.reels}</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-white/5 text-center">
+                          <p className="text-xs text-gray-500">Images</p>
+                          <p className="text-lg font-bold text-blue-400">{recommendation.contentMix.images}</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-white/5 text-center">
+                          <p className="text-xs text-gray-500">Carousels</p>
+                          <p className="text-lg font-bold text-green-400">{recommendation.contentMix.carousels}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Insights */}
+                    {recommendation.insights && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-gray-500 font-bold">DATA INSIGHTS</p>
+                        {recommendation.insights.map((insight: string, i: number) => (
+                          <div key={i} className="flex items-start gap-2 text-sm text-gray-400">
+                            <span className="text-gold-500 mt-0.5">•</span>
+                            <span>{insight}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Image Prompt */}
+                    {recommendation.imagePrompt && (
+                      <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                        <p className="text-xs text-gray-500 font-bold mb-1">HIGGSFIELD IMAGE PROMPT</p>
+                        <p className="text-xs text-gray-400 font-mono">{recommendation.imagePrompt}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-4">Click "Analyze & Recommend" to get AI content strategy based on your real Instagram data</p>
+                )}
+              </div>
+
+              {/* Content Engine */}
               <div className="p-6 rounded-2xl border border-gold-500/20 bg-gradient-to-br from-gold-500/5 to-transparent">
                 <h2 className="text-xl font-bold mb-1 flex items-center gap-2"><Sparkles size={22} className="text-gold-500" /> AI Content Engine</h2>
                 <p className="text-sm text-gray-400 mb-6">Generate content based on your real performance data, then publish with one click.</p>
