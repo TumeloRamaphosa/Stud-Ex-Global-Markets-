@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-import { Pinecone } from '@pinecone-database/pinecone';
 
-const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || '' });
+function getPinecone() {
+  const { Pinecone } = require('@pinecone-database/pinecone');
+  return new Pinecone({ apiKey: process.env.PINECONE_API_KEY || 'missing' });
+}
+
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
 const INDEX_NAME = process.env.PINECONE_INDEX_MEMORY || 'studex-memory';
 
@@ -28,7 +31,7 @@ export async function GET(req: Request) {
   const action = searchParams.get('action') || 'list';
 
   try {
-    const index = pc.index(INDEX_NAME);
+    const index = getPinecone().index(INDEX_NAME);
 
     if (action === 'stats') {
       const stats = await index.describeIndexStats();
@@ -69,7 +72,7 @@ export async function POST(req: Request) {
   const { action } = body;
 
   try {
-    const index = pc.index(INDEX_NAME);
+    const index = getPinecone().index(INDEX_NAME);
 
     if (action === 'absorb') {
       const { content, type, source, title } = body;
