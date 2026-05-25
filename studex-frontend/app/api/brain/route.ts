@@ -46,7 +46,7 @@ export async function GET(req: Request) {
         const embedding = await getEmbedding(query);
         const results = await index.query({ vector: embedding, topK: limit, includeMetadata: true });
         return NextResponse.json({
-          nodes: (results.matches || []).map(m => ({
+          nodes: (results.matches || []).map((m: any) => ({
             id: m.id,
             score: m.score,
             ...m.metadata,
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
       const embedding = await getEmbedding(body.query);
       const results = await index.query({ vector: embedding, topK: body.limit || 20, includeMetadata: true });
       return NextResponse.json({
-        results: (results.matches || []).map(m => ({ id: m.id, score: m.score, ...m.metadata })),
+        results: (results.matches || []).map((m: any) => ({ id: m.id, score: m.score, ...m.metadata })),
       });
     }
 
