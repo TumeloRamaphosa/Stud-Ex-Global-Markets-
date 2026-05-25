@@ -17,8 +17,8 @@ function Section({ children, className = '' }: { children: React.ReactNode; clas
 
 function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
-    <div className="p-6 rounded-2xl border border-gray-200 bg-white backdrop-blur-md hover:border-purple-400/30 hover:bg-white/10 transition-all duration-300 group">
-      <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-transparent w-fit mb-4 group-hover:scale-110 transition-transform">{icon}</div>
+    <div className="p-6 rounded-2xl border border-gray-200 bg-white backdrop-blur-md hover:border-[#D4A017]/30 hover:bg-white/10 transition-all duration-300 group">
+      <div className="p-3 rounded-xl bg-gradient-to-br from-[#D4A017]/20 to-transparent w-fit mb-4 group-hover:scale-110 transition-transform">{icon}</div>
       <h3 className="text-lg font-bold mb-2">{title}</h3>
       <p className="text-sm text-gray-400">{desc}</p>
     </div>
@@ -59,18 +59,18 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafe] text-gray-900 overflow-x-hidden">
+    <div className="min-h-screen bg-[#FFF8F0] text-gray-900 overflow-x-hidden">
 
       {/* ===== HERO ===== */}
       <div className="relative min-h-screen flex items-center justify-center">
         <div className="absolute inset-0 bg-[url('/hero-bg.jpg')] bg-cover bg-center" />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/50 to-[#fafafe]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/50 to-[#FFF8F0]" />
         <div className="relative z-10 text-center px-4 max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-400/30 bg-purple-500/10 text-purple-600 text-sm mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#D4A017]/30 bg-[#D4A017]/10 text-[#8B6914] text-sm mb-8">
             <Zap size={14} /> AI Operating System v1.0
           </div>
           <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-gray-900 via-purple-700 to-purple-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#3E2723] via-[#8B6914] to-[#D4A017] bg-clip-text text-transparent">
               STUD-EX
             </span>
             <br />
@@ -84,7 +84,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button onClick={() => setShowLogin(true)}
-              className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-lg hover:scale-105 transition-transform shadow-lg shadow-purple-500/20">
+              className="px-8 py-4 rounded-xl bg-gradient-to-r from-[#8B6914] to-[#D4A017] text-white font-bold text-lg hover:scale-105 transition-transform shadow-lg shadow-[#D4A017]/20">
               Enter The Hive Mind
             </button>
             <a href="#features"
@@ -103,8 +103,8 @@ export default function LandingPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md" onClick={() => setShowLogin(false)}>
           <div className="bg-white border border-gray-200 rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="text-center mb-8">
-              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-transparent mb-4">
-                <Shield size={32} className="text-purple-500" />
+              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-[#D4A017]/20 to-transparent mb-4">
+                <Shield size={32} className="text-[#D4A017]" />
               </div>
               <h2 className="text-2xl font-bold">Access The Hive Mind</h2>
               <p className="text-gray-400 text-sm mt-1">Enter your credentials to proceed</p>
@@ -116,7 +116,7 @@ export default function LandingPage() {
                   <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                   <input type="text" value={username} onChange={e => setUsername(e.target.value)}
                     placeholder="Enter username" autoFocus
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30" />
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-[#D4A017]/50 focus:outline-none focus:ring-1 focus:ring-[#D4A017]/30" />
                 </div>
               </div>
               <div>
@@ -125,12 +125,12 @@ export default function LandingPage() {
                   <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                   <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                     placeholder="Enter password"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30" />
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-[#D4A017]/50 focus:outline-none focus:ring-1 focus:ring-[#D4A017]/30" />
                 </div>
               </div>
               {error && <p className="text-red-400 text-sm text-center">{error}</p>}
               <button type="submit" disabled={loading}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold hover:scale-[1.02] transition-transform disabled:opacity-50">
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#8B6914] to-[#D4A017] text-white font-bold hover:scale-[1.02] transition-transform disabled:opacity-50">
                 {loading ? 'Authenticating...' : 'Enter'}
               </button>
             </form>
@@ -164,9 +164,9 @@ export default function LandingPage() {
             <p className="text-gray-400 max-w-xl mx-auto">Nine modules that form the central nervous system of your business</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard icon={<Brain size={24} className="text-purple-400" />} title="War Room" desc="Chat with 5 AI agents at a roundtable. /standup for morning reports, /discuss for collective intelligence. Voice-enabled with Kokoro TTS." />
+            <FeatureCard icon={<Brain size={24} className="text-[#D4A017]" />} title="War Room" desc="Chat with 5 AI agents at a roundtable. /standup for morning reports, /discuss for collective intelligence. Voice-enabled with Kokoro TTS." />
             <FeatureCard icon={<Globe size={24} className="text-cyan-400" />} title="Second Brain" desc="3D interactive knowledge graph. Your Obsidian vault visualized in Three.js. Business Brain + Social Brain, searchable and alive." />
-            <FeatureCard icon={<Sparkles size={24} className="text-purple-500" />} title="Content Engine" desc="AI generates captions, images, and voice-overs. Pick any LLM. Approval queue ensures nothing posts without your say-so." />
+            <FeatureCard icon={<Sparkles size={24} className="text-[#D4A017]" />} title="Content Engine" desc="AI generates captions, images, and voice-overs. Pick any LLM. Approval queue ensures nothing posts without your say-so." />
             <FeatureCard icon={<Target size={24} className="text-red-400" />} title="Mission Control" desc="Kanban board with AI auto-assignment. Tasks route to the right agent automatically. Kill switches for safety." />
             <FeatureCard icon={<Eye size={24} className="text-blue-400" />} title="Feed Aggregator" desc="Instagram, Facebook, Gmail, Discord, Shopify — all data in one unified timeline. Filter by platform, search across everything." />
             <FeatureCard icon={<BarChart3 size={24} className="text-emerald-400" />} title="Analytics Hub" desc="Cross-platform engagement trends, revenue attribution, audience demographics. AI-powered strategy recommendations." />
@@ -189,7 +189,7 @@ export default function LandingPage() {
             { name: 'Gemma 4', sub: 'Google', color: 'from-blue-500/20 to-transparent border-blue-500/20' },
             { name: 'Gemini 2.5', sub: 'Google', color: 'from-cyan-500/20 to-transparent border-cyan-500/20' },
             { name: 'Perplexity', sub: 'Search AI', color: 'from-teal-500/20 to-transparent border-teal-500/20' },
-            { name: 'OpenRouter', sub: '100+ Models', color: 'from-purple-500/20 to-transparent border-purple-500/20' },
+            { name: 'OpenRouter', sub: '100+ Models', color: 'from-[#D4A017]/20 to-transparent border-[#D4A017]/20' },
             { name: 'ElevenLabs', sub: 'Voice AI', color: 'from-pink-500/20 to-transparent border-pink-500/20' },
             { name: 'Ollama', sub: 'Local LLM', color: 'from-green-500/20 to-transparent border-green-500/20' },
             { name: 'LM Studio', sub: 'Local Network', color: 'from-yellow-500/20 to-transparent border-yellow-500/20' },
@@ -213,11 +213,11 @@ export default function LandingPage() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            { name: 'Main', role: 'Orchestrator', emoji: '👑', color: 'border-purple-400/30' },
+            { name: 'Main', role: 'Orchestrator', emoji: '👑', color: 'border-[#D4A017]/30' },
             { name: 'Comms', role: 'Communications', emoji: '📡', color: 'border-blue-500/30' },
             { name: 'Content', role: 'Creator', emoji: '🎨', color: 'border-pink-500/30' },
             { name: 'Ops', role: 'Operations', emoji: '⚙️', color: 'border-green-500/30' },
-            { name: 'Research', role: 'Analyst', emoji: '🔬', color: 'border-purple-500/30' },
+            { name: 'Research', role: 'Analyst', emoji: '🔬', color: 'border-[#D4A017]/30' },
           ].map((agent) => (
             <div key={agent.name} className={`p-6 rounded-2xl border ${agent.color} bg-white text-center hover:bg-white/10 transition-colors`}>
               <div className="text-4xl mb-3">{agent.emoji}</div>
@@ -255,7 +255,7 @@ export default function LandingPage() {
         <h2 className="text-3xl sm:text-5xl font-bold mb-6">Ready to Enter?</h2>
         <p className="text-gray-400 mb-8 max-w-lg mx-auto">The Hive Mind is waiting. Your agents are ready. Your data is connected.</p>
         <button onClick={() => setShowLogin(true)}
-          className="px-10 py-5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-xl hover:scale-105 transition-transform shadow-lg shadow-purple-500/20">
+          className="px-10 py-5 rounded-xl bg-gradient-to-r from-[#8B6914] to-[#D4A017] text-white font-bold text-xl hover:scale-105 transition-transform shadow-lg shadow-[#D4A017]/20">
           Enter The Hive Mind
         </button>
       </Section>

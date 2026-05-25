@@ -139,9 +139,9 @@ export default function OSDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#fafafe] text-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#FFF8F0] text-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 size={48} className="animate-spin text-purple-500 mx-auto mb-4" />
+          <Loader2 size={48} className="animate-spin text-[#D4A017] mx-auto mb-4" />
           <p className="text-gray-400">Loading platform data...</p>
         </div>
       </div>
@@ -153,12 +153,12 @@ export default function OSDashboard() {
   const dc = data?.discord;
 
   return (
-    <div className="min-h-screen bg-[#fafafe] text-gray-900 flex flex-col">
+    <div className="min-h-screen bg-[#FFF8F0] text-gray-900 flex flex-col">
       {/* Top Bar */}
       <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-1.5 rounded-lg bg-gradient-to-br from-purple-500/30 to-transparent">
-            <Zap size={18} className="text-purple-500" />
+          <div className="p-1.5 rounded-lg bg-gradient-to-br from-[#D4A017]/30 to-transparent">
+            <Zap size={18} className="text-[#D4A017]" />
           </div>
           <span className="font-bold text-sm">STUD-EX OS</span>
           <span className="text-xs text-gray-600">v1.0</span>
@@ -225,7 +225,7 @@ export default function OSDashboard() {
                 {/* Content Mix */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="p-3 rounded-xl bg-white border border-gray-200 text-center">
-                    <Video size={16} className="mx-auto text-purple-400 mb-1" />
+                    <Video size={16} className="mx-auto text-[#D4A017] mb-1" />
                     <p className="text-lg font-bold">{ig?.stats?.reelCount || 0}</p>
                     <p className="text-xs text-gray-500">Reels ({fmt(ig?.stats?.reelAvg || 0)} avg)</p>
                   </div>
@@ -303,7 +303,7 @@ export default function OSDashboard() {
                 <div className="flex flex-wrap gap-2">
                   {(dc?.guilds || []).map((g: any) => (
                     <div key={g.id} className="px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm flex items-center gap-2">
-                      {g.owner && <span className="text-[10px] text-purple-500">OWNER</span>}
+                      {g.owner && <span className="text-[10px] text-[#D4A017]">OWNER</span>}
                       <span className="text-gray-300">{g.name}</span>
                     </div>
                   ))}
@@ -336,10 +336,10 @@ export default function OSDashboard() {
               {/* Generated Content Gallery */}
               {generatedImages.length > 0 && (
                 <div>
-                  <h2 className="text-lg font-bold mb-3 flex items-center gap-2"><ImageIcon size={18} className="text-purple-500" /> Generated Content</h2>
+                  <h2 className="text-lg font-bold mb-3 flex items-center gap-2"><ImageIcon size={18} className="text-[#D4A017]" /> Generated Content</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {generatedImages.map((img, i) => (
-                      <div key={i} className="rounded-xl overflow-hidden border border-gray-200 hover:border-purple-500/30 transition-colors cursor-pointer"
+                      <div key={i} className="rounded-xl overflow-hidden border border-gray-200 hover:border-[#D4A017]/30 transition-colors cursor-pointer"
                         onClick={() => setContentMediaUrl(img)}>
                         <img src={img} alt={`Generated ${i + 1}`} className="w-full aspect-square object-cover" />
                         <div className="p-2 bg-white text-xs text-gray-400 text-center">Day {i + 1} — Higgsfield</div>
@@ -350,9 +350,9 @@ export default function OSDashboard() {
               )}
 
               {/* AI Recommendation */}
-              <div className="p-5 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-transparent">
+              <div className="p-5 rounded-2xl border border-[#D4A017]/20 bg-gradient-to-br from-[#D4A017]/5 to-transparent">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold flex items-center gap-2"><Brain size={20} className="text-purple-400" /> Data-Driven Recommendations</h2>
+                  <h2 className="text-lg font-bold flex items-center gap-2"><Brain size={20} className="text-[#D4A017]" /> Data-Driven Recommendations</h2>
                   <Button variant="secondary" size="sm" icon={loadingRec ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                     onClick={loadRecommendation} disabled={loadingRec}>
                     {loadingRec ? 'Analyzing...' : 'Analyze & Recommend'}
@@ -371,8 +371,8 @@ export default function OSDashboard() {
 
                     {/* Next Post Recommendation */}
                     {recommendation.nextPost && (
-                      <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                        <p className="text-xs text-purple-600 font-bold mb-1">RECOMMENDED NEXT POST — Day {recommendation.nextPost.day}: {recommendation.nextPost.theme}</p>
+                      <div className="p-3 rounded-xl bg-[#D4A017]/10 border border-[#D4A017]/20">
+                        <p className="text-xs text-[#8B6914] font-bold mb-1">RECOMMENDED NEXT POST — Day {recommendation.nextPost.day}: {recommendation.nextPost.theme}</p>
                         <p className="text-xs text-gray-500 mb-1">Slot: {recommendation.nextPost.slot} | {recommendation.nextPost.reason}</p>
                       </div>
                     )}
@@ -382,7 +382,7 @@ export default function OSDashboard() {
                       <div className="grid grid-cols-3 gap-2">
                         <div className="p-2 rounded-lg bg-white text-center">
                           <p className="text-xs text-gray-500">Reels</p>
-                          <p className="text-lg font-bold text-purple-400">{recommendation.contentMix.reels}</p>
+                          <p className="text-lg font-bold text-[#D4A017]">{recommendation.contentMix.reels}</p>
                         </div>
                         <div className="p-2 rounded-lg bg-white text-center">
                           <p className="text-xs text-gray-500">Images</p>
@@ -401,7 +401,7 @@ export default function OSDashboard() {
                         <p className="text-xs text-gray-500 font-bold">DATA INSIGHTS</p>
                         {recommendation.insights.map((insight: string, i: number) => (
                           <div key={i} className="flex items-start gap-2 text-sm text-gray-400">
-                            <span className="text-purple-500 mt-0.5">•</span>
+                            <span className="text-[#D4A017] mt-0.5">•</span>
                             <span>{insight}</span>
                           </div>
                         ))}
@@ -422,8 +422,8 @@ export default function OSDashboard() {
               </div>
 
               {/* Content Engine */}
-              <div className="p-6 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-transparent">
-                <h2 className="text-xl font-bold mb-1 flex items-center gap-2"><Sparkles size={22} className="text-purple-500" /> AI Content Engine</h2>
+              <div className="p-6 rounded-2xl border border-[#D4A017]/20 bg-gradient-to-br from-[#D4A017]/5 to-transparent">
+                <h2 className="text-xl font-bold mb-1 flex items-center gap-2"><Sparkles size={22} className="text-[#D4A017]" /> AI Content Engine</h2>
                 <p className="text-sm text-gray-400 mb-6">Generate content based on your real performance data, then publish with one click.</p>
 
                 {/* Platform */}
@@ -445,7 +445,7 @@ export default function OSDashboard() {
                   <label className="text-xs text-gray-500 block mb-1">Image/Video URL (public)</label>
                   <input type="url" value={contentMediaUrl} onChange={e => setContentMediaUrl(e.target.value)}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-[#D4A017]/40 focus:outline-none" />
                 </div>
 
                 {/* Caption */}
@@ -459,7 +459,7 @@ export default function OSDashboard() {
                   <textarea value={contentCaption} onChange={e => setContentCaption(e.target.value)}
                     placeholder="Write your caption or click AI Generate..."
                     rows={6}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none resize-none" />
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-600 focus:border-[#D4A017]/40 focus:outline-none resize-none" />
                   <p className="text-xs text-gray-600 mt-1">{contentCaption.length} chars</p>
                 </div>
 
@@ -467,7 +467,7 @@ export default function OSDashboard() {
                 <Button size="lg" fullWidth onClick={publishPost}
                   disabled={posting || !contentCaption.trim() || !contentMediaUrl.trim()}
                   icon={posting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-                  className="bg-gradient-to-r from-purple-500 to-purple-600 text-black border-0 font-bold">
+                  className="bg-gradient-to-r from-[#D4A017] to-[#8B6914] text-black border-0 font-bold">
                   {posting ? 'Publishing...' : `Publish to ${contentPlatform}`}
                 </Button>
 
@@ -484,7 +484,7 @@ export default function OSDashboard() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white">
                     <span className="text-sm">Reels avg engagement</span>
-                    <span className="font-bold text-purple-400">{fmt(ig?.stats?.reelAvg || 0)} likes</span>
+                    <span className="font-bold text-[#D4A017]">{fmt(ig?.stats?.reelAvg || 0)} likes</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white">
                     <span className="text-sm">Images avg engagement</span>
@@ -508,15 +508,15 @@ export default function OSDashboard() {
           {/* === APPROVALS TAB === */}
           {activeTab === 'approvals' && (
             <div className="space-y-6">
-              <div className="p-6 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-transparent text-center">
-                <Calendar size={48} className="mx-auto text-purple-500 mb-4" />
+              <div className="p-6 rounded-2xl border border-[#D4A017]/20 bg-gradient-to-br from-[#D4A017]/5 to-transparent text-center">
+                <Calendar size={48} className="mx-auto text-[#D4A017] mb-4" />
                 <h2 className="text-xl font-bold mb-2">Approval Pipeline & Calendar</h2>
                 <p className="text-sm text-gray-400 mb-6 max-w-md mx-auto">
                   Create drafts, generate A/B test variants with AI, approve content, schedule posts, and view your content calendar.
                 </p>
                 <Button size="lg" onClick={() => router.push('/approvals')}
                   icon={<ChevronRight size={18} />}
-                  className="bg-gradient-to-r from-purple-500 to-purple-600 text-black border-0 font-bold">
+                  className="bg-gradient-to-r from-[#D4A017] to-[#8B6914] text-black border-0 font-bold">
                   Open Approval Pipeline
                 </Button>
               </div>
@@ -527,7 +527,7 @@ export default function OSDashboard() {
                   <p className="text-xs text-gray-500">Review AI-generated content</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white border border-gray-200 text-center">
-                  <Brain size={24} className="mx-auto text-purple-400 mb-2" />
+                  <Brain size={24} className="mx-auto text-[#D4A017] mb-2" />
                   <p className="font-bold text-sm">A/B Testing</p>
                   <p className="text-xs text-gray-500">AI generates 3 caption variants</p>
                 </div>
@@ -568,7 +568,7 @@ export default function OSDashboard() {
                   </Badge>
                 </div>
               ))}
-              <div className="p-4 rounded-xl border-2 border-dashed border-gray-200 text-center hover:border-purple-500/30 transition-colors cursor-pointer">
+              <div className="p-4 rounded-xl border-2 border-dashed border-gray-200 text-center hover:border-[#D4A017]/30 transition-colors cursor-pointer">
                 <Plus size={20} className="mx-auto text-gray-600 mb-2" />
                 <p className="text-sm text-gray-500">Add Custom API</p>
                 <p className="text-xs text-gray-700">Connect any REST API endpoint</p>
@@ -580,7 +580,7 @@ export default function OSDashboard() {
         {/* Right: AI Chat Panel */}
         <div className="w-full lg:w-[400px] border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col bg-white">
           <div className="p-4 border-b border-gray-200 flex items-center gap-2">
-            <Bot size={18} className="text-purple-500" />
+            <Bot size={18} className="text-[#D4A017]" />
             <span className="font-bold text-sm">AI Strategy Advisor</span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">Live Data</span>
           </div>
@@ -590,7 +590,7 @@ export default function OSDashboard() {
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${
                   msg.role === 'user'
-                    ? 'bg-purple-500/20 text-gold-100 rounded-br-md'
+                    ? 'bg-[#D4A017]/20 text-gold-100 rounded-br-md'
                     : 'bg-white text-gray-300 rounded-bl-md'
                 }`}>
                   <pre className="whitespace-pre-wrap font-sans">{msg.text}</pre>
@@ -600,7 +600,7 @@ export default function OSDashboard() {
             {chatLoading && (
               <div className="flex justify-start">
                 <div className="bg-white p-3 rounded-2xl rounded-bl-md">
-                  <Loader2 size={16} className="animate-spin text-purple-500" />
+                  <Loader2 size={16} className="animate-spin text-[#D4A017]" />
                 </div>
               </div>
             )}
@@ -613,9 +613,9 @@ export default function OSDashboard() {
                 onChange={e => setChatInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendChat()}
                 placeholder="Ask about strategy, content ideas..."
-                className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
+                className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-[#D4A017]/40 focus:outline-none" />
               <button onClick={sendChat} disabled={chatLoading || !chatInput.trim()}
-                className="p-2.5 rounded-xl bg-purple-500/20 text-purple-500 hover:bg-purple-500/30 disabled:opacity-50 transition-colors">
+                className="p-2.5 rounded-xl bg-[#D4A017]/20 text-[#D4A017] hover:bg-[#D4A017]/30 disabled:opacity-50 transition-colors">
                 <Send size={16} />
               </button>
             </div>

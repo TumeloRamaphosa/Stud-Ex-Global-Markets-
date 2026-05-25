@@ -129,16 +129,16 @@ export default function ApprovalsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafe] text-gray-900">
+    <div className="min-h-screen bg-[#FFF8F0] text-gray-900">
       <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => router.push('/os')} className="text-gray-500 hover:text-gray-900"><ArrowLeft size={18} /></button>
-          <Zap size={18} className="text-purple-500" />
+          <Zap size={18} className="text-[#D4A017]" />
           <span className="font-bold text-sm">Approval Pipeline</span>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" icon={<Sparkles size={14} />} onClick={() => setShowAB(true)}>A/B Test</Button>
-          <Button size="sm" icon={<Plus size={14} />} onClick={() => setShowCreate(true)} className="bg-gradient-to-r from-purple-500 to-amber-600 text-black border-0">New Draft</Button>
+          <Button size="sm" icon={<Plus size={14} />} onClick={() => setShowCreate(true)} className="bg-gradient-to-r from-[#D4A017] to-amber-600 text-black border-0">New Draft</Button>
         </div>
       </header>
 
@@ -170,7 +170,7 @@ export default function ApprovalsPage() {
         {view === 'queue' && (
           <div className="space-y-3">
             {loading ? (
-              <div className="text-center py-16"><Loader2 size={32} className="animate-spin text-purple-500 mx-auto" /></div>
+              <div className="text-center py-16"><Loader2 size={32} className="animate-spin text-[#D4A017] mx-auto" /></div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16">
                 <Edit3 size={48} className="mx-auto text-gray-700 mb-4" />
@@ -254,7 +254,7 @@ export default function ApprovalsPage() {
                 const isEmpty = dayDrafts.length === 0;
                 return (
                   <div key={day.toISOString()} className={`min-h-[120px] p-2 rounded-xl border transition-colors ${
-                    isToday ? 'border-purple-500/30 bg-purple-500/5' : isEmpty ? 'border-amber-500/10 bg-amber-500/5' : 'border-gray-200 bg-white'
+                    isToday ? 'border-[#D4A017]/30 bg-purple-500/5' : isEmpty ? 'border-amber-500/10 bg-amber-500/5' : 'border-gray-200 bg-white'
                   }`}>
                     <p className={`text-xs font-bold mb-2 ${isToday ? 'text-gold-400' : 'text-gray-500'}`}>
                       {day.getDate()}
@@ -286,7 +286,7 @@ export default function ApprovalsPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-100/80 backdrop-blur-md" onClick={() => setShowCreate(false)}>
           <div className="bg-[#111118] border border-gray-200 rounded-2xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Plus size={20} className="text-purple-500" /> New Content Draft</h2>
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Plus size={20} className="text-[#D4A017]" /> New Content Draft</h2>
 
             <div className="space-y-4">
               <div>
@@ -305,24 +305,24 @@ export default function ApprovalsPage() {
                 <label className="text-xs text-gray-500 block mb-1">Media URL</label>
                 <input type="url" value={newMediaUrl} onChange={e => setNewMediaUrl(e.target.value)}
                   placeholder="https://example.com/image.jpg"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-[#D4A017]/40 focus:outline-none" />
               </div>
 
               <div>
                 <label className="text-xs text-gray-500 block mb-1">Caption</label>
                 <textarea value={newCaption} onChange={e => setNewCaption(e.target.value)}
                   placeholder="Write your caption..." rows={5}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none resize-none" />
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-[#D4A017]/40 focus:outline-none resize-none" />
               </div>
 
               <div>
                 <label className="text-xs text-gray-500 block mb-1">Schedule (optional)</label>
                 <input type="datetime-local" value={newSchedule} onChange={e => setNewSchedule(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-purple-500/40 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-[#D4A017]/40 focus:outline-none" />
               </div>
 
               <Button fullWidth onClick={createDraft} disabled={!newCaption.trim()}
-                icon={<Send size={16} />} className="bg-gradient-to-r from-purple-500 to-amber-600 text-black border-0 font-bold">
+                icon={<Send size={16} />} className="bg-gradient-to-r from-[#D4A017] to-amber-600 text-black border-0 font-bold">
                 Submit for Approval
               </Button>
             </div>
@@ -342,7 +342,7 @@ export default function ApprovalsPage() {
                 <label className="text-xs text-gray-500 block mb-1">Topic / Theme</label>
                 <input type="text" value={abTopic} onChange={e => setAbTopic(e.target.value)}
                   placeholder="e.g., New Wagyu product launch, crypto market update..."
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-[#D4A017]/40 focus:outline-none" />
               </div>
 
               <Button fullWidth onClick={generateABVariants} disabled={!abTopic.trim() || generating}

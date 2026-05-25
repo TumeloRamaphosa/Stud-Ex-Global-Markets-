@@ -170,7 +170,7 @@ export default function BrainPage() {
 
     function draw() {
       if (!ctx || !canvas) return;
-      ctx.fillStyle = '#f0f0f8';
+      ctx.fillStyle = '#FFF8F0';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const projected = nodes.map(n => ({ ...n, ...project(n.x, n.y, n.z) }));
@@ -183,7 +183,7 @@ export default function BrainPage() {
           if (a.type === b.type || a.source === b.source) {
             const dist = Math.sqrt((a.sx - b.sx) ** 2 + (a.sy - b.sy) ** 2);
             if (dist < 200) {
-              ctx.strokeStyle = `rgba(139,92,246,${0.15 * (1 - dist / 200)})`;
+              ctx.strokeStyle = `rgba(212,160,23,${0.15 * (1 - dist / 200)})`;
               ctx.lineWidth = 1;
               ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
             }
@@ -261,12 +261,12 @@ export default function BrainPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafe] text-gray-900 flex flex-col">
+    <div className="min-h-screen bg-[#FFF8F0] text-gray-900 flex flex-col">
       {/* Header */}
       <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
         <div className="flex items-center gap-3">
           <button onClick={() => router.push('/os')} className="text-gray-500 hover:text-gray-900"><ArrowLeft size={18} /></button>
-          <Brain size={18} className="text-purple-400" />
+          <Brain size={18} className="text-[#D4A017]" />
           <span className="font-bold text-sm">Second Brain</span>
           {stats && <span className="text-xs text-gray-600">{stats.totalRecordCount || 0} memories</span>}
         </div>
@@ -285,7 +285,7 @@ export default function BrainPage() {
           {loading ? (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <Loader2 size={48} className="animate-spin text-purple-500 mx-auto mb-4" />
+                <Loader2 size={48} className="animate-spin text-[#D4A017] mx-auto mb-4" />
                 <p className="text-gray-400">Loading Second Brain...</p>
               </div>
             </div>
@@ -319,7 +319,7 @@ export default function BrainPage() {
                   className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 bg-black/80 backdrop-blur-md text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
               </div>
               <button onClick={searchBrain} disabled={searching}
-                className="px-3 py-2 rounded-xl bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 text-sm">
+                className="px-3 py-2 rounded-xl bg-purple-500/20 text-[#D4A017] hover:bg-purple-500/30 text-sm">
                 {searching ? <Loader2 size={14} className="animate-spin" /> : 'Search'}
               </button>
             </div>
@@ -361,7 +361,7 @@ export default function BrainPage() {
               {selectedNode.score && (
                 <div className="flex justify-between text-gray-500">
                   <span>Relevance</span>
-                  <span className="text-purple-400">{(selectedNode.score * 100).toFixed(0)}%</span>
+                  <span className="text-[#D4A017]">{(selectedNode.score * 100).toFixed(0)}%</span>
                 </div>
               )}
               {selectedNode.likes !== undefined && (
@@ -386,7 +386,7 @@ export default function BrainPage() {
       {addingNote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md" onClick={() => setAddingNote(false)}>
           <div className="bg-[#111118] border border-gray-200 rounded-2xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Brain size={20} className="text-purple-400" /> Add to Brain</h2>
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Brain size={20} className="text-[#D4A017]" /> Add to Brain</h2>
             <div className="space-y-3">
               <input type="text" value={noteTitle} onChange={e => setNoteTitle(e.target.value)}
                 placeholder="Title" className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
