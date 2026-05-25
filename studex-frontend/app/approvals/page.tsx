@@ -129,16 +129,16 @@ export default function ApprovalsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white">
-      <header className="border-b border-white/5 px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-[#fafafe] text-gray-900">
+      <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push('/os')} className="text-gray-500 hover:text-white"><ArrowLeft size={18} /></button>
-          <Zap size={18} className="text-gold-500" />
+          <button onClick={() => router.push('/os')} className="text-gray-500 hover:text-gray-900"><ArrowLeft size={18} /></button>
+          <Zap size={18} className="text-purple-500" />
           <span className="font-bold text-sm">Approval Pipeline</span>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" icon={<Sparkles size={14} />} onClick={() => setShowAB(true)}>A/B Test</Button>
-          <Button size="sm" icon={<Plus size={14} />} onClick={() => setShowCreate(true)} className="bg-gradient-to-r from-gold-500 to-amber-600 text-black border-0">New Draft</Button>
+          <Button size="sm" icon={<Plus size={14} />} onClick={() => setShowCreate(true)} className="bg-gradient-to-r from-purple-500 to-amber-600 text-black border-0">New Draft</Button>
         </div>
       </header>
 
@@ -146,11 +146,11 @@ export default function ApprovalsPage() {
 
         {/* View Toggle + Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div className="flex gap-1 bg-white/5 rounded-xl p-1">
-            <button onClick={() => setView('queue')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'queue' ? 'bg-white/10 text-white' : 'text-gray-500'}`}>
+          <div className="flex gap-1 bg-white rounded-xl p-1">
+            <button onClick={() => setView('queue')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'queue' ? 'bg-gray-50 text-gray-900' : 'text-gray-500'}`}>
               <Filter size={14} className="inline mr-1" /> Queue
             </button>
-            <button onClick={() => setView('calendar')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'calendar' ? 'bg-white/10 text-white' : 'text-gray-500'}`}>
+            <button onClick={() => setView('calendar')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'calendar' ? 'bg-gray-50 text-gray-900' : 'text-gray-500'}`}>
               <Calendar size={14} className="inline mr-1" /> Calendar
             </button>
           </div>
@@ -158,7 +158,7 @@ export default function ApprovalsPage() {
             <div className="flex gap-1 flex-wrap">
               {(['all', 'pending', 'approved', 'scheduled', 'published', 'rejected'] as const).map(f => (
                 <button key={f} onClick={() => setFilter(f)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filter === f ? 'bg-white/10 text-white' : 'text-gray-600 hover:text-gray-400'}`}>
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filter === f ? 'bg-gray-50 text-gray-900' : 'text-gray-600 hover:text-gray-400'}`}>
                   {f} ({counts[f]})
                 </button>
               ))}
@@ -170,7 +170,7 @@ export default function ApprovalsPage() {
         {view === 'queue' && (
           <div className="space-y-3">
             {loading ? (
-              <div className="text-center py-16"><Loader2 size={32} className="animate-spin text-gold-500 mx-auto" /></div>
+              <div className="text-center py-16"><Loader2 size={32} className="animate-spin text-purple-500 mx-auto" /></div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16">
                 <Edit3 size={48} className="mx-auto text-gray-700 mb-4" />
@@ -180,7 +180,7 @@ export default function ApprovalsPage() {
               filtered.map(draft => {
                 const st = STATUS_STYLES[draft.status] || STATUS_STYLES.draft;
                 return (
-                  <div key={draft.id} className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
+                  <div key={draft.id} className="p-4 rounded-xl bg-white border border-gray-200 hover:border-gray-200 transition-colors">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         {/* Status + Meta */}
@@ -188,7 +188,7 @@ export default function ApprovalsPage() {
                           <Badge variant={st.variant} size="sm">{st.icon} {draft.status}</Badge>
                           {draft.abVariant && <Badge variant="primary" size="sm">A/B {draft.abVariant}</Badge>}
                           {draft.platforms.map(p => (
-                            <span key={p} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-gray-500">
+                            <span key={p} className="text-[10px] px-2 py-0.5 rounded-full bg-white text-gray-500">
                               {p === 'instagram' ? '📸 IG' : '📘 FB'}
                             </span>
                           ))}
@@ -217,12 +217,12 @@ export default function ApprovalsPage() {
                         )}
                         {(draft.status === 'approved' || draft.status === 'scheduled') && (
                           <button onClick={() => publishDraft(draft.id)} disabled={publishing === draft.id}
-                            className="p-2 rounded-lg bg-gold-500/10 text-gold-400 hover:bg-gold-500/20 transition-colors" title="Publish Now">
+                            className="p-2 rounded-lg bg-purple-500/10 text-gold-400 hover:bg-purple-500/20 transition-colors" title="Publish Now">
                             {publishing === draft.id ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                           </button>
                         )}
                         <button onClick={() => apiAction('delete', { id: draft.id })}
-                          className="p-2 rounded-lg bg-white/5 text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Delete">
+                          className="p-2 rounded-lg bg-white text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Delete">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -238,11 +238,11 @@ export default function ApprovalsPage() {
         {view === 'calendar' && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <button onClick={() => setCalendarWeek(w => w - 1)} className="p-2 rounded-lg bg-white/5 hover:bg-white/10"><ChevronLeft size={18} /></button>
+              <button onClick={() => setCalendarWeek(w => w - 1)} className="p-2 rounded-lg bg-white hover:bg-gray-50"><ChevronLeft size={18} /></button>
               <h2 className="font-bold">
                 {weekDays[0].toLocaleDateString('en-ZA', { month: 'short', day: 'numeric' })} — {weekDays[6].toLocaleDateString('en-ZA', { month: 'short', day: 'numeric', year: 'numeric' })}
               </h2>
-              <button onClick={() => setCalendarWeek(w => w + 1)} className="p-2 rounded-lg bg-white/5 hover:bg-white/10"><ChevronRight size={18} /></button>
+              <button onClick={() => setCalendarWeek(w => w + 1)} className="p-2 rounded-lg bg-white hover:bg-gray-50"><ChevronRight size={18} /></button>
             </div>
             <div className="grid grid-cols-7 gap-2">
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
@@ -254,7 +254,7 @@ export default function ApprovalsPage() {
                 const isEmpty = dayDrafts.length === 0;
                 return (
                   <div key={day.toISOString()} className={`min-h-[120px] p-2 rounded-xl border transition-colors ${
-                    isToday ? 'border-gold-500/30 bg-gold-500/5' : isEmpty ? 'border-amber-500/10 bg-amber-500/5' : 'border-white/5 bg-white/5'
+                    isToday ? 'border-purple-500/30 bg-purple-500/5' : isEmpty ? 'border-amber-500/10 bg-amber-500/5' : 'border-gray-200 bg-white'
                   }`}>
                     <p className={`text-xs font-bold mb-2 ${isToday ? 'text-gold-400' : 'text-gray-500'}`}>
                       {day.getDate()}
@@ -284,9 +284,9 @@ export default function ApprovalsPage() {
 
       {/* === CREATE DRAFT MODAL === */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md" onClick={() => setShowCreate(false)}>
-          <div className="bg-[#111118] border border-white/10 rounded-2xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Plus size={20} className="text-gold-500" /> New Content Draft</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-100/80 backdrop-blur-md" onClick={() => setShowCreate(false)}>
+          <div className="bg-[#111118] border border-gray-200 rounded-2xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Plus size={20} className="text-purple-500" /> New Content Draft</h2>
 
             <div className="space-y-4">
               <div>
@@ -294,7 +294,7 @@ export default function ApprovalsPage() {
                 <div className="flex gap-2">
                   {['instagram', 'facebook'].map(p => (
                     <button key={p} onClick={() => setNewPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])}
-                      className={`px-3 py-2 rounded-lg border text-sm ${newPlatforms.includes(p) ? (p === 'instagram' ? 'border-pink-500 bg-pink-500/10 text-pink-300' : 'border-blue-500 bg-blue-500/10 text-blue-300') : 'border-white/10 text-gray-500'}`}>
+                      className={`px-3 py-2 rounded-lg border text-sm ${newPlatforms.includes(p) ? (p === 'instagram' ? 'border-pink-500 bg-pink-500/10 text-pink-300' : 'border-blue-500 bg-blue-500/10 text-blue-300') : 'border-gray-200 text-gray-500'}`}>
                       {p === 'instagram' ? '📸 Instagram' : '📘 Facebook'}
                     </button>
                   ))}
@@ -305,24 +305,24 @@ export default function ApprovalsPage() {
                 <label className="text-xs text-gray-500 block mb-1">Media URL</label>
                 <input type="url" value={newMediaUrl} onChange={e => setNewMediaUrl(e.target.value)}
                   placeholder="https://example.com/image.jpg"
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:border-gold-500/40 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
               </div>
 
               <div>
                 <label className="text-xs text-gray-500 block mb-1">Caption</label>
                 <textarea value={newCaption} onChange={e => setNewCaption(e.target.value)}
                   placeholder="Write your caption..." rows={5}
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:border-gold-500/40 focus:outline-none resize-none" />
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none resize-none" />
               </div>
 
               <div>
                 <label className="text-xs text-gray-500 block mb-1">Schedule (optional)</label>
                 <input type="datetime-local" value={newSchedule} onChange={e => setNewSchedule(e.target.value)}
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-gold-500/40 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-purple-500/40 focus:outline-none" />
               </div>
 
               <Button fullWidth onClick={createDraft} disabled={!newCaption.trim()}
-                icon={<Send size={16} />} className="bg-gradient-to-r from-gold-500 to-amber-600 text-black border-0 font-bold">
+                icon={<Send size={16} />} className="bg-gradient-to-r from-purple-500 to-amber-600 text-black border-0 font-bold">
                 Submit for Approval
               </Button>
             </div>
@@ -332,8 +332,8 @@ export default function ApprovalsPage() {
 
       {/* === A/B TEST MODAL === */}
       {showAB && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md" onClick={() => setShowAB(false)}>
-          <div className="bg-[#111118] border border-white/10 rounded-2xl p-6 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-100/80 backdrop-blur-md" onClick={() => setShowAB(false)}>
+          <div className="bg-[#111118] border border-gray-200 rounded-2xl p-6 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Brain size={20} className="text-purple-400" /> Create A/B Test</h2>
             <p className="text-sm text-gray-400 mb-4">AI will generate 3 caption variants with different hooks. You approve the best one.</p>
 
@@ -342,7 +342,7 @@ export default function ApprovalsPage() {
                 <label className="text-xs text-gray-500 block mb-1">Topic / Theme</label>
                 <input type="text" value={abTopic} onChange={e => setAbTopic(e.target.value)}
                   placeholder="e.g., New Wagyu product launch, crypto market update..."
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
               </div>
 
               <Button fullWidth onClick={generateABVariants} disabled={!abTopic.trim() || generating}

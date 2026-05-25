@@ -170,7 +170,7 @@ export default function BrainPage() {
 
     function draw() {
       if (!ctx || !canvas) return;
-      ctx.fillStyle = '#0a0a0f';
+      ctx.fillStyle = '#f0f0f8';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const projected = nodes.map(n => ({ ...n, ...project(n.x, n.y, n.z) }));
@@ -183,7 +183,7 @@ export default function BrainPage() {
           if (a.type === b.type || a.source === b.source) {
             const dist = Math.sqrt((a.sx - b.sx) ** 2 + (a.sy - b.sy) ** 2);
             if (dist < 200) {
-              ctx.strokeStyle = `rgba(255,255,255,${0.03 * (1 - dist / 200)})`;
+              ctx.strokeStyle = `rgba(139,92,246,${0.15 * (1 - dist / 200)})`;
               ctx.lineWidth = 1;
               ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
             }
@@ -209,7 +209,7 @@ export default function BrainPage() {
 
         // Label
         if (n.scale > 0.5) {
-          ctx.fillStyle = `rgba(255,255,255,${Math.min(1, n.scale)})`;
+          ctx.fillStyle = `rgba(30,30,60,${Math.min(1, n.scale)})`;
           ctx.font = `${Math.max(10, 14 * n.scale)}px system-ui`;
           ctx.textAlign = 'center';
           ctx.fillText(n.title?.slice(0, 25) || '', n.sx, n.sy + size + 14 * n.scale);
@@ -261,11 +261,11 @@ export default function BrainPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col">
+    <div className="min-h-screen bg-[#fafafe] text-gray-900 flex flex-col">
       {/* Header */}
-      <header className="border-b border-white/5 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
+      <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push('/os')} className="text-gray-500 hover:text-white"><ArrowLeft size={18} /></button>
+          <button onClick={() => router.push('/os')} className="text-gray-500 hover:text-gray-900"><ArrowLeft size={18} /></button>
           <Brain size={18} className="text-purple-400" />
           <span className="font-bold text-sm">Second Brain</span>
           {stats && <span className="text-xs text-gray-600">{stats.totalRecordCount || 0} memories</span>}
@@ -316,7 +316,7 @@ export default function BrainPage() {
                   onChange={e => setSearchQuery(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && searchBrain()}
                   placeholder="Search your brain..."
-                  className="w-full pl-9 pr-4 py-2 rounded-xl border border-white/10 bg-black/80 backdrop-blur-md text-sm text-white placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
+                  className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 bg-black/80 backdrop-blur-md text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
               </div>
               <button onClick={searchBrain} disabled={searching}
                 className="px-3 py-2 rounded-xl bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 text-sm">
@@ -343,13 +343,13 @@ export default function BrainPage() {
 
         {/* Selected Node Panel */}
         {selectedNode && (
-          <div className="w-80 border-l border-white/5 bg-[#0c0c14] p-4 overflow-y-auto flex-shrink-0">
+          <div className="w-80 border-l border-gray-200 bg-[#0c0c14] p-4 overflow-y-auto flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
               <Badge variant="primary" size="sm">
                 {TYPE_ICONS[selectedNode.type] || <Globe size={12} />}
                 {selectedNode.type?.replace('_', ' ')}
               </Badge>
-              <button onClick={() => setSelectedNode(null)} className="text-gray-600 hover:text-white"><X size={16} /></button>
+              <button onClick={() => setSelectedNode(null)} className="text-gray-600 hover:text-gray-900"><X size={16} /></button>
             </div>
             <h3 className="font-bold mb-2">{selectedNode.title}</h3>
             <p className="text-sm text-gray-400 mb-4 whitespace-pre-wrap">{selectedNode.content}</p>
@@ -385,14 +385,14 @@ export default function BrainPage() {
       {/* Add Note Modal */}
       {addingNote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md" onClick={() => setAddingNote(false)}>
-          <div className="bg-[#111118] border border-white/10 rounded-2xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#111118] border border-gray-200 rounded-2xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Brain size={20} className="text-purple-400" /> Add to Brain</h2>
             <div className="space-y-3">
               <input type="text" value={noteTitle} onChange={e => setNoteTitle(e.target.value)}
-                placeholder="Title" className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
+                placeholder="Title" className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none" />
               <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)}
                 placeholder="What do you want to remember?" rows={4}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:border-purple-500/40 focus:outline-none resize-none" />
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-600 focus:border-purple-500/40 focus:outline-none resize-none" />
               <Button fullWidth onClick={addNote} icon={<Plus size={16} />}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 border-0 font-bold">
                 Add to Brain
