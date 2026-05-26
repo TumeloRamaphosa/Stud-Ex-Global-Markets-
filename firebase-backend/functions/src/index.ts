@@ -2,11 +2,128 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import express from 'express';
 import cors from 'cors';
+import Stripe from 'stripe';
 
 admin.initializeApp();
 
 const app = express();
 app.use(cors({ origin: true }));
+
+function getStripeClient(): any | null {
+  const secretKey =
+    process.env.STRIPE_SECRET_KEY || functions.config().stripe?.secret_key;
+
+  return secretKey ? new Stripe(secretKey) : null;
+}
+
+function getPublicAppUrl(): string {
+  return (
+    process.env.PUBLIC_APP_URL ||
+    functions.config().app?.url ||
+    'http://localhost:3000'
+  );
+}
+
+async function verifyFirebaseUser(req: express.Request): Promise<admin.auth.DecodedIdToken> {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+
+  if (!token) {
+    throw new Error('Missing authorization token');
+  }
+
+  return admin.auth().verifyIdToken(token);
+}
+
+async function saveSubscription(
+  subscription: any,
+  fallbackUserId?: string
+): Promise<void> {
+  const subscriptionData = subscription as { current_period_end?: number };
+  const userId = subscription.metadata.userId || fallbackUserId;
+
+  if (!userId) {
+    console.warn(`Stripe subscription ${subscription.id} has no userId metadata`);
+    return;
+  }
+
+  const item = subscription.items.data[0];
+  const priceId = item?.price.id || '';
+
+  await admin.firestore().collection('subscriptions').doc(userId).set(
+    {
+      userId,
+      stripeCustomerId:
+        typeof subscription.customer === 'string'
+          ? subscription.customer
+          : subscription.customer.id,
+      stripeSubscriptionId: subscription.id,
+      status: subscription.status,
+      planId: subscription.metadata.planId || priceId,
+      priceId,
+      currentPeriodEnd: subscriptionData.current_period_end
+        ? admin.firestore.Timestamp.fromMillis(
+            subscriptionData.current_period_end * 1000
+          )
+        : null,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+app.post(
+  '/payments/webhook',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    const stripe = getStripeClient();
+    const webhookSecret =
+      process.env.STRIPE_WEBHOOK_SECRET ||
+      functions.config().stripe?.webhook_secret;
+
+    if (!stripe || !webhookSecret) {
+      return res.status(501).json({ error: 'Stripe webhook is not configured' });
+    }
+
+    const signature = req.headers['stripe-signature'];
+    if (!signature || Array.isArray(signature)) {
+      return res.status(400).json({ error: 'Missing Stripe signature' });
+    }
+
+    try {
+      const event = stripe.webhooks.constructEvent(
+        req.body,
+        signature,
+        webhookSecret
+      );
+
+      if (event.type === 'checkout.session.completed') {
+        const session = event.data.object as any;
+        if (session.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(
+            session.subscription as string
+          );
+          await saveSubscription(subscription, session.metadata?.userId);
+        }
+      }
+
+      if (
+        event.type === 'customer.subscription.created' ||
+        event.type === 'customer.subscription.updated' ||
+        event.type === 'customer.subscription.deleted'
+      ) {
+        await saveSubscription(event.data.object as any);
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error('Stripe webhook failed:', error);
+      res.status(400).json({ error: 'Invalid Stripe webhook' });
+    }
+  }
+);
+
 app.use(express.json());
 
 // ==================== USER MANAGEMENT ====================

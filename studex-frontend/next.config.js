@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@remotion/player', 'remotion'],
   images: {
     remotePatterns: [
       {
@@ -13,9 +12,6 @@ const nextConfig = {
         hostname: 'firebasestorage.googleapis.com',
       },
     ],
-  },
-  experimental: {
-    serverActions: true,
   },
 };
 
