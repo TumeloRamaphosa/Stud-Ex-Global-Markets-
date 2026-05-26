@@ -84,6 +84,147 @@ export const onUserDelete = functions.auth.user().onDelete(async (user) => {
   }
 });
 
+// ==================== PAYMENTS ====================
+
+/**
+ * Create a Stripe Checkout session for a subscription plan.
+ */
+app.post('/payments/checkout', async (req, res) => {
+  try {
+    const decoded = await verifyFirebaseUser(req);
+    const { planId, priceId } = req.body;
+
+    if (!planId || !priceId) {
+      return res.status(400).json({ error: 'planId and priceId are required' });
+    }
+
+    const stripe = getStripeClient();
+    if (!stripe) {
+      return res.status(501).json({ error: 'Stripe is not configured' });
+    }
+
+    const userRef = admin.firestore().collection('users').doc(decoded.uid);
+    const userDoc = await userRef.get();
+    const userData = userDoc.data() || {};
+    let stripeCustomerId = userData.stripeCustomerId as string | undefined;
+
+    if (!stripeCustomerId) {
+      const customer = await stripe.customers.create({
+        email: decoded.email,
+        name: decoded.name,
+        metadata: {
+          userId: decoded.uid,
+        },
+      });
+      stripeCustomerId = customer.id;
+      await userRef.set(
+        {
+          stripeCustomerId,
+          updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+    }
+
+    const appUrl = getPublicAppUrl();
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      customer: stripeCustomerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${appUrl}/settings/billing?checkout=success`,
+      cancel_url: `${appUrl}/settings/billing?checkout=cancelled`,
+      metadata: {
+        userId: decoded.uid,
+        planId,
+      },
+      subscription_data: {
+        metadata: {
+          userId: decoded.uid,
+          planId,
+        },
+      },
+      allow_promotion_codes: true,
+    });
+
+    res.json({ id: session.id, url: session.url });
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    res.status(401).json({ error: 'Unable to create checkout session' });
+  }
+});
+
+/**
+ * Create a Stripe Billing Portal session for the current user.
+ */
+app.post('/payments/portal', async (req, res) => {
+  try {
+    const decoded = await verifyFirebaseUser(req);
+    const stripe = getStripeClient();
+
+    if (!stripe) {
+      return res.status(501).json({ error: 'Stripe is not configured' });
+    }
+
+    const userDoc = await admin
+      .firestore()
+      .collection('users')
+      .doc(decoded.uid)
+      .get();
+    const stripeCustomerId = userDoc.data()?.stripeCustomerId as
+      | string
+      | undefined;
+
+    if (!stripeCustomerId) {
+      return res.status(404).json({ error: 'No Stripe customer found' });
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: stripeCustomerId,
+      return_url: `${getPublicAppUrl()}/settings/billing`,
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error creating billing portal session:', error);
+    res.status(401).json({ error: 'Unable to open billing portal' });
+  }
+});
+
+/**
+ * Read the subscription synced by Stripe webhooks.
+ */
+app.get('/payments/subscription/:userId', async (req, res) => {
+  try {
+    const decoded = await verifyFirebaseUser(req);
+    const { userId } = req.params;
+
+    if (decoded.uid !== userId) {
+      return res.status(403).json({ error: 'Cannot read another user subscription' });
+    }
+
+    const subscriptionDoc = await admin
+      .firestore()
+      .collection('subscriptions')
+      .doc(userId)
+      .get();
+
+    if (!subscriptionDoc.exists) {
+      return res.json({ status: 'none' });
+    }
+
+    const data = subscriptionDoc.data() || {};
+    res.json({
+      status: data.status || 'none',
+      planId: data.planId,
+      currentPeriodEnd: data.currentPeriodEnd?.toDate?.().toISOString?.(),
+      cancelAtPeriodEnd: Boolean(data.cancelAtPeriodEnd),
+    });
+  } catch (error) {
+    console.error('Error reading subscription:', error);
+    res.status(401).json({ error: 'Unable to read subscription' });
+  }
+});
+
 // ==================== MEETINGS ====================
 
 /**

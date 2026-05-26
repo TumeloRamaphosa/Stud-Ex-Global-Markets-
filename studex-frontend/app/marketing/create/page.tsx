@@ -224,7 +224,7 @@ export default function CreatePostPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">
@@ -244,7 +244,7 @@ export default function CreatePostPage() {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold">Create Slideshow Post</h1>
-                <p className="text-gray-400 text-sm">
+                <p className="text-slate-500 text-sm">
                   Step {stepIndex + 1} of {STEPS.length}: {STEPS[stepIndex].label}
                 </p>
               </div>
@@ -258,10 +258,10 @@ export default function CreatePostPage() {
                   onClick={() => setCurrentStep(step.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                     currentStep === step.id
-                      ? 'bg-primary-600/20 text-primary-300 border border-primary-600/50'
+                      ? 'bg-primary-600/20 text-primary-700 border border-primary-600/50'
                       : idx < stepIndex
-                      ? 'bg-green-900/20 text-green-300 border border-green-600/30'
-                      : 'text-gray-400 bg-dark-800/50 border border-primary-700/20'
+                      ? 'bg-green-50 text-green-700 border border-green-600/30'
+                      : 'text-slate-500 bg-slate-100/80 border border-primary-100'
                   }`}
                 >
                   {step.icon}
@@ -293,7 +293,7 @@ export default function CreatePostPage() {
                   </Select>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                    <label className="block text-sm font-medium text-slate-700 mb-3">
                       Hook Templates
                     </label>
                     <div className="space-y-2">
@@ -301,7 +301,7 @@ export default function CreatePostPage() {
                         <button
                           key={idx}
                           onClick={() => applyHookTemplate(template)}
-                          className="block w-full text-left p-3 rounded-lg bg-dark-800/50 border border-primary-700/20 hover:border-primary-600/50 transition-all text-sm"
+                          className="block w-full text-left p-3 rounded-lg bg-slate-100/80 border border-primary-100 hover:border-primary-600/50 transition-all text-sm"
                         >
                           {template}
                         </button>
@@ -334,17 +334,17 @@ export default function CreatePostPage() {
               <div className="space-y-6">
                 <Card>
                   <h2 className="text-xl font-bold mb-2">Slide Images</h2>
-                  <p className="text-gray-400 text-sm mb-6">
+                  <p className="text-slate-500 text-sm mb-6">
                     Upload 6 images (1024x1536 portrait) or use AI generation. All slides should share consistent visual elements.
                   </p>
 
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {slideLabels.map((label, idx) => (
                       <div key={idx} className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">
+                        <label className="text-sm font-medium text-slate-700">
                           Slide {idx + 1}: {label}
                         </label>
-                        <div className="relative aspect-[2/3] rounded-lg border-2 border-dashed border-primary-700/30 bg-dark-800/30 overflow-hidden">
+                        <div className="relative aspect-[2/3] rounded-lg border-2 border-dashed border-primary-100 bg-slate-100/70 overflow-hidden">
                           {slideImagePreviews[idx] ? (
                             <>
                               <img
@@ -360,9 +360,9 @@ export default function CreatePostPage() {
                               </button>
                             </>
                           ) : (
-                            <label className="flex flex-col items-center justify-center h-full cursor-pointer hover:bg-dark-800/50 transition-colors">
-                              <Upload size={24} className="text-gray-500 mb-2" />
-                              <span className="text-xs text-gray-500">Upload Image</span>
+                            <label className="flex flex-col items-center justify-center h-full cursor-pointer hover:bg-slate-100/80 transition-colors">
+                              <Upload size={24} className="text-slate-400 mb-2" />
+                              <span className="text-xs text-slate-400">Upload Image</span>
                               <input
                                 type="file"
                                 accept="image/*"
@@ -385,7 +385,7 @@ export default function CreatePostPage() {
             {currentStep === 'overlays' && (
               <Card>
                 <h2 className="text-xl font-bold mb-2">Text Overlays</h2>
-                <p className="text-gray-400 text-sm mb-6">
+                <p className="text-slate-500 text-sm mb-6">
                   Add text for each slide. Use \n for line breaks. Keep 4-6 words per line, 3-4 lines per slide. Use reactions, not labels.
                 </p>
 
@@ -433,7 +433,7 @@ export default function CreatePostPage() {
                   />
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                    <label className="block text-sm font-medium text-slate-700 mb-3">
                       Target Platforms
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -451,8 +451,8 @@ export default function CreatePostPage() {
                           }}
                           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                             selectedPlatforms.includes(key)
-                              ? 'bg-primary-600/20 text-primary-300 border border-primary-600/50'
-                              : 'text-gray-400 bg-dark-800/50 border border-primary-700/20 hover:border-primary-600/30'
+                              ? 'bg-primary-600/20 text-primary-700 border border-primary-600/50'
+                              : 'text-slate-500 bg-slate-100/80 border border-primary-100 hover:border-primary-600/30'
                           }`}
                         >
                           {label}
@@ -469,14 +469,47 @@ export default function CreatePostPage() {
                 <Card>
                   <h2 className="text-xl font-bold mb-6">Preview Your Post</h2>
 
+                  {/* Remotion Video Preview */}
+                  <div className="mb-8 grid gap-6 lg:grid-cols-[360px_1fr]">
+                    <MarketingVideoPlayer
+                      slides={remotionSlides}
+                      hookText={hookText}
+                      ctaText={ctaText}
+                      brandName={profile?.appName || 'Studex'}
+                    />
+                    <div className="rounded-2xl border border-primary-100 bg-primary-50/70 p-5">
+                      <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                        Remotion video design
+                      </h3>
+                      <p className="mb-4 text-sm text-slate-600">
+                        This live preview turns your six slides into a branded 9:16 motion
+                        story for TikTok, Reels, Shorts, and paid social creatives.
+                      </p>
+                      <div className="space-y-3 text-sm text-slate-600">
+                        <div className="rounded-xl bg-white/80 p-3">
+                          <p className="font-semibold text-slate-900">1080 x 1920</p>
+                          <p>Vertical video canvas aligned to mobile-first platforms.</p>
+                        </div>
+                        <div className="rounded-xl bg-white/80 p-3">
+                          <p className="font-semibold text-slate-900">Animated overlays</p>
+                          <p>Brand label, slide counter, progress bar, and kinetic text.</p>
+                        </div>
+                        <div className="rounded-xl bg-white/80 p-3">
+                          <p className="font-semibold text-slate-900">Render-ready model</p>
+                          <p>The same slide data can power a future server render pipeline.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Slide Preview Carousel */}
                   <div className="mb-6">
-                    <h3 className="text-sm font-medium text-gray-300 mb-3">Slides</h3>
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">Slides</h3>
                     <div className="flex gap-3 overflow-x-auto pb-4">
                       {slideTexts.map((text, idx) => (
                         <div
                           key={idx}
-                          className="flex-shrink-0 w-40 aspect-[2/3] rounded-lg border border-primary-700/30 bg-dark-800/50 overflow-hidden relative"
+                          className="flex-shrink-0 w-40 aspect-[2/3] rounded-lg border border-primary-100 bg-slate-100/80 overflow-hidden relative"
                         >
                           {slideImagePreviews[idx] && (
                             <img
@@ -503,25 +536,25 @@ export default function CreatePostPage() {
                   {/* Post Details */}
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-400">Hook</h3>
+                      <h3 className="text-sm font-medium text-slate-500">Hook</h3>
                       <p className="font-bold">{hookText || 'No hook set'}</p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-gray-400">Hook Category</h3>
+                      <h3 className="text-sm font-medium text-slate-500">Hook Category</h3>
                       <Badge variant="primary">{hookCategory}</Badge>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-gray-400">Caption</h3>
-                      <p className="text-sm whitespace-pre-line text-gray-300">
+                      <h3 className="text-sm font-medium text-slate-500">Caption</h3>
+                      <p className="text-sm whitespace-pre-line text-slate-700">
                         {captionText || 'No caption set'}
                       </p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-gray-400">CTA</h3>
-                      <p className="font-medium text-primary-300">{ctaText || 'No CTA set'}</p>
+                      <h3 className="text-sm font-medium text-slate-500">CTA</h3>
+                      <p className="font-medium text-primary-700">{ctaText || 'No CTA set'}</p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-gray-400">Platforms</h3>
+                      <h3 className="text-sm font-medium text-slate-500">Platforms</h3>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {selectedPlatforms.map((p) => (
                           <Badge key={p} variant="success" size="sm">

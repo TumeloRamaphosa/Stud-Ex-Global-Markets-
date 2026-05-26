@@ -24,7 +24,7 @@ export default function Select({
   return (
     <div className={containerClassName}>
       {label && (
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           {label}
           {props.required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -32,7 +32,7 @@ export default function Select({
       <div className="relative">
         <select
           className={cn(
-            'w-full rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-2.5 text-white appearance-none transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 pr-10',
+            'w-full rounded-lg border border-primary-100 bg-white px-4 py-2.5 text-slate-900 appearance-none transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 pr-10',
             error && 'border-red-500 focus:ring-red-500',
             className
           )}
@@ -40,10 +40,10 @@ export default function Select({
         >
           {children}
         </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={18} />
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
       </div>
       {error && <p className="mt-1 text-sm text-red-400">{error}</p>}
-      {helper && !error && <p className="mt-1 text-sm text-gray-400">{helper}</p>}
+      {helper && !error && <p className="mt-1 text-sm text-slate-500">{helper}</p>}
     </div>
   );
 }

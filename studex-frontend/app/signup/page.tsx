@@ -92,16 +92,16 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header />
 
       <div className="flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
-          <div className="rounded-2xl border border-primary-700/30 bg-dark-900/50 backdrop-blur-md p-8">
+          <div className="rounded-2xl border border-primary-100 bg-white/85 backdrop-blur-md p-8">
             {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold mb-2">Create Account</h1>
-              <p className="text-gray-400">
+              <p className="text-slate-500">
                 {step === 'email' && 'Enter your email to get started'}
                 {step === 'role' && 'What best describes you?'}
                 {step === 'details' && 'Complete your profile'}
@@ -127,10 +127,10 @@ export default function SignupPage() {
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-primary-700/20"></div>
+                    <div className="w-full border-t border-primary-100"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-dark-900 text-gray-400">Or</span>
+                    <span className="px-2 bg-white text-slate-500">Or</span>
                   </div>
                 </div>
 
@@ -152,20 +152,20 @@ export default function SignupPage() {
               <div className="space-y-4">
                 <button
                   onClick={() => handleRoleSelect('investor')}
-                  className="w-full rounded-lg border-2 border-primary-700/30 bg-dark-800/50 p-4 text-left hover:border-primary-600/50 hover:bg-dark-800 transition-all"
+                  className="w-full rounded-lg border-2 border-primary-100 bg-slate-100/80 p-4 text-left hover:border-primary-600/50 hover:bg-slate-100 transition-all"
                 >
                   <h3 className="font-bold mb-1">Investor</h3>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-slate-500">
                     Looking to invest in startups and business opportunities
                   </p>
                 </button>
 
                 <button
                   onClick={() => handleRoleSelect('entrepreneur')}
-                  className="w-full rounded-lg border-2 border-primary-700/30 bg-dark-800/50 p-4 text-left hover:border-primary-600/50 hover:bg-dark-800 transition-all"
+                  className="w-full rounded-lg border-2 border-primary-100 bg-slate-100/80 p-4 text-left hover:border-primary-600/50 hover:bg-slate-100 transition-all"
                 >
                   <h3 className="font-bold mb-1">Entrepreneur</h3>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-slate-500">
                     Building a business and seeking investment or partnerships
                   </p>
                 </button>
@@ -205,10 +205,10 @@ export default function SignupPage() {
                   required
                 />
 
-                <div className="rounded-lg bg-primary-900/20 border border-primary-700/30 p-3 text-sm">
-                  <p className="text-gray-300">
-                    I agree to the <a href="#" className="text-primary-400 hover:text-primary-300">Terms of Service</a> and{' '}
-                    <a href="#" className="text-primary-400 hover:text-primary-300">Privacy Policy</a>
+                <div className="rounded-lg bg-primary-50 border border-primary-100 p-3 text-sm">
+                  <p className="text-slate-700">
+                    I agree to the <a href="#" className="text-primary-700 hover:text-primary-700">Terms of Service</a> and{' '}
+                    <a href="#" className="text-primary-700 hover:text-primary-700">Privacy Policy</a>
                   </p>
                 </div>
 
@@ -234,9 +234,9 @@ export default function SignupPage() {
 
             {/* Footer */}
             <div className="mt-6 text-center">
-              <p className="text-gray-400">
+              <p className="text-slate-500">
                 Already have an account?{' '}
-                <Link href="/login" className="text-primary-400 hover:text-primary-300">
+                <Link href="/login" className="text-primary-700 hover:text-primary-700">
                   Sign in
                 </Link>
               </p>

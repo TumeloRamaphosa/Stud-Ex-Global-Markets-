@@ -188,7 +188,7 @@ export default function MarketingSettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">
@@ -209,10 +209,10 @@ export default function MarketingSettingsPage() {
                 </Button>
                 <div>
                   <h1 className="text-2xl font-bold flex items-center gap-3">
-                    <Settings size={24} className="text-primary-400" />
+                    <Settings size={24} className="text-primary-700" />
                     Marketing Settings
                   </h1>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-slate-500 text-sm">
                     Configure your automated marketing pipeline
                   </p>
                 </div>
@@ -230,7 +230,7 @@ export default function MarketingSettingsPage() {
               {/* Business Profile */}
               <Card>
                 <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                  <Shield size={20} className="text-primary-400" />
+                  <Shield size={20} className="text-primary-700" />
                   Business Profile
                 </h2>
 
@@ -358,7 +358,7 @@ export default function MarketingSettingsPage() {
                   />
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                    <label className="block text-sm font-medium text-slate-700 mb-3">
                       Connected Platforms
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -370,8 +370,8 @@ export default function MarketingSettingsPage() {
                           onClick={() => togglePlatform(key)}
                           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                             selectedPlatforms.includes(key)
-                              ? 'bg-primary-600/20 text-primary-300 border border-primary-600/50'
-                              : 'text-gray-400 bg-dark-800/50 border border-primary-700/20'
+                              ? 'bg-primary-600/20 text-primary-700 border border-primary-600/50'
+                              : 'text-slate-500 bg-slate-100/80 border border-primary-100'
                           }`}
                         >
                           {selectedPlatforms.includes(key) ? (
@@ -403,7 +403,7 @@ export default function MarketingSettingsPage() {
                   />
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                    <label className="block text-sm font-medium text-slate-700 mb-3">
                       Post Times (minimum 3x daily recommended)
                     </label>
                     <div className="space-y-2">
@@ -417,7 +417,7 @@ export default function MarketingSettingsPage() {
                             }
                             containerClassName="flex-1"
                           />
-                          <span className="text-xs text-gray-500 w-24">
+                          <span className="text-xs text-slate-400 w-24">
                             {idx === 0
                               ? 'Morning'
                               : idx === 1
@@ -455,7 +455,7 @@ export default function MarketingSettingsPage() {
                   <BarChart3 size={20} className="text-gold-400" />
                   RevenueCat Integration (Optional)
                 </h2>
-                <p className="text-gray-400 text-sm mb-4">
+                <p className="text-slate-500 text-sm mb-4">
                   Connect RevenueCat to track the full funnel: impressions to paying users. Without this, optimization is limited to engagement metrics.
                 </p>
 
@@ -465,7 +465,7 @@ export default function MarketingSettingsPage() {
                       type="checkbox"
                       checked={revenuecatEnabled}
                       onChange={(e) => setRevenuecatEnabled(e.target.checked)}
-                      className="w-4 h-4 rounded border-primary-700/30 bg-dark-800/50 text-primary-500 focus:ring-primary-500"
+                      className="w-4 h-4 rounded border-primary-100 bg-slate-100/80 text-primary-500 focus:ring-primary-500"
                     />
                     <span className="text-sm font-medium">
                       Enable RevenueCat conversion tracking

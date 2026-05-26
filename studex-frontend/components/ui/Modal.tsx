@@ -60,7 +60,7 @@ export default function Modal({
       {/* Modal Content */}
       <div
         className={cn(
-          'relative z-10 w-full rounded-2xl border border-primary-700/30 bg-dark-900 backdrop-blur-md p-6 shadow-2xl',
+          'relative z-10 w-full rounded-2xl border border-primary-100 bg-white backdrop-blur-md p-6 shadow-2xl',
           sizes[size],
           'max-h-[90vh] overflow-y-auto',
           className
@@ -72,7 +72,7 @@ export default function Modal({
             <h2 className="text-xl font-bold">{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-slate-500 hover:text-slate-900 transition-colors"
               aria-label="Close modal"
             >
               <X size={24} />

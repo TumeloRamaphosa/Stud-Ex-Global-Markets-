@@ -109,7 +109,7 @@ export default function MessagesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">
@@ -119,9 +119,9 @@ export default function MessagesPage() {
         <main className="flex-1 overflow-hidden flex flex-col">
           <div className="flex h-full gap-4 p-4 sm:p-6">
             {/* Conversations List */}
-            <div className="w-full md:w-80 flex flex-col border border-primary-700/20 rounded-2xl bg-dark-900/50 backdrop-blur-md overflow-hidden">
+            <div className="w-full md:w-80 flex flex-col border border-primary-100 rounded-2xl bg-white/85 backdrop-blur-md overflow-hidden">
               {/* Header */}
-              <div className="p-4 border-b border-primary-700/20">
+              <div className="p-4 border-b border-primary-100">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold flex items-center gap-2">
                     <MessageSquare size={24} />
@@ -145,8 +145,8 @@ export default function MessagesPage() {
                   <button
                     key={conv.id}
                     onClick={() => setSelectedConversation(conv.id)}
-                    className={`w-full p-4 border-b border-primary-700/10 text-left transition-colors hover:bg-dark-800/50 ${
-                      selectedConversation === conv.id ? 'bg-primary-900/20 border-l-2 border-l-primary-500' : ''
+                    className={`w-full p-4 border-b border-primary-100 text-left transition-colors hover:bg-slate-100/80 ${
+                      selectedConversation === conv.id ? 'bg-primary-50 border-l-2 border-l-primary-500' : ''
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -169,8 +169,8 @@ export default function MessagesPage() {
                           )}
                         </div>
 
-                        <p className="text-sm text-gray-400 truncate">{conv.lastMessage}</p>
-                        <p className="text-xs text-gray-500 mt-1">{conv.time}</p>
+                        <p className="text-sm text-slate-500 truncate">{conv.lastMessage}</p>
+                        <p className="text-xs text-slate-400 mt-1">{conv.time}</p>
                       </div>
                     </div>
                   </button>
@@ -180,16 +180,16 @@ export default function MessagesPage() {
 
             {/* Chat Window */}
             {currentConversation && (
-              <div className="hidden md:flex flex-1 flex-col border border-primary-700/20 rounded-2xl bg-dark-900/50 backdrop-blur-md overflow-hidden">
+              <div className="hidden md:flex flex-1 flex-col border border-primary-100 rounded-2xl bg-white/85 backdrop-blur-md overflow-hidden">
                 {/* Chat Header */}
-                <div className="flex items-center justify-between border-b border-primary-700/20 p-4">
+                <div className="flex items-center justify-between border-b border-primary-100 p-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center font-bold">
                       {currentConversation.avatar}
                     </div>
                     <div>
                       <p className="font-semibold">{currentConversation.name}</p>
-                      <p className="text-xs text-gray-400">{currentConversation.role}</p>
+                      <p className="text-xs text-slate-500">{currentConversation.role}</p>
                     </div>
                   </div>
 
@@ -208,7 +208,7 @@ export default function MessagesPage() {
                         className={`max-w-xs px-4 py-2 rounded-lg ${
                           msg.sender === 'you'
                             ? 'bg-primary-600 text-white'
-                            : 'bg-dark-800 border border-primary-700/30 text-gray-300'
+                            : 'bg-slate-100 border border-primary-100 text-slate-700'
                         }`}
                       >
                         <p>{msg.text}</p>
@@ -219,7 +219,7 @@ export default function MessagesPage() {
                 </div>
 
                 {/* Message Input */}
-                <form onSubmit={handleSendMessage} className="border-t border-primary-700/20 p-4">
+                <form onSubmit={handleSendMessage} className="border-t border-primary-100 p-4">
                   <div className="flex items-end gap-2">
                     <Button variant="ghost" size="sm" icon={<Paperclip size={18} />} />
                     <input
@@ -227,7 +227,7 @@ export default function MessagesPage() {
                       placeholder="Type your message..."
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
-                      className="flex-1 rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-2.5 text-white placeholder-gray-500 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                      className="flex-1 rounded-lg border border-primary-100 bg-slate-100/80 px-4 py-2.5 text-white placeholder-gray-500 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                     />
                     <Button variant="ghost" size="sm" icon={<Smile size={18} />} />
                     <Button
@@ -246,14 +246,14 @@ export default function MessagesPage() {
             {currentConversation && (
               <div className="md:hidden absolute inset-0 z-50 flex flex-col bg-gradient-dark">
                 {/* Chat Header */}
-                <div className="flex items-center justify-between border-b border-primary-700/20 p-4">
+                <div className="flex items-center justify-between border-b border-primary-100 p-4">
                   <div className="flex items-center gap-3">
-                    <button onClick={() => setSelectedConversation(null)} className="text-gray-400 hover:text-white">
+                    <button onClick={() => setSelectedConversation(null)} className="text-slate-500 hover:text-slate-900">
                       ← Back
                     </button>
                     <div>
                       <p className="font-semibold">{currentConversation.name}</p>
-                      <p className="text-xs text-gray-400">{currentConversation.role}</p>
+                      <p className="text-xs text-slate-500">{currentConversation.role}</p>
                     </div>
                   </div>
                 </div>
@@ -266,7 +266,7 @@ export default function MessagesPage() {
                         className={`max-w-xs px-4 py-2 rounded-lg ${
                           msg.sender === 'you'
                             ? 'bg-primary-600 text-white'
-                            : 'bg-dark-800 border border-primary-700/30 text-gray-300'
+                            : 'bg-slate-100 border border-primary-100 text-slate-700'
                         }`}
                       >
                         <p>{msg.text}</p>
@@ -276,14 +276,14 @@ export default function MessagesPage() {
                 </div>
 
                 {/* Message Input */}
-                <form onSubmit={handleSendMessage} className="border-t border-primary-700/20 p-4">
+                <form onSubmit={handleSendMessage} className="border-t border-primary-100 p-4">
                   <div className="flex items-end gap-2">
                     <input
                       type="text"
                       placeholder="Type message..."
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
-                      className="flex-1 rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-2.5 text-white placeholder-gray-500"
+                      className="flex-1 rounded-lg border border-primary-100 bg-slate-100/80 px-4 py-2.5 text-white placeholder-gray-500"
                     />
                     <Button type="submit" variant="primary" size="sm" icon={<Send size={18} />} />
                   </div>

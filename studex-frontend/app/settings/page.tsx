@@ -73,7 +73,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">
@@ -88,7 +88,7 @@ export default function SettingsPage() {
                 <SettingsIcon size={32} className="text-gold-500" />
                 Settings
               </h1>
-              <p className="text-gray-400">Manage your account and preferences</p>
+              <p className="text-slate-500">Manage your account and preferences</p>
             </div>
 
             {/* Tabs */}
@@ -101,8 +101,8 @@ export default function SettingsPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-all ${
                       activeTab === tab.id
-                        ? 'bg-primary-600/20 text-primary-300 border border-primary-600/50'
-                        : 'text-gray-400 hover:text-white bg-dark-800/50 border border-primary-700/20'
+                        ? 'bg-primary-600/20 text-primary-700 border border-primary-600/50'
+                        : 'text-slate-500 hover:text-slate-900 bg-slate-100/80 border border-primary-100'
                     }`}
                   >
                     <Icon size={18} />
@@ -151,14 +151,14 @@ export default function SettingsPage() {
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
                           Industry
                         </label>
                         <select
                           name="industry"
                           value={formData.industry}
                           onChange={handleInputChange}
-                          className="w-full rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-2.5 text-white transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                          className="w-full rounded-lg border border-primary-100 bg-slate-100/80 px-4 py-2.5 text-white transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                         >
                           <option value="">Select industry</option>
                           <option value="tech">Technology</option>
@@ -180,7 +180,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
                         Bio
                       </label>
                       <textarea
@@ -189,7 +189,7 @@ export default function SettingsPage() {
                         onChange={handleInputChange}
                         placeholder="Tell us about yourself..."
                         rows={4}
-                        className="w-full rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-2.5 text-white placeholder-gray-500 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        className="w-full rounded-lg border border-primary-100 bg-slate-100/80 px-4 py-2.5 text-white placeholder-gray-500 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                       />
                     </div>
 
@@ -212,15 +212,15 @@ export default function SettingsPage() {
                 <h2 className="text-2xl font-bold mb-6">Security Settings</h2>
 
                 <div className="space-y-6">
-                  <div className="border-b border-primary-700/20 pb-6">
+                  <div className="border-b border-primary-100 pb-6">
                     <h3 className="text-lg font-semibold mb-3">Password</h3>
-                    <p className="text-gray-400 mb-4">Change your password regularly to keep your account secure</p>
+                    <p className="text-slate-500 mb-4">Change your password regularly to keep your account secure</p>
                     <Button variant="secondary">Change Password</Button>
                   </div>
 
-                  <div className="border-b border-primary-700/20 pb-6">
+                  <div className="border-b border-primary-100 pb-6">
                     <h3 className="text-lg font-semibold mb-3">Two-Factor Authentication</h3>
-                    <p className="text-gray-400 mb-4">Add an extra layer of security to your account</p>
+                    <p className="text-slate-500 mb-4">Add an extra layer of security to your account</p>
                     <Badge variant="warning">Not Enabled</Badge>
                     <Button variant="secondary" className="mt-3">
                       Enable 2FA
@@ -230,10 +230,10 @@ export default function SettingsPage() {
                   <div>
                     <h3 className="text-lg font-semibold mb-3">Connected Devices</h3>
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-dark-800/50 border border-primary-700/20">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-slate-100/80 border border-primary-100">
                         <div>
                           <p className="font-medium">Chrome on macOS</p>
-                          <p className="text-sm text-gray-400">Last active 5 minutes ago</p>
+                          <p className="text-sm text-slate-500">Last active 5 minutes ago</p>
                         </div>
                         <Badge variant="success" size="sm">Current</Badge>
                       </div>
@@ -255,7 +255,7 @@ export default function SettingsPage() {
                     { id: 'events', label: 'Event Invitations', enabled: false },
                     { id: 'newsletter', label: 'Weekly Newsletter', enabled: true },
                   ].map((notif) => (
-                    <div key={notif.id} className="flex items-center justify-between p-4 rounded-lg bg-dark-800/50 border border-primary-700/20">
+                    <div key={notif.id} className="flex items-center justify-between p-4 rounded-lg bg-slate-100/80 border border-primary-100">
                       <label className="flex-1 cursor-pointer">
                         <span className="font-medium">{notif.label}</span>
                       </label>
@@ -276,10 +276,10 @@ export default function SettingsPage() {
                 <h2 className="text-2xl font-bold mb-6">Privacy Settings</h2>
 
                 <div className="space-y-6">
-                  <div className="border-b border-primary-700/20 pb-6">
+                  <div className="border-b border-primary-100 pb-6">
                     <h3 className="text-lg font-semibold mb-2">Profile Visibility</h3>
-                    <p className="text-gray-400 mb-3">Control who can see your profile</p>
-                    <select className="w-full rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-2.5 text-white">
+                    <p className="text-slate-500 mb-3">Control who can see your profile</p>
+                    <select className="w-full rounded-lg border border-primary-100 bg-slate-100/80 px-4 py-2.5 text-white">
                       <option>Public</option>
                       <option>Investors Only</option>
                       <option>Entrepreneurs Only</option>
@@ -287,18 +287,18 @@ export default function SettingsPage() {
                     </select>
                   </div>
 
-                  <div className="border-b border-primary-700/20 pb-6">
+                  <div className="border-b border-primary-100 pb-6">
                     <h3 className="text-lg font-semibold mb-3">Data & Privacy</h3>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <input type="checkbox" id="data-collection" defaultChecked />
-                        <label htmlFor="data-collection" className="text-gray-300 cursor-pointer">
+                        <label htmlFor="data-collection" className="text-slate-700 cursor-pointer">
                           Allow analytics to improve your experience
                         </label>
                       </div>
                       <div className="flex items-center gap-2">
                         <input type="checkbox" id="marketing" />
-                        <label htmlFor="marketing" className="text-gray-300 cursor-pointer">
+                        <label htmlFor="marketing" className="text-slate-700 cursor-pointer">
                           Allow marketing communications
                         </label>
                       </div>
@@ -307,7 +307,7 @@ export default function SettingsPage() {
 
                   <div>
                     <h3 className="text-lg font-semibold mb-3 text-red-400">Danger Zone</h3>
-                    <p className="text-gray-400 mb-4">Irreversible actions</p>
+                    <p className="text-slate-500 mb-4">Irreversible actions</p>
                     <Button variant="secondary" onClick={handleLogout} icon={<LogOut size={18} />}>
                       Logout
                     </Button>
