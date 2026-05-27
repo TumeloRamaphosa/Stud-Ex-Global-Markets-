@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+firebase-backend/functions/lib/
+
+# Environment files
+.env.local
+.env*.local
+
+# Debug logs
+*-debug.log
+firebase-debug.log
+firestore-debug.log
+pubsub-debug.log
+ui-debug.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Next.js
+next-env.d.ts
+
+# Firebase
+.firebase/
