@@ -80,7 +80,7 @@ export default function DashboardPage() {
               <h1 className="text-3xl sm:text-4xl font-bold mb-2">
                 Welcome back, {user?.displayName || 'User'}!
               </h1>
-              <p className="text-gray-400">Here's your business overview</p>
+              <p className="text-gray-400">Here&apos;s your business overview</p>
             </div>
 
             {/* Key Metrics */}

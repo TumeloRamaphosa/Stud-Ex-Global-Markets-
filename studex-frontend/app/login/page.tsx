@@ -125,7 +125,7 @@ export default function LoginPage() {
             {/* Footer */}
             <div className="text-center">
               <p className="text-gray-400">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link href="/signup" className="text-primary-400 hover:text-primary-300">
                   Sign up
                 </Link>
@@ -136,7 +136,7 @@ export default function LoginPage() {
           {/* Demo Info */}
           <div className="mt-6 rounded-lg bg-primary-900/20 border border-primary-700/30 p-4">
             <p className="text-sm text-gray-300">
-              <strong>Demo Account:</strong> Use any email with password "password123" to test the app.
+              <strong>Demo Account:</strong> Use any email with password &quot;password123&quot; to test the app.
             </p>
           </div>
         </div>

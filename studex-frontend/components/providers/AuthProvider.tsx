@@ -32,7 +32,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!mounted || loading) return;
 
-    const publicRoutes = ['/', '/login', '/signup'];
+    const publicRoutes = ['/', '/login', '/signup', '/agent'];
     const isPublicRoute = publicRoutes.includes(pathname);
 
     if (!user && !isPublicRoute) {
