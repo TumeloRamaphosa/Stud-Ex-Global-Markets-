@@ -4,6 +4,7 @@ node_modules/
 # Build outputs
 .next/
 firebase-backend/functions/lib/
+fly-agent/dist/
 
 # Environment files
 .env.local

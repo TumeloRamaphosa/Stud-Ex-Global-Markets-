@@ -626,6 +626,262 @@ app.post('/marketing/hooks/track', async (req, res) => {
   }
 });
 
+// ==================== AGENT SANDBOXES ====================
+
+interface FlyMachine {
+  id: string;
+  name: string;
+  state: string;
+  region: string;
+  created_at: string;
+}
+
+const FLY_API_BASE = 'https://api.machines.dev/v1';
+const FLY_APP_NAME = process.env.FLY_APP_NAME || 'studex-agent';
+const FLY_API_TOKEN = process.env.FLY_API_TOKEN || '';
+const FLY_AGENT_IMAGE = process.env.FLY_AGENT_IMAGE || 'registry.fly.io/studex-agent:latest';
+const FLY_REGION = process.env.FLY_REGION || 'iad';
+
+async function flyRequest(path: string, method: string, body?: Record<string, unknown>) {
+  const url = `${FLY_API_BASE}/apps/${FLY_APP_NAME}${path}`;
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${FLY_API_TOKEN}`,
+    'Content-Type': 'application/json',
+  };
+
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Fly API ${method} ${path} failed (${response.status}): ${text}`);
+  }
+
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json();
+  }
+  return null;
+}
+
+/**
+ * Create a new agent sandbox for a client
+ */
+app.post('/agent/sandbox/create', async (req, res) => {
+  try {
+    const { userId, clientName } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    if (!FLY_API_TOKEN) {
+      return res.status(503).json({ error: 'Agent sandbox service not configured (missing FLY_API_TOKEN)' });
+    }
+
+    const machineConfig = {
+      name: `agent-${userId.substring(0, 8)}`,
+      region: FLY_REGION,
+      config: {
+        image: FLY_AGENT_IMAGE,
+        env: {
+          CLIENT_ID: userId,
+          CLIENT_NAME: clientName || 'Studex Client',
+          PORT: '8080',
+        },
+        services: [
+          {
+            ports: [{ port: 443, handlers: ['tls', 'http'] }],
+            protocol: 'tcp',
+            internal_port: 8080,
+          },
+        ],
+        guest: {
+          cpu_kind: 'shared',
+          cpus: 1,
+          memory_mb: 256,
+        },
+        auto_destroy: true,
+      },
+    };
+
+    const machine = await flyRequest('/machines', 'POST', machineConfig) as FlyMachine;
+
+    // Store sandbox record in Firestore
+    await admin.firestore().collection('agent_sandboxes').doc(machine.id).set({
+      machineId: machine.id,
+      userId,
+      clientName: clientName || '',
+      region: FLY_REGION,
+      state: machine.state || 'created',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.json({
+      machineId: machine.id,
+      state: machine.state,
+      message: 'Agent sandbox created',
+    });
+  } catch (error) {
+    console.error('Error creating agent sandbox:', error);
+    const message = error instanceof Error ? error.message : 'Failed to create agent sandbox';
+    res.status(500).json({ error: message });
+  }
+});
+
+/**
+ * Get agent sandbox status
+ */
+app.get('/agent/sandbox/:machineId/status', async (req, res) => {
+  try {
+    const { machineId } = req.params;
+
+    if (!FLY_API_TOKEN) {
+      return res.status(503).json({ error: 'Agent sandbox service not configured' });
+    }
+
+    const machine = await flyRequest(`/machines/${machineId}`, 'GET') as FlyMachine;
+
+    // Update Firestore record
+    await admin.firestore().collection('agent_sandboxes').doc(machineId).update({
+      state: machine.state,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.json({
+      machineId: machine.id,
+      state: machine.state,
+      region: machine.region,
+      createdAt: machine.created_at,
+    });
+  } catch (error) {
+    console.error('Error getting sandbox status:', error);
+    const message = error instanceof Error ? error.message : 'Failed to get sandbox status';
+    res.status(500).json({ error: message });
+  }
+});
+
+/**
+ * Send a chat message to the agent sandbox
+ */
+app.post('/agent/sandbox/:machineId/chat', async (req, res) => {
+  try {
+    const { machineId } = req.params;
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: 'message is required' });
+    }
+
+    if (!FLY_API_TOKEN) {
+      return res.status(503).json({ error: 'Agent sandbox service not configured' });
+    }
+
+    // Get machine info to find its IP/hostname
+    const machine = await flyRequest(`/machines/${machineId}`, 'GET') as FlyMachine;
+
+    if (machine.state !== 'started') {
+      // Start the machine if stopped
+      await flyRequest(`/machines/${machineId}/start`, 'POST');
+      // Wait briefly for startup
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    // Proxy request to the agent
+    const agentUrl = `https://${machineId}.vm.${FLY_APP_NAME}.internal:8080/chat`;
+    const agentResponse = await fetch(agentUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    });
+
+    if (!agentResponse.ok) {
+      throw new Error(`Agent responded with ${agentResponse.status}`);
+    }
+
+    const data = await agentResponse.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error chatting with agent:', error);
+    const message = error instanceof Error ? error.message : 'Failed to chat with agent';
+    res.status(500).json({ error: message });
+  }
+});
+
+/**
+ * Stop an agent sandbox
+ */
+app.post('/agent/sandbox/:machineId/stop', async (req, res) => {
+  try {
+    const { machineId } = req.params;
+
+    if (!FLY_API_TOKEN) {
+      return res.status(503).json({ error: 'Agent sandbox service not configured' });
+    }
+
+    await flyRequest(`/machines/${machineId}/stop`, 'POST');
+
+    await admin.firestore().collection('agent_sandboxes').doc(machineId).update({
+      state: 'stopped',
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.json({ message: 'Agent sandbox stopped' });
+  } catch (error) {
+    console.error('Error stopping sandbox:', error);
+    const message = error instanceof Error ? error.message : 'Failed to stop sandbox';
+    res.status(500).json({ error: message });
+  }
+});
+
+/**
+ * Destroy an agent sandbox
+ */
+app.delete('/agent/sandbox/:machineId', async (req, res) => {
+  try {
+    const { machineId } = req.params;
+
+    if (!FLY_API_TOKEN) {
+      return res.status(503).json({ error: 'Agent sandbox service not configured' });
+    }
+
+    await flyRequest(`/machines/${machineId}?force=true`, 'DELETE');
+
+    await admin.firestore().collection('agent_sandboxes').doc(machineId).delete();
+
+    res.json({ message: 'Agent sandbox destroyed' });
+  } catch (error) {
+    console.error('Error destroying sandbox:', error);
+    const message = error instanceof Error ? error.message : 'Failed to destroy sandbox';
+    res.status(500).json({ error: message });
+  }
+});
+
+/**
+ * List all sandboxes for a user
+ */
+app.get('/agent/sandboxes/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const snap = await admin.firestore()
+      .collection('agent_sandboxes')
+      .where('userId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    const sandboxes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    res.json({ sandboxes });
+  } catch (error) {
+    console.error('Error listing sandboxes:', error);
+    res.status(500).json({ error: 'Failed to list sandboxes' });
+  }
+});
+
 // ==================== NOTIFICATIONS ====================
 
 /**
