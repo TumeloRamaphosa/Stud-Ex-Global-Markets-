@@ -10,6 +10,10 @@ const ACCOUNTS = {
   discord: '10c06475-462d-4283-8bee-fbe86b9c6430',
 };
 
+const META_API = 'https://graph.facebook.com/v20.0';
+const META_TOKEN = process.env.META_ACCESS_TOKEN || '';
+const META_AD_ACCOUNT = process.env.META_AD_ACCOUNT_ID || '';
+
 async function exec(action: string, accountId: string, input: Record<string, any> = {}) {
   try {
     const res = await fetch(`${BASE}/actions/${action}/execute`, {
@@ -22,6 +26,20 @@ async function exec(action: string, accountId: string, input: Record<string, any
 }
 
 export async function GET() {
+  // Fetch Meta Ads data
+  let metaAds = { campaigns: [], insights: null as any };
+  if (META_TOKEN && META_AD_ACCOUNT) {
+    try {
+      const [campRes, insightRes] = await Promise.all([
+        fetch(`${META_API}/${META_AD_ACCOUNT}/campaigns?fields=id,name,status,objective,daily_budget&limit=10&access_token=${META_TOKEN}`),
+        fetch(`${META_API}/${META_AD_ACCOUNT}/insights?fields=impressions,clicks,spend,cpc,cpm,ctr,reach&date_preset=maximum&access_token=${META_TOKEN}`),
+      ]);
+      const campData = await campRes.json();
+      const insightData = await insightRes.json();
+      metaAds = { campaigns: campData.data || [], insights: insightData.data?.[0] || null };
+    } catch {}
+  }
+
   const [igUser, igMedia, igInsights, emails, discordUser, discordGuilds] = await Promise.all([
     exec('INSTAGRAM_GET_USER_INFO', ACCOUNTS.instagram),
     exec('INSTAGRAM_GET_USER_MEDIA', ACCOUNTS.instagram),
@@ -80,6 +98,22 @@ export async function GET() {
     discord: {
       user: discordUser?.data || {},
       guilds: guilds.map((g: any) => ({ name: g.name, id: g.id, owner: g.owner })),
+    },
+    metaAds: {
+      connected: !!META_TOKEN,
+      campaigns: metaAds.campaigns.map((c: any) => ({
+        id: c.id, name: c.name, status: c.status, objective: c.objective,
+        dailyBudget: c.daily_budget ? (parseInt(c.daily_budget) / 100).toFixed(0) : null,
+      })),
+      insights: metaAds.insights ? {
+        impressions: parseInt(metaAds.insights.impressions || '0'),
+        reach: parseInt(metaAds.insights.reach || '0'),
+        clicks: parseInt(metaAds.insights.clicks || '0'),
+        spend: parseFloat(metaAds.insights.spend || '0').toFixed(2),
+        cpc: parseFloat(metaAds.insights.cpc || '0').toFixed(2),
+        cpm: parseFloat(metaAds.insights.cpm || '0').toFixed(2),
+        ctr: parseFloat(metaAds.insights.ctr || '0').toFixed(2),
+      } : null,
     },
     timestamp: new Date().toISOString(),
   });

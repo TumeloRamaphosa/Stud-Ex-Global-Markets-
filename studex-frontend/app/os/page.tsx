@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 import {
   Instagram, Facebook, Mail, MessageCircle, Heart, Users, TrendingUp, BarChart3,
   Image as ImageIcon, Video, Eye, Sparkles, Send, RefreshCw, Loader2,
-  ExternalLink, Cpu, Globe, Target, Brain, Zap, ChevronRight, Plus,
+  ExternalLink, Cpu, Globe, Target, Brain, Zap, ChevronRight, Plus, DollarSign,
   MessageSquare, ArrowUpRight, Bot, Link2, CheckCircle, Calendar,
 } from 'lucide-react';
 
@@ -309,6 +309,49 @@ export default function OSDashboard() {
                   ))}
                 </div>
               </div>
+
+              {/* Meta Ads Section */}
+              {data?.metaAds?.connected && (
+                <div>
+                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <DollarSign size={20} className="text-green-500" /> Meta Ads
+                    <Badge variant="success" size="sm">Live</Badge>
+                  </h2>
+
+                  {data.metaAds.insights && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                      <div className="p-3 rounded-xl bg-white border border-gray-200 text-center">
+                        <p className="text-xs text-gray-500">Total Spend</p>
+                        <p className="text-lg font-bold text-green-600">R{data.metaAds.insights.spend}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-white border border-gray-200 text-center">
+                        <p className="text-xs text-gray-500">CPC</p>
+                        <p className="text-lg font-bold">R{data.metaAds.insights.cpc}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-white border border-gray-200 text-center">
+                        <p className="text-xs text-gray-500">CTR</p>
+                        <p className="text-lg font-bold">{data.metaAds.insights.ctr}%</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-white border border-gray-200 text-center">
+                        <p className="text-xs text-gray-500">Reach</p>
+                        <p className="text-lg font-bold">{fmt(data.metaAds.insights.reach)}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    {(data.metaAds.campaigns || []).map((c: any) => (
+                      <div key={c.id} className="flex items-center justify-between p-3 rounded-xl bg-white border border-gray-200">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{c.name}</p>
+                          <p className="text-xs text-gray-500">{c.objective} {c.dailyBudget ? `• R${c.dailyBudget}/day` : ''}</p>
+                        </div>
+                        <Badge variant={c.status === 'ACTIVE' ? 'success' : 'warning'} size="sm">{c.status}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Daily Insights */}
               {ig?.insights && Object.keys(ig.insights).length > 0 && (
