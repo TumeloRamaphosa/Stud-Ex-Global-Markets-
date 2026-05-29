@@ -1,0 +1,164 @@
+{
+  "name": "Stud-Ex: Competitor Intelligence & Trend Research",
+  "nodes": [
+    {
+      "id": "schedule",
+      "name": "Daily 6AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 6 * * *" }]
+        }
+      }
+    },
+    {
+      "id": "research-trends",
+      "name": "Research Trending Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [480, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.perplexity.ai/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.PERPLEXITY_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"model\": \"sonar\", \"messages\": [{ \"role\": \"user\", \"content\": \"What are the top trending Instagram content formats and topics in the premium meat, halaal food, and African luxury commodity markets right now in South Africa? Include specific accounts doing well, viral post examples, and engagement patterns. Focus on the last 7 days.\" }], \"max_tokens\": 2000 }",
+        "options": { "timeout": 30000 }
+      }
+    },
+    {
+      "id": "research-competitors",
+      "name": "Analyze Competitors",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [480, 420],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.perplexity.ai/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.PERPLEXITY_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"model\": \"sonar\", \"messages\": [{ \"role\": \"user\", \"content\": \"Analyze these South African premium meat and food brands on Instagram: @studexmeat, @wagyu_sa, @elginwagyu, @capekaroo, @thechefstable_sa. For each: follower count, recent engagement rate, top performing post this week, content strategy, posting frequency. Also check: what SA food brands are going viral on TikTok and Instagram Reels this week?\" }], \"max_tokens\": 2000 }",
+        "options": { "timeout": 30000 }
+      }
+    },
+    {
+      "id": "research-seo",
+      "name": "SEO & Website Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [480, 640],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.perplexity.ai/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.PERPLEXITY_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"model\": \"sonar\", \"messages\": [{ \"role\": \"user\", \"content\": \"What are the top ranking websites and pages for these search terms in South Africa: 'halaal wagyu', 'premium beef delivery south africa', 'ankole cattle', 'halaal meat online'. List the top 5 results for each term, their estimated monthly traffic, and what content they're publishing that ranks well.\" }], \"max_tokens\": 2000 }",
+        "options": { "timeout": 30000 }
+      }
+    },
+    {
+      "id": "compile-report",
+      "name": "Compile Intelligence Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [760, 420],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "{{ $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, system: 'You are a competitive intelligence analyst for Studex Meat (@studexmeat, 86K IG followers, premium halaal Wagyu/Ankole beef). Generate a daily briefing.', messages: [{ role: 'user', content: 'Based on this research, compile a Daily Competitive Intelligence Briefing:\\n\\nTRENDS:\\n' + $('Research Trending Content').item.json.choices[0].message.content + '\\n\\nCOMPETITORS:\\n' + $('Analyze Competitors').item.json.choices[0].message.content + '\\n\\nSEO:\\n' + $('SEO & Website Analysis').item.json.choices[0].message.content + '\\n\\nFormat as: 1) TOP THREAT (biggest competitive risk), 2) TOP OPPORTUNITY (biggest growth lever), 3) CONTENT TO COPY (3 specific posts to replicate), 4) TRENDING NOW (what to post today), 5) ACTION ITEMS (3 things to do today)' }] }) }}",
+        "options": { "timeout": 60000 }
+      }
+    },
+    {
+      "id": "store-in-brain",
+      "name": "Store in Second Brain",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1020, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://datanetics.vercel.app/api/brain",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: 'absorb', content: $('Compile Intelligence Report').item.json.content[0].text, type: 'memory', source: 'competitor_research', title: 'Daily Intelligence Briefing ' + new Date().toISOString().split('T')[0] }) }}",
+        "options": { "timeout": 15000 }
+      }
+    },
+    {
+      "id": "send-email",
+      "name": "Email Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1020, 540],
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.composio.dev/api/v2/actions/GMAIL_SEND_EMAIL/execute",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "{{ $env.COMPOSIO_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ connectedAccountId: '0977bda7-635e-4ce8-8572-5ea6ffe62cd2', input: { recipient_email: 't.ramaphosa@studex.dev', subject: 'Daily Intelligence Briefing - ' + new Date().toISOString().split('T')[0], body: $('Compile Intelligence Report').item.json.content[0].text } }) }}",
+        "options": { "timeout": 15000 }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 6AM": {
+      "main": [[
+        { "node": "Research Trending Content", "type": "main", "index": 0 },
+        { "node": "Analyze Competitors", "type": "main", "index": 0 },
+        { "node": "SEO & Website Analysis", "type": "main", "index": 0 }
+      ]]
+    },
+    "Research Trending Content": {
+      "main": [[ { "node": "Compile Intelligence Report", "type": "main", "index": 0 } ]]
+    },
+    "Analyze Competitors": {
+      "main": [[ { "node": "Compile Intelligence Report", "type": "main", "index": 0 } ]]
+    },
+    "SEO & Website Analysis": {
+      "main": [[ { "node": "Compile Intelligence Report", "type": "main", "index": 0 } ]]
+    },
+    "Compile Intelligence Report": {
+      "main": [[
+        { "node": "Store in Second Brain", "type": "main", "index": 0 },
+        { "node": "Email Report", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "Stud-Ex" }, { "name": "Intelligence" }]
+}
