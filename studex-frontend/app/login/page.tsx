@@ -55,16 +55,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header />
 
       <div className="flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
-          <div className="rounded-2xl border border-primary-700/30 bg-dark-900/50 backdrop-blur-md p-8">
+          <div className="rounded-2xl border border-primary-100 bg-white/85 backdrop-blur-md p-8">
             {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
-              <p className="text-gray-400">Sign in to your Studex account</p>
+              <p className="text-slate-500">Sign in to your Studex account</p>
             </div>
 
             {/* Form */}
@@ -102,10 +102,10 @@ export default function LoginPage() {
             {/* Divider */}
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-primary-700/20"></div>
+                <div className="w-full border-t border-primary-100"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-dark-900 text-gray-400">Or continue with</span>
+                <span className="px-2 bg-white text-slate-500">Or continue with</span>
               </div>
             </div>
 
@@ -124,9 +124,9 @@ export default function LoginPage() {
 
             {/* Footer */}
             <div className="text-center">
-              <p className="text-gray-400">
+              <p className="text-slate-500">
                 Don't have an account?{' '}
-                <Link href="/signup" className="text-primary-400 hover:text-primary-300">
+                <Link href="/signup" className="text-primary-700 hover:text-primary-700">
                   Sign up
                 </Link>
               </p>
@@ -134,8 +134,8 @@ export default function LoginPage() {
           </div>
 
           {/* Demo Info */}
-          <div className="mt-6 rounded-lg bg-primary-900/20 border border-primary-700/30 p-4">
-            <p className="text-sm text-gray-300">
+          <div className="mt-6 rounded-lg bg-primary-50 border border-primary-100 p-4">
+            <p className="text-sm text-slate-700">
               <strong>Demo Account:</strong> Use any email with password "password123" to test the app.
             </p>
           </div>

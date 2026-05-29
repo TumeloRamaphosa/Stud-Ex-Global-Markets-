@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/components/providers/AuthProvider';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
@@ -34,6 +35,18 @@ import {
   type Platform,
   type SlideData,
 } from '@/lib/marketing-types';
+
+const MarketingVideoPlayer = dynamic(
+  () => import('@/components/remotion/MarketingVideoPlayer'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="mx-auto flex aspect-[9/16] w-full max-w-[360px] items-center justify-center rounded-[2rem] border border-primary-100 bg-white/80 text-sm text-slate-500 shadow-sm">
+        Loading video preview...
+      </div>
+    ),
+  }
+);
 
 type Step = 'hook' | 'slides' | 'overlays' | 'caption' | 'preview';
 
@@ -223,8 +236,14 @@ export default function CreatePostPage() {
     'CTA (Call to Action)',
   ];
 
+  const remotionSlides = slideTexts.map((text, index) => ({
+    imageUrl: slideImagePreviews[index] || '',
+    overlayText: text,
+    order: index,
+  }));
+
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">

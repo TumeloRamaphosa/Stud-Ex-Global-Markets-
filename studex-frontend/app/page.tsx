@@ -51,14 +51,14 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header />
 
       {/* Hero Section */}
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8 inline-block">
-            <div className="rounded-full border border-primary-600/30 bg-primary-900/20 px-4 py-1.5 text-sm text-primary-300">
+            <div className="rounded-full border border-primary-200 bg-white/80 px-4 py-1.5 text-sm text-primary-700 shadow-sm">
               Welcome to the Future of Global Markets
             </div>
           </div>
@@ -68,7 +68,7 @@ export default function Home() {
             <span className="text-gradient"> Global Opportunities</span>
           </h1>
 
-          <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
             Studex Global Markets connects investors and entrepreneurs worldwide.
             Manage deals, collaborate securely, and grow together.
           </p>
@@ -92,20 +92,20 @@ export default function Home() {
           </div>
 
           {/* Hero Image Placeholder */}
-          <div className="rounded-2xl border border-primary-600/20 bg-gradient-to-b from-primary-900/20 to-transparent p-8 mb-20">
-            <div className="aspect-video bg-dark-800/50 rounded-lg border border-primary-700/30 flex items-center justify-center">
-              <Globe className="w-24 h-24 text-primary-600/30 animate-pulse" />
+          <div className="rounded-2xl border border-primary-100 bg-white/70 p-8 mb-20 shadow-sm">
+            <div className="aspect-video bg-gradient-to-br from-primary-50 to-gold-50 rounded-lg border border-primary-100 flex items-center justify-center">
+              <Globe className="w-24 h-24 text-primary-500/40 animate-pulse" />
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="px-4 py-20 sm:px-6 lg:px-8 bg-dark-950/50">
+      <section className="px-4 py-20 sm:px-6 lg:px-8 bg-white/55">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">Powerful Features</h2>
-            <p className="text-gray-400 text-lg">
+            <p className="text-slate-600 text-lg">
               Everything you need to manage global business relationships
             </p>
           </div>
@@ -116,11 +116,11 @@ export default function Home() {
               return (
                 <div
                   key={idx}
-                  className="rounded-xl border border-primary-700/30 bg-dark-900/50 backdrop-blur-md p-6 hover:border-primary-600/50 hover:shadow-glow-primary transition-all duration-300"
+                  className="rounded-xl border border-primary-100 bg-white/85 backdrop-blur-md p-6 shadow-sm hover:border-primary-300 hover:shadow-lg transition-all duration-300"
                 >
                   <Icon className="w-10 h-10 text-gold-500 mb-4" />
                   <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                  <p className="text-gray-400">{feature.description}</p>
+                  <p className="text-slate-600">{feature.description}</p>
                 </div>
               );
             })}
@@ -131,9 +131,9 @@ export default function Home() {
       {/* CTA Section */}
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="rounded-2xl border border-primary-600/30 bg-gradient-to-r from-primary-900/20 to-transparent p-12">
+          <div className="rounded-2xl border border-primary-100 bg-white/80 p-12 shadow-sm">
             <h2 className="text-4xl font-bold mb-4">Ready to Join?</h2>
-            <p className="text-gray-400 text-lg mb-8">
+            <p className="text-slate-600 text-lg mb-8">
               Start connecting with investors and entrepreneurs from around the world today.
             </p>
             <Button
@@ -150,8 +150,8 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-primary-700/20 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto text-center text-gray-500 text-sm">
+      <footer className="border-t border-primary-100 px-4 py-8 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto text-center text-slate-500 text-sm">
           <p>&copy; 2024 Studex Global Markets. All rights reserved.</p>
         </div>
       </footer>

@@ -9,7 +9,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #001f3f;
+  background: #e0f2fe;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -33,7 +33,7 @@ html {
 }
 
 body {
-  @apply bg-gradient-dark text-white font-sans;
+  @apply bg-gradient-light text-slate-900 font-sans;
   overflow-x: hidden;
 }
 
@@ -128,7 +128,7 @@ body {
 
 /* Gradient Buttons */
 .btn-gradient {
-  @apply bg-gradient-accent hover:shadow-glow-gold transition-all duration-300;
+  @apply bg-gradient-accent text-slate-950 hover:shadow-glow-gold transition-all duration-300;
 }
 
 .btn-gradient-primary {
@@ -142,27 +142,27 @@ body {
 
 /* Glass Morphism */
 .glass {
-  @apply backdrop-blur-md bg-white/10 border border-white/20;
+  @apply backdrop-blur-md bg-white/75 border border-white/80 shadow-sm;
 }
 
 .glass-dark {
-  @apply backdrop-blur-md bg-dark-900/40 border border-white/10;
+  @apply backdrop-blur-md bg-white/80 border border-primary-100 shadow-sm;
 }
 
 /* Card */
 .card {
-  @apply rounded-xl border border-primary-700/30 bg-dark-900/50 backdrop-blur-md p-6 hover:border-primary-600/50 transition-all duration-300;
+  @apply rounded-xl border border-primary-100 bg-white/85 backdrop-blur-md p-6 shadow-sm hover:border-primary-300 transition-all duration-300;
 }
 
 .card-hover {
-  @apply card hover:shadow-glow-primary hover:translate-y-[-2px];
+  @apply card hover:shadow-lg hover:translate-y-[-2px];
 }
 
 /* Input Styles */
 input,
 textarea,
 select {
-  @apply rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-2 text-white placeholder-gray-500 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  @apply rounded-lg border border-primary-100 bg-white px-4 py-2 text-slate-900 placeholder-slate-400 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
 }
 
 input[type='checkbox'],
@@ -172,7 +172,7 @@ input[type='radio'] {
 
 /* Label */
 label {
-  @apply text-sm font-medium text-gray-300;
+  @apply text-sm font-medium text-slate-700;
 }
 
 /* Button Base */
@@ -189,11 +189,11 @@ button {
 }
 
 .btn-secondary {
-  @apply btn bg-dark-800 text-white border border-primary-700/30 hover:bg-dark-700;
+  @apply btn bg-white text-slate-800 border border-primary-100 hover:bg-primary-50;
 }
 
 .btn-outline {
-  @apply btn border-2 border-primary-600 text-primary-400 hover:bg-primary-600/10;
+  @apply btn border-2 border-primary-500 text-primary-700 hover:bg-primary-50;
 }
 
 .btn-sm {
@@ -206,7 +206,7 @@ button {
 
 /* Link */
 a {
-  @apply text-primary-400 hover:text-primary-300 transition-colors;
+  @apply text-primary-700 hover:text-primary-600 transition-colors;
 }
 
 /* Headings */
@@ -249,19 +249,19 @@ h6 {
 }
 
 .badge-primary {
-  @apply badge bg-primary-900/50 text-primary-200;
+  @apply badge bg-primary-100 text-primary-800;
 }
 
 .badge-success {
-  @apply badge bg-green-900/50 text-green-200;
+  @apply badge bg-green-100 text-green-800;
 }
 
 .badge-warning {
-  @apply badge bg-amber-900/50 text-amber-200;
+  @apply badge bg-amber-100 text-amber-800;
 }
 
 .badge-error {
-  @apply badge bg-red-900/50 text-red-200;
+  @apply badge bg-red-100 text-red-800;
 }
 
 /* Status Indicator */
@@ -287,12 +287,12 @@ h6 {
 
 /* Divider */
 .divider {
-  @apply border-t border-primary-700/20;
+  @apply border-t border-primary-100;
 }
 
 /* Focus Visible for Accessibility */
 .focus-visible {
-  @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-dark-900;
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white;
 }
 
 /* Text Truncate */

@@ -66,16 +66,16 @@ export default function MarketingDashboardPage() {
 
   if (!loading && !profile) {
     return (
-      <div className="min-h-screen bg-gradient-dark text-white">
+      <div className="min-h-screen bg-gradient-light text-slate-900">
         <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
         <div className="flex">
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           <main className="flex-1 overflow-auto">
             <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
               <div className="text-center py-20">
-                <Megaphone size={64} className="mx-auto text-primary-400 mb-6" />
+                <Megaphone size={64} className="mx-auto text-primary-700 mb-6" />
                 <h1 className="text-4xl font-bold mb-4">Marketing Skill App</h1>
-                <p className="text-gray-400 text-lg mb-8 max-w-xl mx-auto">
+                <p className="text-slate-500 text-lg mb-8 max-w-xl mx-auto">
                   AI-powered automated marketing for TikTok, Instagram, and 10+ platforms.
                   Create viral slideshows, post everywhere, and track what converts.
                 </p>
@@ -90,23 +90,23 @@ export default function MarketingDashboardPage() {
 
               <div className="grid md:grid-cols-3 gap-6 mt-12">
                 <Card>
-                  <ImageIcon size={32} className="text-primary-400 mb-3" />
+                  <ImageIcon size={32} className="text-primary-700 mb-3" />
                   <h3 className="font-bold text-lg mb-2">AI Slideshow Creator</h3>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-slate-500 text-sm">
                     Generate 6-slide TikTok-optimized carousels with AI images and viral text overlays.
                   </p>
                 </Card>
                 <Card>
                   <Send size={32} className="text-emerald-400 mb-3" />
                   <h3 className="font-bold text-lg mb-2">Multi-Platform Posting</h3>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-slate-500 text-sm">
                     Post to TikTok, Instagram, YouTube, LinkedIn, and more in a single click.
                   </p>
                 </Card>
                 <Card>
                   <BarChart3 size={32} className="text-gold-400 mb-3" />
                   <h3 className="font-bold text-lg mb-2">Intelligence Loop</h3>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-slate-500 text-sm">
                     Daily reports diagnose what works and recommend data-driven adjustments.
                   </p>
                 </Card>
@@ -119,7 +119,7 @@ export default function MarketingDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">
@@ -131,10 +131,10 @@ export default function MarketingDashboardPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
               <div>
                 <h1 className="text-3xl sm:text-4xl font-bold mb-2 flex items-center gap-3">
-                  <Megaphone size={32} className="text-primary-400" />
+                  <Megaphone size={32} className="text-primary-700" />
                   Marketing Dashboard
                 </h1>
-                <p className="text-gray-400">
+                <p className="text-slate-500">
                   {profile?.appName} — Automated marketing pipeline
                 </p>
               </div>
@@ -162,18 +162,18 @@ export default function MarketingDashboardPage() {
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Total Posts</p>
+                    <p className="text-slate-500 text-sm mb-1">Total Posts</p>
                     <p className="text-3xl font-bold">{totalPosts}</p>
                   </div>
-                  <Send className="text-primary-400" size={24} />
+                  <Send className="text-primary-700" size={24} />
                 </div>
-                <p className="text-primary-400 text-sm mt-3">{postedCount} published</p>
+                <p className="text-primary-700 text-sm mt-3">{postedCount} published</p>
               </Card>
 
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Platform Reach</p>
+                    <p className="text-slate-500 text-sm mb-1">Platform Reach</p>
                     <p className="text-3xl font-bold">{totalPlatformPosts}</p>
                   </div>
                   <Users className="text-emerald-500" size={24} />
@@ -186,7 +186,7 @@ export default function MarketingDashboardPage() {
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Drafts</p>
+                    <p className="text-slate-500 text-sm mb-1">Drafts</p>
                     <p className="text-3xl font-bold">{draftCount}</p>
                   </div>
                   <Clock className="text-amber-400" size={24} />
@@ -197,7 +197,7 @@ export default function MarketingDashboardPage() {
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Success Rate</p>
+                    <p className="text-slate-500 text-sm mb-1">Success Rate</p>
                     <p className="text-3xl font-bold">
                       {totalPosts > 0 ? Math.round((postedCount / totalPosts) * 100) : 0}%
                     </p>
@@ -234,7 +234,7 @@ export default function MarketingDashboardPage() {
                   </div>
 
                   {posts.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-slate-400">
                       <ImageIcon size={48} className="mx-auto mb-4 opacity-50" />
                       <p>No posts yet. Create your first slideshow!</p>
                       <Button
@@ -251,12 +251,12 @@ export default function MarketingDashboardPage() {
                       {posts.slice(0, 5).map((post) => (
                         <div
                           key={post.id}
-                          className="border-b border-primary-700/20 pb-4 last:border-0"
+                          className="border-b border-primary-100 pb-4 last:border-0"
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
                               <h3 className="font-bold truncate">{post.hookText}</h3>
-                              <p className="text-sm text-gray-400">
+                              <p className="text-sm text-slate-500">
                                 {post.platforms.map((p) => PLATFORM_LABELS[p]).join(', ')}
                               </p>
                             </div>
@@ -275,7 +275,7 @@ export default function MarketingDashboardPage() {
                               {post.status}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <div className="flex items-center gap-4 text-xs text-slate-400">
                             <span>{post.slides.length} slides</span>
                             <span>{post.hookCategory}</span>
                           </div>
@@ -331,7 +331,7 @@ export default function MarketingDashboardPage() {
                     {profile?.uploadPost.platforms.map((platform) => (
                       <div
                         key={platform}
-                        className="flex items-center justify-between p-2 rounded-lg bg-dark-800/50"
+                        className="flex items-center justify-between p-2 rounded-lg bg-slate-100/80"
                       >
                         <span className="text-sm font-medium">
                           {PLATFORM_LABELS[platform]}
@@ -343,7 +343,7 @@ export default function MarketingDashboardPage() {
                     ))}
                     {(!profile?.uploadPost.platforms ||
                       profile.uploadPost.platforms.length === 0) && (
-                      <p className="text-sm text-gray-500">No platforms connected</p>
+                      <p className="text-sm text-slate-400">No platforms connected</p>
                     )}
                   </div>
                 </Card>
@@ -359,9 +359,9 @@ export default function MarketingDashboardPage() {
                       (time, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-3 p-2 rounded-lg bg-dark-800/50"
+                          className="flex items-center gap-3 p-2 rounded-lg bg-slate-100/80"
                         >
-                          <Clock size={16} className="text-gray-500" />
+                          <Clock size={16} className="text-slate-400" />
                           <span className="text-sm font-medium">{time}</span>
                         </div>
                       )

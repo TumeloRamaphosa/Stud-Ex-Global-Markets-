@@ -104,7 +104,7 @@ export default function CampaignsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">
@@ -125,10 +125,10 @@ export default function CampaignsPage() {
                 </Button>
                 <div>
                   <h1 className="text-3xl font-bold flex items-center gap-3">
-                    <Layers size={28} className="text-primary-400" />
+                    <Layers size={28} className="text-primary-700" />
                     Campaign Manager
                   </h1>
-                  <p className="text-gray-400">
+                  <p className="text-slate-500">
                     Manage all your marketing posts and campaigns
                   </p>
                 </div>
@@ -146,7 +146,7 @@ export default function CampaignsPage() {
             <Tabs items={tabItems} activeTab={activeTab} onTabChange={setActiveTab}>
               {filteredPosts.length === 0 ? (
                 <Card>
-                  <div className="text-center py-16 text-gray-500">
+                  <div className="text-center py-16 text-slate-400">
                     <ImageIcon size={48} className="mx-auto mb-4 opacity-50" />
                     <p className="text-lg mb-2">No posts found</p>
                     <p className="text-sm">
@@ -173,7 +173,7 @@ export default function CampaignsPage() {
                       <Card key={post.id} className="hover:border-primary-600/50">
                         <div className="flex items-start gap-4">
                           {/* Slide Preview */}
-                          <div className="flex-shrink-0 w-16 h-24 rounded-lg bg-dark-800/50 border border-primary-700/20 overflow-hidden">
+                          <div className="flex-shrink-0 w-16 h-24 rounded-lg bg-slate-100/80 border border-primary-100 overflow-hidden">
                             {post.slides[0]?.imageUrl ? (
                               <img
                                 src={post.slides[0].imageUrl}
@@ -182,7 +182,7 @@ export default function CampaignsPage() {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <ImageIcon size={20} className="text-gray-600" />
+                                <ImageIcon size={20} className="text-slate-400" />
                               </div>
                             )}
                           </div>
@@ -194,7 +194,7 @@ export default function CampaignsPage() {
                                 <h3 className="font-bold truncate">
                                   {post.hookText || 'Untitled Post'}
                                 </h3>
-                                <p className="text-sm text-gray-400 mt-1">
+                                <p className="text-sm text-slate-500 mt-1">
                                   {post.slides.length} slides ·{' '}
                                   {post.platforms.map((p) => PLATFORM_LABELS[p]).join(', ')}
                                 </p>
@@ -212,7 +212,7 @@ export default function CampaignsPage() {
                                 {post.hookCategory}
                               </Badge>
                               {post.ctaText && (
-                                <span className="text-xs text-gray-500 truncate">
+                                <span className="text-xs text-slate-400 truncate">
                                   CTA: {post.ctaText}
                                 </span>
                               )}

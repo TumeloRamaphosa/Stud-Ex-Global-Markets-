@@ -104,7 +104,7 @@ export default function AnalyticsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">
@@ -124,10 +124,10 @@ export default function AnalyticsPage() {
               </Button>
               <div>
                 <h1 className="text-3xl font-bold flex items-center gap-3">
-                  <BarChart3 size={28} className="text-primary-400" />
+                  <BarChart3 size={28} className="text-primary-700" />
                   Analytics & Intelligence
                 </h1>
-                <p className="text-gray-400">
+                <p className="text-slate-500">
                   Data-driven insights for your marketing pipeline
                 </p>
               </div>
@@ -142,7 +142,7 @@ export default function AnalyticsPage() {
                     <Card>
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-gray-400 text-sm mb-1">Total Posts</p>
+                          <p className="text-slate-500 text-sm mb-1">Total Posts</p>
                           <p className="text-3xl font-bold">{postedPosts.length}</p>
                         </div>
                         <TrendingUp className="text-green-400" size={24} />
@@ -155,12 +155,12 @@ export default function AnalyticsPage() {
                     <Card>
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-gray-400 text-sm mb-1">Hooks Tracked</p>
+                          <p className="text-slate-500 text-sm mb-1">Hooks Tracked</p>
                           <p className="text-3xl font-bold">{hooks.length}</p>
                         </div>
-                        <Target className="text-primary-400" size={24} />
+                        <Target className="text-primary-700" size={24} />
                       </div>
-                      <p className="text-primary-400 text-sm mt-3">
+                      <p className="text-primary-700 text-sm mt-3">
                         {hooksByStatus['doubleDown'] || 0} winning
                       </p>
                     </Card>
@@ -168,7 +168,7 @@ export default function AnalyticsPage() {
                     <Card>
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-gray-400 text-sm mb-1">Platforms</p>
+                          <p className="text-slate-500 text-sm mb-1">Platforms</p>
                           <p className="text-3xl font-bold">
                             {profile?.uploadPost.platforms.length || 0}
                           </p>
@@ -181,7 +181,7 @@ export default function AnalyticsPage() {
                     <Card>
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-gray-400 text-sm mb-1">Reports</p>
+                          <p className="text-slate-500 text-sm mb-1">Reports</p>
                           <p className="text-3xl font-bold">{reports.length}</p>
                         </div>
                         <FileText className="text-amber-400" size={24} />
@@ -200,18 +200,18 @@ export default function AnalyticsPage() {
                           .map(([category, count]) => (
                             <div
                               key={category}
-                              className="flex items-center justify-between p-3 rounded-lg bg-dark-800/50"
+                              className="flex items-center justify-between p-3 rounded-lg bg-slate-100/80"
                             >
                               <div className="flex items-center gap-3">
                                 <Badge variant="primary" size="sm">
                                   {category}
                                 </Badge>
-                                <span className="text-sm text-gray-300">
+                                <span className="text-sm text-slate-700">
                                   {count} post{count !== 1 ? 's' : ''}
                                 </span>
                               </div>
                               <div className="flex-1 mx-4 max-w-xs">
-                                <div className="h-2 bg-dark-800 rounded-full">
+                                <div className="h-2 bg-slate-100 rounded-full">
                                   <div
                                     className="h-full bg-gradient-accent rounded-full"
                                     style={{
@@ -225,7 +225,7 @@ export default function AnalyticsPage() {
                             </div>
                           ))
                       ) : (
-                        <p className="text-gray-500 text-center py-8">
+                        <p className="text-slate-400 text-center py-8">
                           No hook data yet. Start posting to track performance!
                         </p>
                       )}
@@ -243,20 +243,20 @@ export default function AnalyticsPage() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead>
-                            <tr className="border-b border-primary-700/20">
-                              <th className="text-left py-3 px-4 text-gray-400 font-medium">
+                            <tr className="border-b border-primary-100">
+                              <th className="text-left py-3 px-4 text-slate-500 font-medium">
                                 Hook Text
                               </th>
-                              <th className="text-left py-3 px-4 text-gray-400 font-medium">
+                              <th className="text-left py-3 px-4 text-slate-500 font-medium">
                                 Category
                               </th>
-                              <th className="text-right py-3 px-4 text-gray-400 font-medium">
+                              <th className="text-right py-3 px-4 text-slate-500 font-medium">
                                 Impressions
                               </th>
-                              <th className="text-right py-3 px-4 text-gray-400 font-medium">
+                              <th className="text-right py-3 px-4 text-slate-500 font-medium">
                                 Conversions
                               </th>
-                              <th className="text-center py-3 px-4 text-gray-400 font-medium">
+                              <th className="text-center py-3 px-4 text-slate-500 font-medium">
                                 Status
                               </th>
                             </tr>
@@ -265,7 +265,7 @@ export default function AnalyticsPage() {
                             {hooks.map((hook) => (
                               <tr
                                 key={hook.id}
-                                className="border-b border-primary-700/10 hover:bg-dark-800/30"
+                                className="border-b border-primary-100 hover:bg-slate-100/70"
                               >
                                 <td className="py-3 px-4 max-w-xs truncate">
                                   {hook.hookText}
@@ -303,7 +303,7 @@ export default function AnalyticsPage() {
                         </table>
                       </div>
                     ) : (
-                      <div className="text-center py-12 text-gray-500">
+                      <div className="text-center py-12 text-slate-400">
                         <Target size={48} className="mx-auto mb-4 opacity-50" />
                         <p>No hook performance data yet.</p>
                         <p className="text-sm mt-2">
@@ -321,7 +321,7 @@ export default function AnalyticsPage() {
                         <h3 className="font-bold text-green-400 mb-2">
                           Growing (5K+/day)
                         </h3>
-                        <p className="text-sm text-gray-300">
+                        <p className="text-sm text-slate-700">
                           DOUBLE DOWN - Create 3 variations immediately
                         </p>
                       </div>
@@ -329,7 +329,7 @@ export default function AnalyticsPage() {
                         <h3 className="font-bold text-blue-400 mb-2">
                           Steady (1K-5K/day)
                         </h3>
-                        <p className="text-sm text-gray-300">
+                        <p className="text-sm text-slate-700">
                           Keep in rotation with minor adjustments
                         </p>
                       </div>
@@ -337,7 +337,7 @@ export default function AnalyticsPage() {
                         <h3 className="font-bold text-amber-400 mb-2">
                           Declining (&lt;1K/day)
                         </h3>
-                        <p className="text-sm text-gray-300">
+                        <p className="text-sm text-slate-700">
                           Try 1 more variation, then consider dropping
                         </p>
                       </div>
@@ -345,7 +345,7 @@ export default function AnalyticsPage() {
                         <h3 className="font-bold text-red-400 mb-2">
                           Consistently Low
                         </h3>
-                        <p className="text-sm text-gray-300">
+                        <p className="text-sm text-slate-700">
                           DROP - Try a radically different approach
                         </p>
                       </div>
@@ -361,7 +361,7 @@ export default function AnalyticsPage() {
                     <h2 className="text-xl font-bold mb-6">
                       Two-Axis Diagnostic Framework
                     </h2>
-                    <p className="text-gray-400 text-sm mb-6">
+                    <p className="text-slate-500 text-sm mb-6">
                       Based on Upload-Post impressions + conversion data. This framework guides content optimization.
                     </p>
 
@@ -384,13 +384,13 @@ export default function AnalyticsPage() {
                         return (
                           <div
                             key={type}
-                            className="p-4 rounded-lg bg-dark-800/50 border border-primary-700/20"
+                            className="p-4 rounded-lg bg-slate-100/80 border border-primary-100"
                           >
                             <div className="flex items-center justify-between mb-3">
                               <Badge variant={style.variant}>{style.label}</Badge>
                               <Zap size={16} className={style.color} />
                             </div>
-                            <p className="text-sm text-gray-300">{result.action}</p>
+                            <p className="text-sm text-slate-700">{result.action}</p>
                           </div>
                         );
                       })}
@@ -401,15 +401,15 @@ export default function AnalyticsPage() {
                   <Card>
                     <h2 className="text-xl font-bold mb-4">Conversion Benchmarks</h2>
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-dark-800/50">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-slate-100/80">
                         <span className="text-sm">Views-to-Download Baseline</span>
-                        <span className="font-bold text-gray-300">1%</span>
+                        <span className="font-bold text-slate-700">1%</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-dark-800/50">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-slate-100/80">
                         <span className="text-sm">Solid Performance</span>
                         <span className="font-bold text-green-400">1.5-3%</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-dark-800/50">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-slate-100/80">
                         <span className="text-sm">Exceptional Results</span>
                         <span className="font-bold text-gold-400">3%+</span>
                       </div>
@@ -429,7 +429,7 @@ export default function AnalyticsPage() {
                             <h3 className="text-lg font-bold">
                               Daily Report — {report.date}
                             </h3>
-                            <p className="text-sm text-gray-400">
+                            <p className="text-sm text-slate-500">
                               Period: {report.period.start} to {report.period.end}
                             </p>
                           </div>
@@ -440,25 +440,25 @@ export default function AnalyticsPage() {
                         </div>
 
                         <div className="prose prose-invert max-w-none text-sm mb-4">
-                          <p className="text-gray-300 whitespace-pre-line">
+                          <p className="text-slate-700 whitespace-pre-line">
                             {report.summary}
                           </p>
                         </div>
 
                         {report.recommendations.length > 0 && (
                           <div>
-                            <h4 className="font-bold text-sm text-gray-400 mb-2">
+                            <h4 className="font-bold text-sm text-slate-500 mb-2">
                               Recommendations
                             </h4>
                             <ul className="space-y-1">
                               {report.recommendations.map((rec, idx) => (
                                 <li
                                   key={idx}
-                                  className="text-sm text-gray-300 flex items-start gap-2"
+                                  className="text-sm text-slate-700 flex items-start gap-2"
                                 >
                                   <Zap
                                     size={14}
-                                    className="text-primary-400 mt-0.5 flex-shrink-0"
+                                    className="text-primary-700 mt-0.5 flex-shrink-0"
                                   />
                                   {rec}
                                 </li>
@@ -482,7 +482,7 @@ export default function AnalyticsPage() {
                     ))
                   ) : (
                     <Card>
-                      <div className="text-center py-12 text-gray-500">
+                      <div className="text-center py-12 text-slate-400">
                         <FileText size={48} className="mx-auto mb-4 opacity-50" />
                         <p>No reports generated yet.</p>
                         <p className="text-sm mt-2">

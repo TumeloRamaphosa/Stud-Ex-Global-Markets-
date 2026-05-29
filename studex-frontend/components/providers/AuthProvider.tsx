@@ -46,7 +46,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   if (!mounted || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-dark">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-light">
         <LoadingSpinner />
       </div>
     );

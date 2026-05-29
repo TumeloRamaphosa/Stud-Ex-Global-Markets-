@@ -88,7 +88,7 @@ export default function DealsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">
@@ -104,7 +104,7 @@ export default function DealsPage() {
                   <Briefcase className="text-primary-500" />
                   Deal Pipeline
                 </h1>
-                <p className="text-gray-400">{filteredDeals.length} deals in progress</p>
+                <p className="text-slate-500">{filteredDeals.length} deals in progress</p>
               </div>
 
               <Button variant="primary" icon={<Plus size={20} />}>
@@ -129,7 +129,7 @@ export default function DealsPage() {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-full rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-2.5 text-white transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    className="w-full rounded-lg border border-primary-100 bg-slate-100/80 px-4 py-2.5 text-white transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                   >
                     <option value="all">All Status</option>
                     <option value="in-progress">In Progress</option>
@@ -153,7 +153,7 @@ export default function DealsPage() {
                       {/* Deal Info */}
                       <div>
                         <h3 className="text-lg font-bold mb-1">{deal.title}</h3>
-                        <p className="text-gray-400 text-sm mb-2">{deal.company}</p>
+                        <p className="text-slate-500 text-sm mb-2">{deal.company}</p>
                         <Badge variant="primary" size="sm">
                           {deal.amount}
                         </Badge>
@@ -167,17 +167,17 @@ export default function DealsPage() {
                             {statusConfig.text}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-400">{deal.stage}</p>
-                        <p className="text-xs text-gray-500">Updated {deal.lastUpdate}</p>
+                        <p className="text-sm text-slate-500">{deal.stage}</p>
+                        <p className="text-xs text-slate-400">Updated {deal.lastUpdate}</p>
                       </div>
 
                       {/* Progress */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <p className="text-sm font-medium">Progress</p>
-                          <span className="text-sm font-bold text-primary-400">{deal.progress}%</span>
+                          <span className="text-sm font-bold text-primary-700">{deal.progress}%</span>
                         </div>
-                        <div className="bg-dark-800 rounded-full h-2">
+                        <div className="bg-slate-100 rounded-full h-2">
                           <div
                             className="bg-gradient-accent h-full rounded-full transition-all"
                             style={{ width: `${deal.progress}%` }}
@@ -197,10 +197,10 @@ export default function DealsPage() {
                     </div>
 
                     {/* Participants */}
-                    <div className="mt-4 pt-4 border-t border-primary-700/20">
+                    <div className="mt-4 pt-4 border-t border-primary-100">
                       <div className="flex items-center gap-2">
-                        <Users size={16} className="text-gray-400" />
-                        <span className="text-sm text-gray-400">Team:</span>
+                        <Users size={16} className="text-slate-500" />
+                        <span className="text-sm text-slate-500">Team:</span>
                         <div className="flex items-center gap-1 flex-wrap">
                           {deal.participants.map((participant, idx) => (
                             <span key={idx} className="text-xs bg-primary-900/30 px-2 py-1 rounded-full">
@@ -217,8 +217,8 @@ export default function DealsPage() {
 
             {filteredDeals.length === 0 && (
               <Card className="text-center py-12">
-                <Briefcase className="w-16 h-16 mx-auto text-gray-600 mb-4" />
-                <p className="text-gray-400 mb-4">No deals found</p>
+                <Briefcase className="w-16 h-16 mx-auto text-slate-400 mb-4" />
+                <p className="text-slate-500 mb-4">No deals found</p>
                 <Button variant="primary">Create First Deal</Button>
               </Card>
             )}

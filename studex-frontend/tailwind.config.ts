@@ -9,6 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        surface: {
+          page: '#f8fafc',
+          muted: '#eef6fb',
+          card: '#ffffff',
+          border: '#dbeafe',
+          ink: '#0f172a',
+          subtle: '#64748b',
+        },
         primary: {
           50: '#f0f7ff',
           100: '#e0effe',
@@ -49,7 +57,8 @@ const config: Config = {
         },
       },
       backgroundImage: {
-        'gradient-dark': 'linear-gradient(135deg, #001f3f 0%, #0c3d66 100%)',
+        'gradient-dark': 'linear-gradient(135deg, #f8fbff 0%, #eef8ff 48%, #fff8e8 100%)',
+        'gradient-light': 'linear-gradient(135deg, #f8fbff 0%, #eef8ff 48%, #fff8e8 100%)',
         'gradient-accent': 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
       },
       boxShadow: {

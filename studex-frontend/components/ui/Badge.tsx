@@ -17,11 +17,11 @@ export default function Badge({
   size = 'md',
 }: BadgeProps) {
   const variants = {
-    primary: 'bg-primary-900/50 text-primary-200',
-    success: 'bg-green-900/50 text-green-200',
-    warning: 'bg-amber-900/50 text-amber-200',
-    error: 'bg-red-900/50 text-red-200',
-    info: 'bg-cyan-900/50 text-cyan-200',
+    primary: 'bg-primary-100 text-primary-800',
+    success: 'bg-green-100 text-green-800',
+    warning: 'bg-amber-100 text-amber-800',
+    error: 'bg-red-100 text-red-800',
+    info: 'bg-cyan-100 text-cyan-800',
   };
 
   const sizes = {

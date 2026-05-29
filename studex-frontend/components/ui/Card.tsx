@@ -21,8 +21,8 @@ export default function Card({
   return (
     <div
       className={cn(
-        'rounded-xl border border-primary-700/30 bg-dark-900/50 backdrop-blur-md p-6 transition-all duration-300',
-        hover && 'hover:border-primary-600/50 hover:shadow-glow-primary',
+        'rounded-xl border border-primary-100 bg-white/85 backdrop-blur-md p-6 shadow-sm transition-all duration-300',
+        hover && 'hover:border-primary-300 hover:shadow-lg',
         clickable && 'cursor-pointer hover:translate-y-[-2px]',
         className
       )}

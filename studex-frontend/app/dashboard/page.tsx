@@ -66,7 +66,7 @@ export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">
@@ -80,7 +80,7 @@ export default function DashboardPage() {
               <h1 className="text-3xl sm:text-4xl font-bold mb-2">
                 Welcome back, {user?.displayName || 'User'}!
               </h1>
-              <p className="text-gray-400">Here's your business overview</p>
+              <p className="text-slate-500">Here's your business overview</p>
             </div>
 
             {/* Key Metrics */}
@@ -88,7 +88,7 @@ export default function DashboardPage() {
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Monthly Revenue</p>
+                    <p className="text-slate-500 text-sm mb-1">Monthly Revenue</p>
                     <p className="text-3xl font-bold">$67K</p>
                   </div>
                   <div className="text-green-500">
@@ -101,29 +101,29 @@ export default function DashboardPage() {
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Active Deals</p>
+                    <p className="text-slate-500 text-sm mb-1">Active Deals</p>
                     <p className="text-3xl font-bold">3</p>
                   </div>
-                  <Briefcase className="text-primary-400" size={24} />
+                  <Briefcase className="text-primary-700" size={24} />
                 </div>
-                <p className="text-primary-400 text-sm mt-3">$4.8M in pipeline</p>
+                <p className="text-primary-700 text-sm mt-3">$4.8M in pipeline</p>
               </Card>
 
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Annual Goal</p>
+                    <p className="text-slate-500 text-sm mb-1">Annual Goal</p>
                     <p className="text-3xl font-bold">$750K</p>
                   </div>
                   <Target className="text-gold-500" size={24} />
                 </div>
-                <p className="text-gray-400 text-sm mt-3">67% achieved</p>
+                <p className="text-slate-500 text-sm mt-3">67% achieved</p>
               </Card>
 
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Messages</p>
+                    <p className="text-slate-500 text-sm mb-1">Messages</p>
                     <p className="text-3xl font-bold">12</p>
                   </div>
                   <MessageSquare className="text-emerald-500" size={24} />
@@ -149,7 +149,7 @@ export default function DashboardPage() {
                           className="w-full bg-gradient-to-t from-gold-500 to-primary-500 rounded-t-lg hover:shadow-glow-gold transition-all"
                           style={{ height: `${(data.value / 67000) * 100}%` }}
                         />
-                        <span className="text-xs text-gray-400">{data.month}</span>
+                        <span className="text-xs text-slate-500">{data.month}</span>
                       </div>
                     ))}
                   </div>
@@ -164,14 +164,14 @@ export default function DashboardPage() {
                 </h2>
 
                 <div className="space-y-4">
-                  <div className="p-3 bg-primary-900/20 rounded-lg border border-primary-600/30">
-                    <p className="text-sm text-gray-300">
+                  <div className="p-3 bg-primary-50 rounded-lg border border-primary-600/30">
+                    <p className="text-sm text-slate-700">
                       Your Series A deal is likely to close in 2 weeks based on negotiation patterns.
                     </p>
                   </div>
 
-                  <div className="p-3 bg-emerald-900/20 rounded-lg border border-emerald-600/30">
-                    <p className="text-sm text-gray-300">
+                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-600/30">
+                    <p className="text-sm text-slate-700">
                       Consider reaching out to 5 similar investors in your network.
                     </p>
                   </div>
@@ -197,11 +197,11 @@ export default function DashboardPage() {
 
                 <div className="space-y-4">
                   {upcomingDeals.map((deal) => (
-                    <div key={deal.id} className="border-b border-primary-700/20 pb-4 last:border-0">
+                    <div key={deal.id} className="border-b border-primary-100 pb-4 last:border-0">
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <h3 className="font-bold">{deal.title}</h3>
-                          <p className="text-sm text-gray-400">{deal.company}</p>
+                          <p className="text-sm text-slate-500">{deal.company}</p>
                         </div>
                         <Badge variant="primary" size="sm">
                           {deal.amount}
@@ -209,13 +209,13 @@ export default function DashboardPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-dark-800 rounded-full h-2">
+                        <div className="flex-1 bg-slate-100 rounded-full h-2">
                           <div
                             className="bg-gradient-accent h-full rounded-full"
                             style={{ width: `${deal.progress}%` }}
                           />
                         </div>
-                        <span className="text-xs text-gray-400">{deal.progress}%</span>
+                        <span className="text-xs text-slate-500">{deal.progress}%</span>
                       </div>
                     </div>
                   ))}
@@ -236,14 +236,14 @@ export default function DashboardPage() {
 
                 <div className="space-y-3">
                   {recentMessages.map((msg) => (
-                    <div key={msg.id} className="p-3 rounded-lg bg-dark-800/50 border border-primary-700/20 hover:border-primary-600/50 transition-all cursor-pointer">
+                    <div key={msg.id} className="p-3 rounded-lg bg-slate-100/80 border border-primary-100 hover:border-primary-600/50 transition-all cursor-pointer">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <p className="font-semibold">{msg.user}</p>
-                          <p className="text-sm text-gray-400 truncate">{msg.message}</p>
+                          <p className="text-sm text-slate-500 truncate">{msg.message}</p>
                         </div>
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">{msg.time}</p>
+                      <p className="text-xs text-slate-400 mt-2">{msg.time}</p>
                     </div>
                   ))}
                 </div>
@@ -264,11 +264,11 @@ export default function DashboardPage() {
                     { date: 'Tomorrow', time: '10:00 AM', title: 'Deal Review Meeting' },
                     { date: 'Friday', time: '4:00 PM', title: 'Networking Event' },
                   ].map((event, idx) => (
-                    <div key={idx} className="flex gap-4 p-3 rounded-lg bg-dark-800/50 border border-primary-700/20">
-                      <div className="text-primary-400 font-bold min-w-fit">{event.time}</div>
+                    <div key={idx} className="flex gap-4 p-3 rounded-lg bg-slate-100/80 border border-primary-100">
+                      <div className="text-primary-700 font-bold min-w-fit">{event.time}</div>
                       <div>
                         <p className="font-semibold">{event.title}</p>
-                        <p className="text-sm text-gray-400">{event.date}</p>
+                        <p className="text-sm text-slate-500">{event.date}</p>
                       </div>
                     </div>
                   ))}
@@ -288,9 +288,9 @@ export default function DashboardPage() {
                     { task: 'Research & Analysis', hours: 8.25 },
                     { task: 'Administrative', hours: 4.5 },
                   ].map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-dark-800/50 border border-primary-700/20">
+                    <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-slate-100/80 border border-primary-100">
                       <span className="font-medium">{item.task}</span>
-                      <span className="text-primary-400 font-bold">{item.hours}h</span>
+                      <span className="text-primary-700 font-bold">{item.hours}h</span>
                     </div>
                   ))}
                 </div>

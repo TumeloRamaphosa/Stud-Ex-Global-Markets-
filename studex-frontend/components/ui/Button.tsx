@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import LoadingSpinner from './LoadingSpinner';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: ReactNode;
+  children?: ReactNode;
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
@@ -24,13 +24,13 @@ export default function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900';
+  const baseStyles = 'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white';
 
   const variants = {
     primary: 'bg-primary-600 text-white hover:bg-primary-700 shadow-lg hover:shadow-glow-primary',
-    secondary: 'bg-dark-800 text-white border border-primary-700/30 hover:bg-dark-700 hover:border-primary-600/50',
-    outline: 'border-2 border-primary-600 text-primary-400 hover:bg-primary-600/10',
-    ghost: 'text-primary-400 hover:text-primary-300 hover:bg-primary-600/5',
+    secondary: 'bg-white text-slate-800 border border-primary-100 hover:bg-primary-50 hover:border-primary-300',
+    outline: 'border-2 border-primary-500 text-primary-700 hover:bg-primary-50',
+    ghost: 'text-primary-700 hover:text-primary-800 hover:bg-primary-50',
   };
 
   const sizes = {

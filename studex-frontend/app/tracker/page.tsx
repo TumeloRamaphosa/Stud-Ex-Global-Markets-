@@ -80,7 +80,7 @@ export default function TrackerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
+    <div className="min-h-screen bg-gradient-light text-slate-900">
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex">
@@ -95,7 +95,7 @@ export default function TrackerPage() {
                 <Clock size={32} className="text-primary-500" />
                 Time Tracker
               </h1>
-              <p className="text-gray-400">Track your time across projects and tasks</p>
+              <p className="text-slate-500">Track your time across projects and tasks</p>
             </div>
 
             {/* Timer Section */}
@@ -142,7 +142,7 @@ export default function TrackerPage() {
                     <div className="text-6xl font-bold text-gold-500 font-mono mb-2">
                       {Math.floor(elapsed / 3600)}:{String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:{String(elapsed % 60).padStart(2, '0')}
                     </div>
-                    <p className="text-gray-400">Time elapsed</p>
+                    <p className="text-slate-500">Time elapsed</p>
                   </div>
                 </div>
               </div>
@@ -153,7 +153,7 @@ export default function TrackerPage() {
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Total Hours (This Week)</p>
+                    <p className="text-slate-500 text-sm mb-1">Total Hours (This Week)</p>
                     <p className="text-3xl font-bold">{totalHours.toFixed(2)}h</p>
                   </div>
                   <Clock className="text-primary-500" size={24} />
@@ -163,7 +163,7 @@ export default function TrackerPage() {
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Average Per Day</p>
+                    <p className="text-slate-500 text-sm mb-1">Average Per Day</p>
                     <p className="text-3xl font-bold">{averagePerDay.toFixed(1)}h</p>
                   </div>
                   <BarChart3 className="text-gold-500" size={24} />
@@ -173,7 +173,7 @@ export default function TrackerPage() {
               <Card>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Tasks Logged</p>
+                    <p className="text-slate-500 text-sm mb-1">Tasks Logged</p>
                     <p className="text-3xl font-bold">{filteredEntries.length}</p>
                   </div>
                   <Calendar className="text-emerald-500" size={24} />
@@ -190,7 +190,7 @@ export default function TrackerPage() {
                   className={`px-4 py-2 rounded-lg transition-all ${
                     selectedCategory === cat
                       ? 'bg-primary-600 text-white'
-                      : 'bg-dark-800 text-gray-400 hover:text-white border border-primary-700/20'
+                      : 'bg-slate-100 text-slate-500 hover:text-slate-900 border border-primary-100'
                   }`}
                 >
                   {cat}
@@ -205,7 +205,7 @@ export default function TrackerPage() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-primary-700/20">
+                    <tr className="border-b border-primary-100">
                       <th className="text-left py-3 px-4 font-semibold">Task</th>
                       <th className="text-left py-3 px-4 font-semibold">Project</th>
                       <th className="text-left py-3 px-4 font-semibold">Category</th>
@@ -217,7 +217,7 @@ export default function TrackerPage() {
 
                   <tbody>
                     {filteredEntries.map((entry) => (
-                      <tr key={entry.id} className="border-b border-primary-700/10 hover:bg-dark-800/50 transition-colors">
+                      <tr key={entry.id} className="border-b border-primary-100 hover:bg-slate-100/80 transition-colors">
                         <td className="py-3 px-4">{entry.task}</td>
                         <td className="py-3 px-4">{entry.project}</td>
                         <td className="py-3 px-4">
@@ -226,7 +226,7 @@ export default function TrackerPage() {
                           </Badge>
                         </td>
                         <td className="py-3 px-4 font-semibold">{entry.duration.toFixed(2)}h</td>
-                        <td className="py-3 px-4 text-gray-400">
+                        <td className="py-3 px-4 text-slate-500">
                           {formatDate(entry.date)}
                         </td>
                         <td className="py-3 px-4">
@@ -249,9 +249,9 @@ export default function TrackerPage() {
                   return (
                     <div key={day} className="text-center">
                       <p className="text-sm font-medium mb-2">{day}</p>
-                      <div className="bg-dark-800 rounded-lg p-3">
+                      <div className="bg-slate-100 rounded-lg p-3">
                         <p className="text-2xl font-bold text-gold-500">{hours.toFixed(1)}</p>
-                        <p className="text-xs text-gray-400">hours</p>
+                        <p className="text-xs text-slate-500">hours</p>
                       </div>
                     </div>
                   );

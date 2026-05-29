@@ -27,7 +27,7 @@ export default function Tabs({
   return (
     <div className={className}>
       {/* Tab buttons */}
-      <div className="flex gap-2 border-b border-primary-700/20 mb-6 overflow-x-auto">
+      <div className="flex gap-2 border-b border-primary-100 mb-6 overflow-x-auto">
         {items.map((item) => (
           <button
             key={item.id}
@@ -35,8 +35,8 @@ export default function Tabs({
             className={cn(
               'flex items-center gap-2 px-4 py-3 font-medium whitespace-nowrap transition-all border-b-2 -mb-[2px]',
               activeTab === item.id
-                ? 'border-b-primary-500 text-primary-400'
-                : 'border-b-transparent text-gray-400 hover:text-white'
+                ? 'border-b-primary-500 text-primary-700'
+                : 'border-b-transparent text-slate-500 hover:text-slate-900'
             )}
           >
             {item.icon && item.icon}

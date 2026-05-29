@@ -1,0 +1,12 @@
+node_modules/
+.next/
+lib/
+dist/
+coverage/
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+firebase-debug.log*
+ui-debug.log*
+*.tsbuildinfo
