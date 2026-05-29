@@ -20,7 +20,7 @@ This repo is best built as a light, payment-enabled trade collaboration platform
    - Expand the existing KYC fields into document collection, review status, reminders, and verified trader gating.
 
 5. **Revenue and subscription skill**
-   - Use Stripe Checkout for web billing.
+   - Use Stitch hosted payment requests for South African web billing.
    - Gate premium features such as advanced matching, campaign analytics, and video rendering from Firestore subscription status.
 
 6. **Trade intelligence skill**
@@ -34,16 +34,21 @@ This repo is best built as a light, payment-enabled trade collaboration platform
    - Maintain reusable Tailwind primitives (`Card`, `Button`, `Input`, `Badge`) as the primary design surface.
 
 2. **Billing foundation**
-   - Configure Stripe environment variables:
-     - `STRIPE_SECRET_KEY`
-     - `STRIPE_WEBHOOK_SECRET`
+   - Configure Stitch environment variables:
+     - `STITCH_CLIENT_ID`
+     - `STITCH_CLIENT_SECRET`
+     - `STITCH_WEBHOOK_SECRET`
+     - `STITCH_REDIRECT_URI`
+     - `STITCH_ENABLE_CARD`
+     - `STITCH_BENEFICIARY_NAME`
+     - `STITCH_BENEFICIARY_BANK`
+     - `STITCH_BENEFICIARY_ACCOUNT_NUMBER`
      - `PUBLIC_APP_URL`
      - `NEXT_PUBLIC_FUNCTIONS_API_URL`
-     - `NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID`
-     - `NEXT_PUBLIC_STRIPE_GROWTH_PRICE_ID`
-     - `NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID`
-   - Use `/settings/billing` as the plan-selection and subscription management surface.
-   - Use the `subscriptions/{uid}` document to gate premium features.
+   - Use `/settings/billing` as the package-selection and payment status surface.
+   - Whitelist the Stitch redirect URI to return users to `/settings/billing`.
+   - Configure the Stitch webhook URL to hit the Firebase Function `/payments/webhook`.
+   - Use the `subscriptions/{uid}` document as an entitlement/status document for premium features.
 
 3. **Remotion marketing engine**
    - The current implementation adds an in-browser Remotion Player preview.

@@ -25,7 +25,6 @@
     "firebase-functions": "^4.5.0",
     "lodash": "^4.17.21",
     "nodemailer": "^6.9.7",
-    "stripe": "^22.1.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

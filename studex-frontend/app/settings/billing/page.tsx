@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Check, CreditCard, ExternalLink, ShieldCheck, Sparkles } from 'lucide-react';
+import { Check, CreditCard, ShieldCheck, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
@@ -13,59 +13,64 @@ import {
   BILLING_PLANS,
   paymentsApi,
   type BillingPlan,
-  type SubscriptionStatus,
+  type PaymentStatus,
 } from '@/lib/payments';
 
 export default function BillingPage() {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [subscription, setSubscription] = useState<SubscriptionStatus>({
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>({
     status: 'none',
   });
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const [loadingPortal, setLoadingPortal] = useState(false);
+  const [syncingCallback, setSyncingCallback] = useState(false);
 
   useEffect(() => {
-    async function loadSubscription() {
+    async function loadPaymentStatus() {
       if (!user) return;
 
       try {
-        const status = await paymentsApi.getSubscription(user.uid);
-        setSubscription(status);
+        const params = new URLSearchParams(window.location.search);
+        const callback = {
+          id: params.get('id') || undefined,
+          status: params.get('status') || undefined,
+          externalReference: params.get('externalReference') || undefined,
+        };
+
+        if (callback.id || callback.externalReference) {
+          setSyncingCallback(true);
+          const synced = await paymentsApi.syncStitchCallback(callback);
+          setPaymentStatus(synced);
+          window.history.replaceState({}, document.title, window.location.pathname);
+          toast.success('Stitch payment status updated');
+          return;
+        }
+
+        const latest = await paymentsApi.getPaymentStatus(user.uid);
+        setPaymentStatus(latest);
       } catch (error) {
-        console.warn('Unable to load subscription status:', error);
+        console.warn('Unable to load payment status:', error);
+      } finally {
+        setSyncingCallback(false);
       }
     }
 
-    loadSubscription();
+    loadPaymentStatus();
   }, [user]);
 
   const handleCheckout = async (plan: BillingPlan) => {
     setLoadingPlan(plan.id);
     try {
-      const { url } = await paymentsApi.createCheckoutSession(plan);
+      const { url } = await paymentsApi.createPaymentRequest(plan);
       window.location.href = url;
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unable to start checkout.');
+      toast.error(error instanceof Error ? error.message : 'Unable to start Stitch payment.');
     } finally {
       setLoadingPlan(null);
     }
   };
 
-  const handlePortal = async () => {
-    setLoadingPortal(true);
-    try {
-      const { url } = await paymentsApi.createPortalSession();
-      window.location.href = url;
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unable to open billing portal.');
-    } finally {
-      setLoadingPortal(false);
-    }
-  };
-
-  const isSubscribed =
-    subscription.status === 'active' || subscription.status === 'trialing';
+  const isPaid = paymentStatus.status === 'completed';
 
   return (
     <div className="min-h-screen bg-gradient-light text-slate-900">
@@ -80,40 +85,38 @@ export default function BillingPage() {
               <div>
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary-100 bg-white/80 px-3 py-1 text-sm font-medium text-primary-700 shadow-sm">
                   <CreditCard size={16} />
-                  Stripe-ready payment gateway
+                  Stitch-ready payment gateway
                 </div>
                 <h1 className="mb-2 text-3xl font-bold sm:text-4xl">
-                  Billing & subscriptions
+                  Stitch payments
                 </h1>
                 <p className="max-w-2xl text-slate-600">
-                  Choose a web billing plan for trade workflows, marketing automation,
-                  and Remotion-powered creative previews. Checkout is handled by Stripe
+                  Choose a payment package for trade workflows, marketing automation,
+                  and Remotion-powered creative previews. Checkout is handled by Stitch
                   through Firebase Cloud Functions.
                 </p>
               </div>
-
-              <Button
-                variant="secondary"
-                icon={<ExternalLink size={18} />}
-                isLoading={loadingPortal}
-                onClick={handlePortal}
-              >
-                Manage billing
-              </Button>
             </div>
 
             <Card className="mb-8">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold">Current plan</h2>
+                  <h2 className="text-xl font-semibold">Latest payment</h2>
                   <p className="text-sm text-slate-500">
-                    {isSubscribed
-                      ? `Your subscription is ${subscription.status}.`
-                      : 'No active subscription is connected yet.'}
+                    {syncingCallback
+                      ? 'Confirming your Stitch payment status...'
+                      : isPaid
+                      ? `Your latest Stitch payment is ${paymentStatus.status}.`
+                      : 'No completed Stitch payment is connected yet.'}
                   </p>
+                  {paymentStatus.externalReference && (
+                    <p className="mt-1 text-xs text-slate-400">
+                      Reference: {paymentStatus.externalReference}
+                    </p>
+                  )}
                 </div>
-                <Badge variant={isSubscribed ? 'success' : 'warning'}>
-                  {isSubscribed ? 'Active' : 'Not subscribed'}
+                <Badge variant={isPaid ? 'success' : 'warning'}>
+                  {isPaid ? 'Paid' : paymentStatus.status}
                 </Badge>
               </div>
             </Card>
@@ -153,10 +156,10 @@ export default function BillingPage() {
                     fullWidth
                     variant={plan.highlight ? 'primary' : 'secondary'}
                     isLoading={loadingPlan === plan.id}
-                    disabled={!plan.priceId || Boolean(loadingPlan)}
+                    disabled={plan.amountZar <= 0 || Boolean(loadingPlan)}
                     onClick={() => handleCheckout(plan)}
                   >
-                    {plan.priceId ? 'Start checkout' : 'Configure Stripe price ID'}
+                    {plan.amountZar > 0 ? 'Pay with Stitch' : 'Contact sales'}
                   </Button>
                 </Card>
               ))}
@@ -169,8 +172,8 @@ export default function BillingPage() {
                   <h3 className="font-semibold text-slate-900">Secure by default</h3>
                 </div>
                 <p className="text-sm text-slate-600">
-                  Stripe secret keys stay inside Firebase Functions. The browser only
-                  receives hosted Checkout and Portal URLs.
+                  Stitch client secrets stay inside Firebase Functions. The browser only
+                  receives a hosted Stitch payment URL.
                 </p>
               </div>
               <div className="rounded-2xl border border-primary-100 bg-white/80 p-5 shadow-sm">
@@ -179,8 +182,8 @@ export default function BillingPage() {
                   <h3 className="font-semibold text-slate-900">Premium-ready</h3>
                 </div>
                 <p className="text-sm text-slate-600">
-                  Subscription status is stored in Firestore so premium marketing,
-                  analytics, and video rendering can be gated consistently.
+                  Payment status is stored in Firestore so premium marketing, analytics,
+                  and video rendering can be gated consistently.
                 </p>
               </div>
             </div>
