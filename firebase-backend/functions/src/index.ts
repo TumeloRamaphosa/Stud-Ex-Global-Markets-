@@ -296,6 +296,24 @@ async function retrieveStitchPaymentRequest(stitchPaymentRequestId: string): Pro
   return data;
 }
 
+async function readPaymentStatus(userId: string) {
+  const statusDoc = await admin.firestore().collection('subscriptions').doc(userId).get();
+
+  if (!statusDoc.exists) {
+    return { status: 'none' };
+  }
+
+  const data = statusDoc.data() || {};
+  return {
+    status: data.status || 'none',
+    planId: data.planId,
+    stitchPaymentRequestId: data.stitchPaymentRequestId,
+    externalReference: data.externalReference,
+    amount: data.amount,
+    updatedAt: data.updatedAt?.toDate?.().toISOString?.(),
+  };
+}
+
 app.post(
   '/payments/webhook',
   express.raw({ type: 'application/json' }),
@@ -552,21 +570,7 @@ app.post('/payments/stitch/callback', async (req, res) => {
       },
     };
     const result = await syncStitchPaymentStatus(payload);
-    const statusDoc = await admin
-      .firestore()
-      .collection('subscriptions')
-      .doc(decoded.uid)
-      .get();
-    const data = statusDoc.data() || {};
-
-    res.json({
-      status: data.status || result.status,
-      planId: data.planId,
-      stitchPaymentRequestId: data.stitchPaymentRequestId,
-      externalReference: data.externalReference,
-      amount: data.amount,
-      updatedAt: data.updatedAt?.toDate?.().toISOString?.(),
-    });
+    res.json({ ...(await readPaymentStatus(decoded.uid)), status: result.status });
   } catch (error) {
     console.error('Error syncing Stitch callback:', error);
     res.status(401).json({ error: 'Unable to sync Stitch callback' });
@@ -585,21 +589,7 @@ app.get('/payments/status/:userId', async (req, res) => {
       return res.status(403).json({ error: 'Cannot read another user payment status' });
     }
 
-    const statusDoc = await admin.firestore().collection('subscriptions').doc(userId).get();
-
-    if (!statusDoc.exists) {
-      return res.json({ status: 'none' });
-    }
-
-    const data = statusDoc.data() || {};
-    res.json({
-      status: data.status || 'none',
-      planId: data.planId,
-      stitchPaymentRequestId: data.stitchPaymentRequestId,
-      externalReference: data.externalReference,
-      amount: data.amount,
-      updatedAt: data.updatedAt?.toDate?.().toISOString?.(),
-    });
+    res.json(await readPaymentStatus(userId));
   } catch (error) {
     console.error('Error reading Stitch payment status:', error);
     res.status(401).json({ error: 'Unable to read payment status' });
@@ -610,8 +600,19 @@ app.get('/payments/status/:userId', async (req, res) => {
  * Backwards-compatible status endpoint for clients using the old route name.
  */
 app.get('/payments/subscription/:userId', async (req, res) => {
-  req.url = `/payments/status/${req.params.userId}`;
-  app.handle(req, res);
+  try {
+    const decoded = await verifyFirebaseUser(req);
+    const { userId } = req.params;
+
+    if (decoded.uid !== userId) {
+      return res.status(403).json({ error: 'Cannot read another user payment status' });
+    }
+
+    res.json(await readPaymentStatus(userId));
+  } catch (error) {
+    console.error('Error reading payment status:', error);
+    res.status(401).json({ error: 'Unable to read payment status' });
+  }
 });
 
 // ==================== MEETINGS ====================
