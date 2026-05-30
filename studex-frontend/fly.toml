@@ -1,4 +1,4 @@
-app = "datanetics"
+app = "datanetics-app"
 primary_region = "jnb"
 
 [build]
