@@ -1,0 +1,422 @@
+{
+  "name": "Stud-Ex Meat: Invoice Automation",
+  "nodes": [
+    {
+      "id": "gsheets-trigger",
+      "name": "Watch Production Sheet",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1tnBDwEA_BKJMLrXJEVr75YeVh5PK8kgoi9lCRz3k1XY",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Production",
+          "mode": "name"
+        },
+        "event": "rowAdded",
+        "options": {
+          "valueRenderMode": "FORMATTED_VALUE"
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gsheets-cred-placeholder",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "id": "filter-pending",
+      "name": "Filter Pending Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300],
+      "parameters": {
+        "jsCode": "// Filter rows where Status is \"Pending\" and have not been processed\nconst items = $input.all();\nconst pendingItems = [];\n\nfor (const item of items) {\n  const status = (item.json.Status || item.json.status || '').toString().trim();\n  const invoiceId = (item.json['Invoice ID'] || item.json.invoiceId || '').toString().trim();\n\n  if (status.toLowerCase() === 'pending' && invoiceId === '') {\n    pendingItems.push(item);\n  }\n}\n\nif (pendingItems.length === 0) {\n  // Return empty to stop the workflow if no pending rows\n  return [];\n}\n\nreturn pendingItems;"
+      }
+    },
+    {
+      "id": "calculate-totals",
+      "name": "Calculate Invoice Totals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300],
+      "parameters": {
+        "jsCode": "// Calculate line item totals, subtotal, tax (VAT 15%), and grand total\nconst items = $input.all();\nconst VAT_RATE = 0.15;\n\nconst results = [];\n\nfor (const item of items) {\n  const row = item.json;\n\n  // Parse line items from the production sheet row\n  // Each row represents a line item with Cut, Marble Score, Weight, Price per Cut\n  const cut = row['Cut'] || row.cut || '';\n  const marbleScore = row['Marble Score'] || row.marbleScore || '';\n  const weight = parseFloat(row['Weight'] || row.weight || 0);\n  const pricePerCut = parseFloat(row['Price per Cut'] || row['Price'] || row.pricePerCut || 0);\n  const customerName = row['Customer Name'] || row.customerName || '';\n  const customerEmail = row['Customer Email'] || row.customerEmail || '';\n  const rowNumber = row['row_number'] || row.rowNumber || row['__row'] || '';\n\n  // Calculate item total\n  const itemTotal = weight * pricePerCut;\n\n  // For single-row items, subtotal equals item total\n  // When batching multiple items per customer, aggregate in a downstream node\n  const subtotal = itemTotal;\n  const tax = Math.round(subtotal * VAT_RATE * 100) / 100;\n  const grandTotal = Math.round((subtotal + tax) * 100) / 100;\n\n  results.push({\n    json: {\n      customerName,\n      customerEmail,\n      cut,\n      marbleScore,\n      weight,\n      pricePerCut,\n      itemTotal: Math.round(itemTotal * 100) / 100,\n      subtotal: Math.round(subtotal * 100) / 100,\n      tax,\n      grandTotal,\n      vatRate: VAT_RATE * 100,\n      rowNumber,\n      currency: 'ZAR',\n      invoiceDate: new Date().toISOString().split('T')[0],\n      description: `${cut} - Marble Score: ${marbleScore} - ${weight}kg @ R${pricePerCut}/kg`\n    }\n  });\n}\n\nreturn results;"
+      }
+    },
+    {
+      "id": "search-customer",
+      "name": "QuickBooks - Search Customer",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [960, 300],
+      "parameters": {
+        "operation": "getAll",
+        "resource": "customer",
+        "filters": {
+          "query": "={{ 'SELECT * FROM Customer WHERE DisplayName = \\'' + $json.customerName.replace(/'/g, \"\\\\'\" ) + '\\'' }}"
+        },
+        "limit": 1
+      },
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "quickbooks-cred-placeholder",
+          "name": "QuickBooks OAuth2"
+        }
+      }
+    },
+    {
+      "id": "customer-exists",
+      "name": "Customer Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1200, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "condition-customer-found",
+              "leftValue": "={{ $json.Id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "create-customer",
+      "name": "QuickBooks - Create Customer",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [1440, 440],
+      "parameters": {
+        "operation": "create",
+        "resource": "customer",
+        "additionalFields": {
+          "displayName": "={{ $('Calculate Invoice Totals').item.json.customerName }}",
+          "primaryEmailAddr": {
+            "address": "={{ $('Calculate Invoice Totals').item.json.customerEmail }}"
+          },
+          "companyName": "={{ $('Calculate Invoice Totals').item.json.customerName }}"
+        }
+      },
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "quickbooks-cred-placeholder",
+          "name": "QuickBooks OAuth2"
+        }
+      }
+    },
+    {
+      "id": "create-invoice",
+      "name": "QuickBooks - Create Invoice",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [1680, 300],
+      "parameters": {
+        "operation": "create",
+        "resource": "invoice",
+        "additionalFields": {
+          "customerRef": {
+            "value": "={{ $json.Id || $('QuickBooks - Search Customer').item.json.Id }}"
+          },
+          "currencyRef": {
+            "value": "ZAR"
+          },
+          "txnDate": "={{ $('Calculate Invoice Totals').item.json.invoiceDate }}",
+          "line": [
+            {
+              "detailType": "SalesItemLineDetail",
+              "amount": "={{ $('Calculate Invoice Totals').item.json.itemTotal }}",
+              "description": "={{ $('Calculate Invoice Totals').item.json.description }}",
+              "salesItemLineDetail": {
+                "qty": "={{ $('Calculate Invoice Totals').item.json.weight }}",
+                "unitPrice": "={{ $('Calculate Invoice Totals').item.json.pricePerCut }}",
+                "taxCodeRef": {
+                  "value": "TAX"
+                }
+              }
+            }
+          ],
+          "txnTaxDetail": {
+            "totalTax": "={{ $('Calculate Invoice Totals').item.json.tax }}",
+            "txnTaxCodeRef": {
+              "value": "TAX"
+            },
+            "lines": [
+              {
+                "amount": "={{ $('Calculate Invoice Totals').item.json.tax }}",
+                "detailType": "TaxLineDetail",
+                "taxLineDetail": {
+                  "taxPercent": 15,
+                  "netAmountTaxable": "={{ $('Calculate Invoice Totals').item.json.subtotal }}"
+                }
+              }
+            ]
+          },
+          "customerMemo": {
+            "value": "=StudEx Meat - Invoice for {{ $('Calculate Invoice Totals').item.json.cut }} ({{ $('Calculate Invoice Totals').item.json.weight }}kg)"
+          },
+          "billEmail": {
+            "address": "={{ $('Calculate Invoice Totals').item.json.customerEmail }}"
+          }
+        }
+      },
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "quickbooks-cred-placeholder",
+          "name": "QuickBooks OAuth2"
+        }
+      }
+    },
+    {
+      "id": "upload-pdf",
+      "name": "Google Drive - Upload PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [1920, 300],
+      "parameters": {
+        "operation": "upload",
+        "name": "=Invoice-{{ $('QuickBooks - Create Invoice').item.json.DocNumber }}-{{ $('Calculate Invoice Totals').item.json.customerName.replace(/\\s+/g, '-') }}.pdf",
+        "folderId": {
+          "__rl": true,
+          "value": "GOOGLE_DRIVE_INVOICE_FOLDER_ID",
+          "mode": "id"
+        },
+        "options": {
+          "mimeType": "application/pdf"
+        },
+        "inputDataFieldName": "data"
+      },
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "gdrive-cred-placeholder",
+          "name": "Google Drive OAuth2"
+        }
+      }
+    },
+    {
+      "id": "send-email",
+      "name": "Gmail - Send Invoice",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2160, 300],
+      "parameters": {
+        "operation": "send",
+        "sendTo": "=info@studexmeat.com, {{ $('Calculate Invoice Totals').item.json.customerEmail }}",
+        "subject": "=New Invoice Generated - {{ $('Calculate Invoice Totals').item.json.customerName }}",
+        "message": "=Dear {{ $('Calculate Invoice Totals').item.json.customerName }},\n\nPlease find attached your invoice from StudEx Meat.\n\n--- Invoice Summary ---\nInvoice Number: {{ $('QuickBooks - Create Invoice').item.json.DocNumber }}\nDate: {{ $('Calculate Invoice Totals').item.json.invoiceDate }}\n\nItem: {{ $('Calculate Invoice Totals').item.json.cut }}\nMarble Score: {{ $('Calculate Invoice Totals').item.json.marbleScore }}\nWeight: {{ $('Calculate Invoice Totals').item.json.weight }}kg\nPrice per Cut: R{{ $('Calculate Invoice Totals').item.json.pricePerCut }}\n\nSubtotal: R{{ $('Calculate Invoice Totals').item.json.subtotal }}\nVAT (15%): R{{ $('Calculate Invoice Totals').item.json.tax }}\nGrand Total: R{{ $('Calculate Invoice Totals').item.json.grandTotal }}\n\nPayment is due within 30 days. Please reference the invoice number above in your payment.\n\nThank you for your business.\n\nKind regards,\nStudEx Meat\ninfo@studexmeat.com",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "data"
+              }
+            ]
+          }
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-cred-placeholder",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "id": "update-sheet",
+      "name": "Google Sheets - Mark Processed",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [2400, 300],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1tnBDwEA_BKJMLrXJEVr75YeVh5PK8kgoi9lCRz3k1XY",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Production",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Processed",
+            "Invoice ID": "={{ $('QuickBooks - Create Invoice').item.json.DocNumber }}",
+            "Invoice Date": "={{ $('Calculate Invoice Totals').item.json.invoiceDate }}",
+            "Grand Total": "={{ $('Calculate Invoice Totals').item.json.grandTotal }}"
+          }
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED",
+          "valueInputOption": "USER_ENTERED"
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gsheets-cred-placeholder",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Watch Production Sheet": {
+      "main": [
+        [
+          {
+            "node": "Filter Pending Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Pending Rows": {
+      "main": [
+        [
+          {
+            "node": "Calculate Invoice Totals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Invoice Totals": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks - Search Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks - Search Customer": {
+      "main": [
+        [
+          {
+            "node": "Customer Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Exists?": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks - Create Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "QuickBooks - Create Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks - Create Customer": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks - Create Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks - Create Invoice": {
+      "main": [
+        [
+          {
+            "node": "Google Drive - Upload PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive - Upload PDF": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Invoice": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Mark Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Stud-Ex",
+      "id": "tag-studex"
+    },
+    {
+      "name": "StudEx Meat",
+      "id": "tag-studex-meat"
+    },
+    {
+      "name": "Invoicing",
+      "id": "tag-invoicing"
+    },
+    {
+      "name": "QuickBooks",
+      "id": "tag-quickbooks"
+    }
+  ],
+  "triggerCount": 1,
+  "versionId": "1"
+}

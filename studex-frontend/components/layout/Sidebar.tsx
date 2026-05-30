@@ -13,6 +13,8 @@ import {
   X,
   Megaphone,
   Instagram,
+  ShoppingBag,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Input from '@/components/ui/Input';
@@ -24,6 +26,8 @@ interface SidebarProps {
 
 const sidebarLinks = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/store', icon: ShoppingBag, label: 'Meat Store' },
+  { href: '/meat-dashboard', icon: FileSpreadsheet, label: 'Meat Ops' },
   { href: '/marketing', icon: Megaphone, label: 'Marketing' },
   { href: '/marketing/instagram-analytics', icon: Instagram, label: 'IG Analytics' },
   { href: '/deals', icon: Briefcase, label: 'Deal Pipeline' },

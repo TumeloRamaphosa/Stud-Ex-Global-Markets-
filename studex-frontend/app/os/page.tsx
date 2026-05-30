@@ -597,6 +597,8 @@ export default function OSDashboard() {
                 { name: 'Perplexity', status: 'active', via: 'Direct API' },
                 { name: 'OpenRouter', status: 'active', via: 'Direct API' },
                 { name: 'Gemma 4', status: 'active', via: 'Google AI' },
+                { name: 'StudEx Meat', status: 'active', via: 'Internal Store' },
+                { name: 'QuickBooks', status: 'active', via: 'n8n Automation' },
                 { name: 'Shopify', status: 'expired', via: 'Composio' },
                 { name: 'Slack', status: 'expired', via: 'Composio' },
                 { name: 'WhatsApp', status: 'expired', via: 'Composio' },

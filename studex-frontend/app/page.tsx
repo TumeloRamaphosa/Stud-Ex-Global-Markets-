@@ -150,6 +150,7 @@ export default function LandingPage() {
           <PlatformPill icon={<Mail size={16} />} name="Gmail" active={true} />
           <PlatformPill icon={<MessageCircle size={16} />} name="Discord" active={true} />
           <PlatformPill icon={<Mic size={16} />} name="ElevenLabs" active={true} />
+          <PlatformPill icon={<ShoppingBag size={16} />} name="StudEx Meat" active={true} />
           <PlatformPill icon={<ShoppingBag size={16} />} name="Shopify" active={false} />
           <PlatformPill icon={<MessageCircle size={16} />} name="Slack" active={false} />
           <PlatformPill icon={<MessageCircle size={16} />} name="WhatsApp" active={false} />
