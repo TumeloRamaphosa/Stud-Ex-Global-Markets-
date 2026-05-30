@@ -38,6 +38,13 @@ services:
       - QUICKBOOKS_CLIENT_ID=${QUICKBOOKS_CLIENT_ID:-}
       - QUICKBOOKS_CLIENT_SECRET=${QUICKBOOKS_CLIENT_SECRET:-}
       - QUICKBOOKS_ENVIRONMENT=${QUICKBOOKS_ENVIRONMENT:-production}
+      # AgentMail (mass email campaigns)
+      - AGENTMAIL_API_KEY=${AGENTMAIL_API_KEY:-}
+      - AGENTMAIL_DOMAIN=${AGENTMAIL_DOMAIN:-agentmail.to}
+      - AGENTMAIL_INBOX_ID=${AGENTMAIL_INBOX_ID:-}
+      # CashClaw Agent channels
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
       # Internal service URLs
       - META_ADS_MCP_URL=http://mcp-meta-ads:3002
       - N8N_RUNNER_URL=http://n8n-runner:3003

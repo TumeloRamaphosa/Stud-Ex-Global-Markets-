@@ -15,6 +15,7 @@ import {
   Instagram,
   ShoppingBag,
   FileSpreadsheet,
+  Bot,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Input from '@/components/ui/Input';
@@ -28,6 +29,7 @@ const sidebarLinks = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/store', icon: ShoppingBag, label: 'Meat Store' },
   { href: '/meat-dashboard', icon: FileSpreadsheet, label: 'Meat Ops' },
+  { href: '/agent-dashboard', icon: Bot, label: 'CashClaw Agent' },
   { href: '/marketing', icon: Megaphone, label: 'Marketing' },
   { href: '/marketing/instagram-analytics', icon: Instagram, label: 'IG Analytics' },
   { href: '/deals', icon: Briefcase, label: 'Deal Pipeline' },
