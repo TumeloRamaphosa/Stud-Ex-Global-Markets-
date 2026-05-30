@@ -121,13 +121,16 @@ const monthlyRevenue = [
 
 // ── Integration statuses ────────────────────────────────────────────
 const integrations = [
-  { name: 'Fly.io',          status: 'active',  detail: 'Active ($5/month, JNB region)',   icon: Server  },
-  { name: 'n8n Cloud',       status: 'active',  detail: 'studexgroup.app.n8n.cloud',       icon: Cloud   },
-  { name: 'QuickBooks',      status: 'active',  detail: 'Connected - Invoice sync active', icon: Receipt },
-  { name: 'Google Sheets',   status: 'active',  detail: 'Production Sheet Connected',      icon: Database },
-  { name: 'Google Drive',    status: 'active',  detail: 'Invoice Upload Folder Connected', icon: HardDrive },
-  { name: 'Facebook MCP',    status: 'ready',   detail: 'Ready to connect',                icon: Share2  },
-  { name: 'Manus VM',        status: 'ready',   detail: 'Ready to connect',                icon: Plug    },
+  { name: 'Fly.io',          status: 'active',  detail: 'Active ($5/month, JNB region)',         icon: Server   },
+  { name: 'n8n Cloud',       status: 'active',  detail: 'studexgroup.app.n8n.cloud',             icon: Cloud    },
+  { name: 'n8n Runner',      status: 'active',  detail: 'Container on port 3003 (invoice API)',  icon: Package  },
+  { name: 'MCP Meta Ads',    status: 'active',  detail: 'Container on port 3002 (Facebook API)', icon: Share2   },
+  { name: 'Shopify',         status: 'active',  detail: 'studexmeat.myshopify.com (Perplexity)', icon: Database },
+  { name: 'QuickBooks',      status: 'active',  detail: 'Connected - Invoice sync active',       icon: Receipt  },
+  { name: 'Google Sheets',   status: 'active',  detail: 'Production Sheet Connected',            icon: Database },
+  { name: 'Google Drive',    status: 'active',  detail: 'Invoice Upload Folder Connected',       icon: HardDrive },
+  { name: 'Facebook MCP',    status: 'active',  detail: 'Meta Ads MCP Server (port 3002)',       icon: Share2   },
+  { name: 'Manus VM',        status: 'ready',   detail: 'Ready — connect via WireGuard',         icon: Plug     },
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -355,6 +358,7 @@ function InvoiceAutomation() {
     { name: 'Google Drive',  status: 'Active', detail: 'Invoice Upload Folder Connected', icon: HardDrive },
     { name: 'Gmail',         status: 'Active', detail: 'info@studexmeat.com',        icon: Mail     },
     { name: 'n8n Cloud',     status: 'Active', detail: 'studexgroup.app.n8n.cloud',  icon: Cloud    },
+    { name: 'n8n Runner',   status: 'Active', detail: 'Container :3003 → /api/n8n',  icon: Package  },
   ];
 
   const workflowSteps = [

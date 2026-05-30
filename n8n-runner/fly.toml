@@ -1,0 +1,23 @@
+app = "studex-n8n-runner"
+primary_region = "jnb"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3003"
+  N8N_BASE_URL = "https://studexgroup.app.n8n.cloud"
+  GOOGLE_SHEET_ID = "1tnBDwEA_BKJMLrXJEVr75YeVh5PK8kgoi9lCRz3k1XY"
+
+[http_service]
+  internal_port = 3003
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

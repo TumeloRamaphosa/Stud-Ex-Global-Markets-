@@ -1,0 +1,85 @@
+version: "3.8"
+
+# StudEx Global Markets — Full Stack Orchestration
+# Main app (Next.js) + MCP Meta Ads + n8n Workflow Runner
+# Deploy: docker compose up -d
+# Fly.io: each service has its own fly.toml for independent deploy
+
+services:
+  # ── Main App (Next.js) ──────────────────────────────────────────
+  # studexmeat.com / datanetics-app.fly.dev
+  app:
+    build:
+      context: ./studex-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Shopify connection (Perplexity pattern)
+      - SHOPIFY_STORE_DOMAIN=studexmeat.myshopify.com
+      - SHOPIFY_ACCESS_TOKEN=${SHOPIFY_ACCESS_TOKEN:-}
+      # Meta / Facebook
+      - META_ACCESS_TOKEN=${META_ACCESS_TOKEN:-}
+      - META_AD_ACCOUNT_ID=${META_AD_ACCOUNT_ID:-act_560666565541381}
+      - FACEBOOK_APP_ID=${FACEBOOK_APP_ID:-1649681979685968}
+      # LLMs
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY:-}
+      # Composio (Instagram, Gmail, Discord)
+      - COMPOSIO_API_KEY=${COMPOSIO_API_KEY:-}
+      # Internal service URLs
+      - META_ADS_MCP_URL=http://mcp-meta-ads:3002
+      - N8N_RUNNER_URL=http://n8n-runner:3003
+    depends_on:
+      - mcp-meta-ads
+      - n8n-runner
+    networks:
+      - studex-internal
+
+  # ── MCP Meta Ads Server ─────────────────────────────────────────
+  # Standalone Express server for Meta/Facebook Ads API
+  # Pattern: same as Perplexity built for Shopify proxy
+  mcp-meta-ads:
+    build:
+      context: ./mcp-meta-ads
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - META_ACCESS_TOKEN=${META_ACCESS_TOKEN:-}
+      - META_AD_ACCOUNT_ID=${META_AD_ACCOUNT_ID:-act_560666565541381}
+    networks:
+      - studex-internal
+
+  # ── n8n Workflow Runner ─────────────────────────────────────────
+  # Invoice automation bridge: Google Sheets → QuickBooks → Drive → Email
+  # Connects to studexgroup.app.n8n.cloud via API
+  n8n-runner:
+    build:
+      context: ./n8n-runner
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - N8N_BASE_URL=https://studexgroup.app.n8n.cloud
+      - N8N_API_KEY=${N8N_API_KEY:-}
+      - GOOGLE_SHEET_ID=1tnBDwEA_BKJMLrXJEVr75YeVh5PK8kgoi9lCRz3k1XY
+      - QUICKBOOKS_COMPANY_ID=${QUICKBOOKS_COMPANY_ID:-}
+      - QUICKBOOKS_ACCESS_TOKEN=${QUICKBOOKS_ACCESS_TOKEN:-}
+    networks:
+      - studex-internal
+
+networks:
+  studex-internal:
+    driver: bridge
+    # To connect to Manus VM, add this network to both:
+    #   1. Fly.io private networking (automatic for apps in same org)
+    #   2. Or WireGuard tunnel: flyctl wireguard create
+    # Fly.io apps talk via <app-name>.internal:port
+    # e.g., n8n-runner.internal:3003 from datanetics-app
