@@ -19,6 +19,14 @@ import { NextRequest, NextResponse } from 'next/server';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const SLACK_WEBHOOK = process.env.SLACK_WEBHOOK_URL || '';
 const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK_URL || '';
+const HERMES_URL = process.env.HERMES_AGENT_URL || 'http://localhost:3004';
+const WHATSAPP_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || '';
+const WHATSAPP_PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || '';
+
+// Flexible LLM config — switch between cloud API and local Ollama
+let LLM_PROVIDER = process.env.LLM_PROVIDER || 'anthropic';
+let OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
+let OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'hermes3:8b';
 
 const APP_BASE = process.env.NEXT_PUBLIC_APP_URL || '';
 
@@ -32,8 +40,32 @@ async function internalFetch(path: string, body: object) {
   return res.json();
 }
 
-async function callClaude(systemPrompt: string, userMessage: string): Promise<string> {
-  if (!ANTHROPIC_API_KEY) return '[Claude API key not configured — returning placeholder response]';
+async function callLLM(systemPrompt: string, userMessage: string, provider?: string, model?: string): Promise<string> {
+  const p = provider || LLM_PROVIDER;
+
+  if (p === 'ollama') {
+    const m = model || OLLAMA_MODEL;
+    try {
+      const res = await fetch(`${OLLAMA_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: m, stream: false,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage },
+          ],
+        }),
+      });
+      const data = await res.json();
+      return data.message?.content || '';
+    } catch {
+      return `[Ollama not reachable at ${OLLAMA_URL} — set LLM_PROVIDER=anthropic or start Ollama]`;
+    }
+  }
+
+  // Default: Anthropic Claude
+  if (!ANTHROPIC_API_KEY) return '[No API key configured — set ANTHROPIC_API_KEY or use LLM_PROVIDER=ollama]';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -42,7 +74,7 @@ async function callClaude(systemPrompt: string, userMessage: string): Promise<st
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
+      model: model || 'claude-sonnet-4-6',
       max_tokens: 2048,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
@@ -54,6 +86,24 @@ async function callClaude(systemPrompt: string, userMessage: string): Promise<st
   }
   const data = await res.json();
   return data.content?.[0]?.text || '';
+}
+
+async function sendWhatsApp(to: string, message: string) {
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_ID) return { skipped: true, reason: 'WhatsApp not configured' };
+  const res = await fetch(`https://graph.facebook.com/v20.0/${WHATSAPP_PHONE_ID}/messages`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'text',
+      text: { body: message },
+    }),
+  });
+  return res.json();
 }
 
 async function postToSlack(message: string, blocks?: object[]) {
@@ -165,7 +215,7 @@ export async function POST(req: NextRequest) {
         agentmail: mail || { error: 'Could not reach AgentMail' },
       };
 
-      const aiAnalysis = await callClaude(
+      const aiAnalysis = await callLLM(
         `You are CashClaw, the AI operations agent for StudEx Meat (studexmeat.com), a premium Wagyu and Ankole beef store in South Africa. Analyze the daily data and provide a concise operations report with 3 key insights and 2 action items. Keep it under 300 words. Use ZAR (R) for currency.`,
         `Today's data:\n${JSON.stringify(reportData, null, 2)}`
       );
@@ -208,7 +258,7 @@ export async function POST(req: NextRequest) {
       const topProducts = shopifyData.status === 'fulfilled' ? shopifyData.value : {};
       const meatData = analyticsHint.status === 'fulfilled' ? analyticsHint.value : {};
 
-      const content = await callClaude(
+      const content = await callLLM(
         `You are CashClaw, the AI content creator for StudEx Meat (studexmeat.com). Create ${type} content for ${plat}. Brand voice: premium, sophisticated, African heritage pride. Colours: gold (#D4A017) and cream. Always include a call to action. Use South African English.`,
         `Create a ${type} about ${prod}.\n\nTop selling products: ${JSON.stringify(topProducts?.top_products?.slice(0, 5) || [])}\n\nProduct catalog context: ${JSON.stringify(meatData?.wagyuRetail?.slice(0, 5) || [])}\n\nGenerate:\n1. Caption/text (with emojis + hashtags for social)\n2. Image prompt (for AI image generation)\n3. CTA (call to action)\n4. Best time to post\n5. A/B variant caption`
       );
@@ -262,7 +312,7 @@ export async function POST(req: NextRequest) {
         quickbooksRevenue: qb.status === 'fulfilled' ? qb.value : null,
       };
 
-      const analysis = await callClaude(
+      const analysis = await callLLM(
         `You are CashClaw, the revenue analyst for StudEx Meat. Analyze revenue data and provide: 1) Current performance assessment, 2) Top 3 revenue opportunities, 3) Recommended promotions to run this week, 4) Which products to push via email campaign. Be specific with numbers and actionable.`,
         JSON.stringify(revenueData)
       );
@@ -383,12 +433,77 @@ export async function POST(req: NextRequest) {
         meatPricing: meat.status === 'fulfilled' ? meat.value : null,
       };
 
-      const answer = await callClaude(
+      const answer = await callLLM(
         `You are CashClaw, the AI operations agent for StudEx Meat (studexmeat.com). You manage a premium Wagyu and Ankole beef store in South Africa. You have access to Shopify, QuickBooks, email campaigns (AgentMail), and can report to Slack/Discord. Answer questions about the business with specific data and actionable recommendations. Currency: ZAR (R).`,
         `Question: ${question}\n\nCurrent business data:\n${JSON.stringify(context, null, 2)}`
       );
 
       return NextResponse.json({ question, answer, context: Object.keys(context) });
+    }
+
+    // ─── WHATSAPP ──────────────────────────────────────────────────────
+
+    if (action === 'whatsapp_send') {
+      const { to, message } = body;
+      if (!to || !message) return NextResponse.json({ error: 'to and message required' }, { status: 400 });
+      const result = await sendWhatsApp(to, message);
+      return NextResponse.json(result);
+    }
+
+    if (action === 'whatsapp_order_update') {
+      const { to, orderNumber, status: orderStatus, details } = body;
+      if (!to) return NextResponse.json({ error: 'to (phone number) required' }, { status: 400 });
+      const msg = `🥩 *StudEx Meat — Order Update*\n\nOrder: #${orderNumber || 'N/A'}\nStatus: ${orderStatus || 'Processing'}\n${details || ''}\n\nReply to this message for support.`;
+      const result = await sendWhatsApp(to, msg);
+      return NextResponse.json(result);
+    }
+
+    // ─── HERMES COORDINATION ─────────────────────────────────────────
+
+    if (action === 'ask_hermes') {
+      try {
+        const res = await fetch(`${HERMES_URL}/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: body.question, provider: body.provider, model: body.model }),
+        });
+        const data = await res.json();
+        return NextResponse.json({ from: 'Hermes', ...data });
+      } catch (err: any) {
+        return NextResponse.json({ error: `Hermes Agent not reachable: ${err.message}` }, { status: 503 });
+      }
+    }
+
+    if (action === 'hermes_content') {
+      try {
+        const endpoint = body.contentType === 'video' ? '/video-script'
+          : body.contentType === 'image' ? '/image-prompt'
+          : body.contentType === 'email' ? '/email-campaign'
+          : '/social-post';
+        const res = await fetch(`${HERMES_URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        return NextResponse.json({ from: 'Hermes', ...data });
+      } catch (err: any) {
+        return NextResponse.json({ error: `Hermes Agent not reachable: ${err.message}` }, { status: 503 });
+      }
+    }
+
+    // ─── LLM CONFIG ──────────────────────────────────────────────────
+
+    if (action === 'llm_config') {
+      if (body.provider) LLM_PROVIDER = body.provider;
+      if (body.ollamaUrl) OLLAMA_URL = body.ollamaUrl;
+      if (body.ollamaModel) OLLAMA_MODEL = body.ollamaModel;
+      return NextResponse.json({
+        provider: LLM_PROVIDER,
+        ollamaUrl: OLLAMA_URL,
+        ollamaModel: OLLAMA_MODEL,
+        anthropicConfigured: !!ANTHROPIC_API_KEY,
+      });
     }
 
     return NextResponse.json(
@@ -398,6 +513,8 @@ export async function POST(req: NextRequest) {
           'daily_report', 'generate_content', 'run_email_campaign',
           'revenue_analysis', 'inventory_check', 'invoice_pipeline',
           'customer_outreach', 'report_slack', 'report_discord', 'ask_agent',
+          'whatsapp_send', 'whatsapp_order_update',
+          'ask_hermes', 'hermes_content', 'llm_config',
         ],
       },
       { status: 400 }

@@ -48,9 +48,11 @@ services:
       # Internal service URLs
       - META_ADS_MCP_URL=http://mcp-meta-ads:3002
       - N8N_RUNNER_URL=http://n8n-runner:3003
+      - HERMES_AGENT_URL=http://hermes-agent:3004
     depends_on:
       - mcp-meta-ads
       - n8n-runner
+      - hermes-agent
     networks:
       - studex-internal
 
@@ -87,6 +89,32 @@ services:
       - QUICKBOOKS_COMPANY_ID=${QUICKBOOKS_COMPANY_ID:-}
       - QUICKBOOKS_ACCESS_TOKEN=${QUICKBOOKS_ACCESS_TOKEN:-}
       - APP_URL=http://app:3000
+    networks:
+      - studex-internal
+
+  # ── Hermes Content Agent ───────────────────────────────────────
+  # Content creation agent — social posts, email copy, video scripts,
+  # image prompts. Runs on Ollama (local) or cloud APIs.
+  # Deploy to: Manus VM (35.196.24.245) for GPU access
+  hermes-agent:
+    build:
+      context: ./hermes-agent
+      dockerfile: Dockerfile
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+      - LLM_PROVIDER=${LLM_PROVIDER:-ollama}
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-hermes3:8b}
+      - LM_STUDIO_URL=${LM_STUDIO_URL:-http://host.docker.internal:1234}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY:-}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY:-}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+      - CASHCLAW_URL=http://app:3000/api/agent
     networks:
       - studex-internal
 
