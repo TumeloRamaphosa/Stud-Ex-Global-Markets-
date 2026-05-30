@@ -11,9 +11,10 @@ const N8N_API_KEY = process.env.N8N_API_KEY || '';
 // Google Sheets config
 const SHEET_ID = process.env.GOOGLE_SHEET_ID || '1tnBDwEA_BKJMLrXJEVr75YeVh5PK8kgoi9lCRz3k1XY';
 
-// QuickBooks config
+// QuickBooks config — proxied via main app's /api/quickbooks route
 const QB_COMPANY_ID = process.env.QUICKBOOKS_COMPANY_ID || '';
 const QB_ACCESS_TOKEN = process.env.QUICKBOOKS_ACCESS_TOKEN || '';
+const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 
 const VAT_RATE = 0.15;
 
@@ -271,10 +272,154 @@ app.get('/price-lookup', (req, res) => {
   res.json({ cut, found: true, prices });
 });
 
+// ===== QUICKBOOKS PROXY — calls /api/quickbooks on the main app =====
+
+async function qbAction(action, body = {}) {
+  const res = await fetch(`${APP_URL}/api/quickbooks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...body }),
+  });
+  return res.json();
+}
+
+// QuickBooks health
+app.get('/quickbooks', async (req, res) => {
+  try {
+    const data = await fetch(`${APP_URL}/api/quickbooks`);
+    res.json(await data.json());
+  } catch (err) {
+    res.json({ status: 'offline', error: err.message, appUrl: APP_URL });
+  }
+});
+
+// QuickBooks — search or create customer, then create invoice
+app.post('/quickbooks/create-invoice', async (req, res) => {
+  try {
+    const { customerName, customerEmail, items, memo } = req.body;
+    if (!customerName || !items?.length) {
+      return res.status(400).json({ error: 'customerName and items required' });
+    }
+
+    // Step 1: Search for customer
+    let customer = null;
+    const searchResult = await qbAction('customer_search', {
+      query: customerName,
+      searchEmail: customerEmail,
+    });
+
+    if (searchResult.customers?.length > 0) {
+      customer = searchResult.customers[0];
+    } else {
+      // Step 2: Create customer if not found
+      const createResult = await qbAction('customer_create', {
+        name: customerName,
+        email: customerEmail,
+      });
+      if (createResult.success) {
+        customer = createResult.customer;
+      } else {
+        return res.status(500).json({ error: 'Failed to create customer', detail: createResult });
+      }
+    }
+
+    // Step 3: Calculate line items with wholesale prices
+    const lineItems = items.map(item => {
+      const weight = parseFloat(item.weight) || 1;
+      let pricePerKg = parseFloat(item.pricePerKg) || 0;
+      if (!pricePerKg && WAGYU_PRICES[item.cut]) {
+        pricePerKg = WAGYU_PRICES[item.cut][item.marbleScore || '4/5'] || 0;
+      }
+      return {
+        description: `${item.cut || item.description} — Marble ${item.marbleScore || 'N/A'} — ${weight}kg`,
+        quantity: weight,
+        unitPrice: pricePerKg,
+        weight,
+        pricePerKg,
+        cut: item.cut,
+        marbleScore: item.marbleScore,
+      };
+    });
+
+    const subtotal = lineItems.reduce((s, l) => s + (l.quantity * l.unitPrice), 0);
+
+    // Step 4: Create invoice in QuickBooks
+    const invoiceResult = await qbAction('invoice_create', {
+      customerId: customer.id,
+      customerName: customer.name,
+      email: customerEmail,
+      items: lineItems,
+      memo: memo || `StudEx Meat Order — ${new Date().toISOString().slice(0, 10)}`,
+    });
+
+    if (!invoiceResult.success) {
+      return res.status(500).json({ error: 'Failed to create invoice', detail: invoiceResult });
+    }
+
+    // Step 5: Send invoice via email
+    if (customerEmail) {
+      await qbAction('invoice_send', {
+        invoiceId: invoiceResult.invoice.id,
+        email: customerEmail,
+      });
+    }
+
+    // Also send to info@studexmeat.com
+    await qbAction('invoice_send', {
+      invoiceId: invoiceResult.invoice.id,
+      email: 'info@studexmeat.com',
+    });
+
+    res.json({
+      success: true,
+      customer,
+      invoice: invoiceResult.invoice,
+      lineItems,
+      subtotal: Math.round(subtotal * 100) / 100,
+      vat: Math.round(subtotal * VAT_RATE * 100) / 100,
+      grandTotal: Math.round(subtotal * (1 + VAT_RATE) * 100) / 100,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// QuickBooks — get recent invoices
+app.get('/quickbooks/invoices', async (req, res) => {
+  try {
+    const data = await qbAction('invoices_recent', { limit: parseInt(req.query.limit) || 25 });
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// QuickBooks — get unpaid invoices
+app.get('/quickbooks/unpaid', async (req, res) => {
+  try {
+    const data = await qbAction('invoices_unpaid');
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// QuickBooks — get all customers
+app.get('/quickbooks/customers', async (req, res) => {
+  try {
+    const data = await qbAction('customers_all');
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// QuickBooks — record payment
+app.post('/quickbooks/payment', async (req, res) => {
+  try {
+    const data = await qbAction('payment_create', req.body);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {
   console.log(`StudEx n8n Workflow Runner on port ${PORT}`);
   console.log(`n8n instance: ${N8N_BASE}`);
   console.log(`n8n API key: ${N8N_API_KEY ? 'configured' : 'NOT SET'}`);
-  console.log(`QuickBooks: ${QB_ACCESS_TOKEN ? 'configured' : 'NOT SET'}`);
+  console.log(`QuickBooks: via ${APP_URL}/api/quickbooks`);
 });

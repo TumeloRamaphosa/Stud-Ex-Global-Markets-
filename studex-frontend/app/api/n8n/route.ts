@@ -104,6 +104,44 @@ export async function POST(req: Request) {
       return NextResponse.json(data);
     }
 
+    // ─── QUICKBOOKS (via n8n-runner) ───────────────────────────────────
+
+    if (action === 'qb_create_invoice') {
+      const data = await runnerFetch('/quickbooks/create-invoice', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerName: body.customerName,
+          customerEmail: body.customerEmail,
+          items: body.items,
+          memo: body.memo,
+        }),
+      });
+      return NextResponse.json(data);
+    }
+
+    if (action === 'qb_invoices') {
+      const data = await runnerFetch(`/quickbooks/invoices?limit=${body.limit || 25}`);
+      return NextResponse.json(data);
+    }
+
+    if (action === 'qb_unpaid') {
+      const data = await runnerFetch('/quickbooks/unpaid');
+      return NextResponse.json(data);
+    }
+
+    if (action === 'qb_customers') {
+      const data = await runnerFetch('/quickbooks/customers');
+      return NextResponse.json(data);
+    }
+
+    if (action === 'qb_payment') {
+      const data = await runnerFetch('/quickbooks/payment', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      return NextResponse.json(data);
+    }
+
     return NextResponse.json(
       {
         error: 'Unknown action',
@@ -115,6 +153,11 @@ export async function POST(req: Request) {
           'trigger_invoice',
           'pending_invoices',
           'price_lookup',
+          'qb_create_invoice',
+          'qb_invoices',
+          'qb_unpaid',
+          'qb_customers',
+          'qb_payment',
         ],
       },
       { status: 400 }
