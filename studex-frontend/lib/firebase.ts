@@ -1,6 +1,12 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import {
+  connectAuthEmulator,
+  getAuth,
+  GoogleAuthProvider,
+  setPersistence,
+  browserLocalPersistence,
+} from 'firebase/auth';
+import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -18,12 +24,20 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Auth with persistence
 const auth = getAuth(app);
+const db = getFirestore(app);
+
+if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
+  const authHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST ?? '127.0.0.1:9099';
+  const firestoreHost = process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_HOST ?? '127.0.0.1:8080';
+  const [firestoreHostname, firestorePort] = firestoreHost.split(':');
+
+  connectAuthEmulator(auth, `http://${authHost}`, { disableWarnings: true });
+  connectFirestoreEmulator(db, firestoreHostname, Number(firestorePort));
+}
+
 setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error('Error setting persistence:', error);
 });
-
-// Initialize Firestore
-const db = getFirestore(app);
 
 // Initialize Storage
 const storage = getStorage(app);

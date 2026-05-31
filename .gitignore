@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Next.js
+studex-frontend/.next/
+studex-frontend/out/
+studex-frontend/tsconfig.tsbuildinfo
+
+# Local env (use .env.local.example)
+studex-frontend/.env.local
+.env
+.env*.local
+
+# Firebase
+firebase-backend/firebase-debug.log
+firebase-backend/firestore-debug.log
+firebase-backend/functions/lib/
+firebase-backend/.firebase/
+
+# OS / editor
+.DS_Store
+*.log
