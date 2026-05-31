@@ -2,11 +2,16 @@ app = "datanetics-app"
 primary_region = "jnb"
 
 [build]
-  dockerfile = "../Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
   NODE_ENV = "production"
   PORT = "3000"
+  N8N_RUNNER_URL = "http://localhost:3003"
+  META_ADS_MCP_URL = "http://localhost:3002"
+  HERMES_AGENT_URL = "http://localhost:3004"
+  N8N_BASE_URL = "https://studexgroup.app.n8n.cloud"
+  GOOGLE_SHEET_ID = "1tnBDwEA_BKJMLrXJEVr75YeVh5PK8kgoi9lCRz3k1XY"
 
 [http_service]
   internal_port = 3000
