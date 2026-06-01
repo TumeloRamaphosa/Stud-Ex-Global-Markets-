@@ -1,0 +1,16 @@
+{
+  "name": "studex-n8n-runner",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "n8n Runner Express service for Studex Meat invoice automation",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "googleapis": "^140.0.1",
+    "node-fetch": "^3.3.2"
+  }
+}

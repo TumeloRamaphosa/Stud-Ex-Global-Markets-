@@ -1,0 +1,35 @@
+# Fly.io VM — 3 services (Hermes runs on Manus VM separately)
+# CashClaw :3000, MCP Meta Ads :3002, n8n Runner :3003
+
+FROM node:20-alpine
+
+RUN apk add --no-cache supervisor
+
+WORKDIR /app
+
+# Install n8n-runner
+COPY n8n-runner/package.json n8n-runner/package.json
+RUN cd n8n-runner && npm install --production
+
+# Install mcp-meta-ads
+COPY mcp-meta-ads/package.json mcp-meta-ads/package.json
+RUN cd mcp-meta-ads && npm install --production
+
+# Install studex-frontend (CashClaw)
+COPY studex-frontend/package.json studex-frontend/package-lock.json studex-frontend/
+RUN cd studex-frontend && npm ci
+
+# Copy all source
+COPY n8n-runner/ n8n-runner/
+COPY mcp-meta-ads/ mcp-meta-ads/
+COPY studex-frontend/ studex-frontend/
+
+# Build Next.js
+RUN cd studex-frontend && npm run build
+
+# Supervisor config
+COPY supervisord.conf /etc/supervisord.conf
+
+EXPOSE 3000 3002 3003
+
+CMD ["supervisord", "-c", "/etc/supervisord.conf"]

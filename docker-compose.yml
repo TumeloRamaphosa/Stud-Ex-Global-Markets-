@@ -1,0 +1,40 @@
+version: '3.8'
+
+# Fly.io VM — CashClaw + MCP Meta Ads + n8n Runner
+# Hermes runs on Manus VM (35.196.24.245:3004)
+
+services:
+  cashclaw:
+    build: ./studex-frontend
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      - N8N_RUNNER_URL=http://n8n-runner:3003
+      - MCP_META_ADS_URL=http://mcp-meta-ads:3002
+      - HERMES_URL=http://35.196.24.245:3004
+    depends_on:
+      - n8n-runner
+      - mcp-meta-ads
+    networks:
+      - studex-internal
+
+  mcp-meta-ads:
+    build: ./mcp-meta-ads
+    ports:
+      - "3002:3002"
+    env_file: .env
+    networks:
+      - studex-internal
+
+  n8n-runner:
+    build: ./n8n-runner
+    ports:
+      - "3003:3003"
+    env_file: .env
+    networks:
+      - studex-internal
+
+networks:
+  studex-internal:
+    driver: bridge

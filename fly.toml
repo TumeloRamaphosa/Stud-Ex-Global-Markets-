@@ -1,0 +1,41 @@
+# Studex Meat — Fly.io deployment
+# Single container (2GB RAM, 2 CPUs, JNB region)
+# All 4 services run via process groups
+
+app = "datanetics-app"
+primary_region = "jnb"
+
+[build]
+  dockerfile = "Dockerfile.fly"
+
+[env]
+  NODE_ENV = "production"
+  N8N_RUNNER_URL = "http://localhost:3003"
+  MCP_META_ADS_URL = "http://localhost:3002"
+  HERMES_URL = "http://localhost:3004"
+  OLLAMA_URL = "http://35.196.24.245:11434"
+  OLLAMA_MODEL_HERMES = "hermes3:8b"
+  OLLAMA_MODEL_CASHCLAW = "qwen3:30b"
+  CASHCLAW_URL = "https://datanetics-app.fly.dev"
+
+[[services]]
+  internal_port = 3000
+  protocol = "tcp"
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 80
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2gb"
+  cpus = 2
