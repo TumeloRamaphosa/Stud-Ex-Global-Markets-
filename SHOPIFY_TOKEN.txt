@@ -1,0 +1,33 @@
+SHOPIFY_STORE_DOMAIN=studexmeat.myshopify.com
+SHOPIFY_ACCESS_TOKEN=PLACEHOLDER_SEE_NOTE
+
+# ──────────────────────────────────────────────────────────────
+# NOTE FROM PERPLEXITY COMPUTER
+# ──────────────────────────────────────────────────────────────
+# The Shopify connector in Perplexity Computer manages the OAuth
+# token internally and does not expose the raw shpat_ token.
+#
+# To get the actual access token for your .env.local:
+#
+# OPTION 1 — Shopify Admin (fastest):
+#   1. Go to: https://admin.shopify.com/store/studexmeat/settings/apps/development
+#   2. Find the app connected to Perplexity Computer
+#   3. The token is shown there OR create a new Custom App:
+#      Apps → Develop apps → Create app → Admin API access scopes:
+#      read_orders, write_orders, read_products, write_products,
+#      read_inventory, write_inventory, read_customers, read_analytics
+#   4. Install app → copy the shpat_... token
+#
+# OPTION 2 — Use the existing token from DEPLOY-AND-SECRETS-BRIEF.md
+#   (already on this branch — check that file for SHOPIFY_ACCESS_TOKEN)
+#
+# ──────────────────────────────────────────────────────────────
+# WHAT TO DO WITH THIS FILE (Claude Code instructions):
+# 1. Get token via Option 1 above
+# 2. Add to studex-frontend/.env.local:
+#    SHOPIFY_STORE_DOMAIN=studexmeat.myshopify.com
+#    SHOPIFY_ACCESS_TOKEN=shpat_YOUR_TOKEN_HERE
+# 3. Add to Vercel environment variables at:
+#    https://vercel.com/tumeloramaphosa/datanetics/settings/environment-variables
+# 4. Delete this SHOPIFY_TOKEN.txt file
+# ──────────────────────────────────────────────────────────────
