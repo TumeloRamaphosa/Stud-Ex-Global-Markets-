@@ -1,0 +1,59 @@
+[build]
+  publish = "frontend/dist"
+  command = "cd frontend && npm run build"
+
+[functions]
+  directory = "functions"
+  python = "3.11"
+
+[[redirects]]
+  from = "/api/status"
+  to = "/.netlify/functions/status"
+  status = 200
+
+[[redirects]]
+  from = "/api/prompt_agent"
+  to = "/.netlify/functions/prompt_agent"
+  status = 200
+
+[[redirects]]
+  from = "/api/research_agent"
+  to = "/.netlify/functions/research_agent"
+  status = 200
+
+[[redirects]]
+  from = "/api/campaigns"
+  to = "/.netlify/functions/campaign_runner"
+  status = 200
+
+[[redirects]]
+  from = "/api/scraper"
+  to = "/.netlify/functions/web_scraper"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[dev]
+  command = "cd frontend && npm run dev"
+  port = 8888
+  autoLaunch = false
+
+# Environment variables for DenchClaw
+[build.environment]
+  PYTHON_VERSION = "3.11"
+
+# Function-specific settings
+[functions.campaign_runner]
+  timeout = 30
+
+[functions.web_scraper]
+  timeout = 60  # Scraping can take longer

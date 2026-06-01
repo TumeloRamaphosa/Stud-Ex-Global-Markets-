@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const FB_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
-const FB_PAGE_TOKEN = process.env.FACEBOOK_PAGE_TOKEN;
+const FB_PAGE_TOKEN = process.env.META_ACCESS_TOKEN || process.env.FACEBOOK_PAGE_TOKEN;
 const FB_API = `https://graph.facebook.com/v19.0`;
 
 async function fbFetch(endpoint: string, options?: RequestInit) {

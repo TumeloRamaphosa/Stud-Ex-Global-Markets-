@@ -1,6 +1,6 @@
 # Studex Meat — Fly.io deployment
 # Single container (2GB RAM, 2 CPUs, JNB region)
-# All 4 services run via process groups
+# All 4 services run inside one Fly machine
 
 app = "datanetics-app"
 primary_region = "jnb"

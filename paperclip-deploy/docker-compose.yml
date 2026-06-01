@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  paperclip:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3100:3100"
+    environment:
+      - NODE_ENV=production
+      - PORT=3100
+      - DATABASE_URL=postgres://paperclip:paperclip@postgres:5432/paperclip
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-paperclip-dev-secret-change-in-production}
+      - SERVE_UI=true
+    volumes:
+      - ./custom-assets:/app/ui/public/custom
+      - paperclip-data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - paperclip-network
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=paperclip
+      - POSTGRES_PASSWORD=paperclip
+      - POSTGRES_DB=paperclip
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paperclip"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - paperclip-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - paperclip
+    restart: unless-stopped
+    networks:
+      - paperclip-network
+
+volumes:
+  paperclip-data:
+  postgres-data:
+
+networks:
+  paperclip-network:
+    driver: bridge

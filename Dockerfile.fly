@@ -1,5 +1,5 @@
-# Fly.io VM — 3 services (Hermes runs on Manus VM separately)
-# CashClaw :3000, MCP Meta Ads :3002, n8n Runner :3003
+# Fly.io VM — single container with 4 local services
+# CashClaw :3000, MCP Meta Ads :3002, n8n Runner :3003, Hermes :3004
 
 FROM node:20-alpine
 
@@ -9,11 +9,15 @@ WORKDIR /app
 
 # Install n8n-runner
 COPY n8n-runner/package.json n8n-runner/package.json
-RUN cd n8n-runner && npm install --production
+RUN cd n8n-runner && npm install --omit=dev
 
 # Install mcp-meta-ads
 COPY mcp-meta-ads/package.json mcp-meta-ads/package.json
-RUN cd mcp-meta-ads && npm install --production
+RUN cd mcp-meta-ads && npm install --omit=dev
+
+# Install hermes-agent
+COPY hermes-agent/package.json hermes-agent/package.json
+RUN cd hermes-agent && npm install --omit=dev
 
 # Install studex-frontend (CashClaw)
 COPY studex-frontend/package.json studex-frontend/package-lock.json studex-frontend/
@@ -22,14 +26,21 @@ RUN cd studex-frontend && npm ci
 # Copy all source
 COPY n8n-runner/ n8n-runner/
 COPY mcp-meta-ads/ mcp-meta-ads/
+COPY hermes-agent/ hermes-agent/
 COPY studex-frontend/ studex-frontend/
 
 # Build Next.js
 RUN cd studex-frontend && npm run build
 
+# Make the standalone server self-sufficient for production runtime
+RUN cd studex-frontend/.next/standalone \
+  && mkdir -p .next \
+  && cp -r ../static .next/static \
+  && if [ -d ../../public ]; then cp -r ../../public ./public; fi
+
 # Supervisor config
 COPY supervisord.conf /etc/supervisord.conf
 
-EXPOSE 3000 3002 3003
+EXPOSE 3000 3002 3003 3004
 
 CMD ["supervisord", "-c", "/etc/supervisord.conf"]

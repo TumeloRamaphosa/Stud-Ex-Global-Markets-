@@ -22,6 +22,7 @@ interface Integration {
   name: string;
   status: 'connected' | 'disconnected' | 'error';
   lastSync: string;
+  checking: boolean;
 }
 
 const costData: CostRow[] = [
@@ -34,13 +35,6 @@ const costData: CostRow[] = [
   { cut: 'Picanha Cap', wholesaleCost: 290, retailPrice: 549, margin: 47.2, unit: '/kg' },
   { cut: 'Tomahawk Steak', wholesaleCost: 520, retailPrice: 899, margin: 42.2, unit: '/kg' },
   { cut: 'Fillet Mignon', wholesaleCost: 720, retailPrice: 1199, margin: 39.9, unit: '/kg' },
-];
-
-const integrations: Integration[] = [
-  { name: 'QuickBooks', status: 'connected', lastSync: '2 min ago' },
-  { name: 'Shopify', status: 'connected', lastSync: '5 min ago' },
-  { name: 'Google Sheets', status: 'connected', lastSync: '10 min ago' },
-  { name: 'n8n Workflows', status: 'connected', lastSync: '1 min ago' },
 ];
 
 const pipelineStages = [
@@ -59,12 +53,49 @@ export default function MeatDashboardPage() {
     { id: 'INV-005', customer: 'Cape Cuts Butchery', amount: 22000, status: 'paid', date: '2026-05-27' },
   ]);
 
+  const [integrations, setIntegrations] = useState<Integration[]>([
+    { name: 'QuickBooks', status: 'connected', lastSync: 'Checking...', checking: true },
+    { name: 'Shopify', status: 'connected', lastSync: 'Checking...', checking: true },
+    { name: 'Google Sheets', status: 'connected', lastSync: 'Checking...', checking: true },
+    { name: 'n8n Workflows', status: 'connected', lastSync: 'Checking...', checking: true },
+  ]);
+
   const [invoiceForm, setInvoiceForm] = useState({
     customerName: '', email: '', cut: '', weight: '', marbleScore: '',
   });
   const [invoiceStatus, setInvoiceStatus] = useState('');
+  const [invoiceCreating, setInvoiceCreating] = useState(false);
+  const [sheetsSyncStatus, setSheetsSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
 
+  // Check real integration statuses on mount
   useEffect(() => {
+    const checkIntegrations = async () => {
+      const endpoints = [
+        { name: 'QuickBooks', url: '/api/quickbooks?action=health' },
+        { name: 'Shopify', url: '/api/shopify?resource=orders&limit=1' },
+        { name: 'Google Sheets', url: '/api/sheets?action=health' },
+        { name: 'n8n Workflows', url: '/api/n8n' },
+      ];
+
+      const results = await Promise.all(
+        endpoints.map(async (ep) => {
+          try {
+            const res = await fetch(ep.url);
+            if (res.ok) {
+              return { name: ep.name, status: 'connected' as const, lastSync: 'Just now' };
+            }
+            return { name: ep.name, status: 'error' as const, lastSync: 'Failed' };
+          } catch {
+            return { name: ep.name, status: 'disconnected' as const, lastSync: 'Unreachable' };
+          }
+        })
+      );
+
+      setIntegrations(results.map(r => ({ ...r, checking: false })));
+    };
+
+    checkIntegrations();
+
     fetch('/api/quickbooks?action=invoices')
       .then((r) => r.json())
       .then((d) => { if (d.invoices) setInvoices(d.invoices); })
@@ -72,7 +103,12 @@ export default function MeatDashboardPage() {
   }, []);
 
   const createInvoice = async () => {
-    setInvoiceStatus('Creating invoice...');
+    if (!invoiceForm.customerName || !invoiceForm.cut || !invoiceForm.weight) {
+      setInvoiceStatus('Please fill in customer name, cut, and weight.');
+      return;
+    }
+    setInvoiceCreating(true);
+    setInvoiceStatus('Creating invoice via QuickBooks...');
     try {
       const res = await fetch('/api/quickbooks', {
         method: 'POST',
@@ -86,15 +122,38 @@ export default function MeatDashboardPage() {
             cut: invoiceForm.cut,
             marbleScore: invoiceForm.marbleScore,
             weight: parseFloat(invoiceForm.weight),
-            description: `${invoiceForm.cut} (Marble: ${invoiceForm.marbleScore})`,
+            description: `${invoiceForm.cut} (Marble: ${invoiceForm.marbleScore}) - ${invoiceForm.weight}kg`,
           }],
         }),
       });
       const data = await res.json();
-      setInvoiceStatus(data.ok ? `Invoice created: ${data.invoice?.Id}` : `Error: ${JSON.stringify(data)}`);
+      if (data.ok) {
+        setInvoiceStatus(`Invoice created successfully: ${data.invoice?.Id || 'ID pending'}`);
+        setInvoiceForm({ customerName: '', email: '', cut: '', weight: '', marbleScore: '' });
+      } else {
+        setInvoiceStatus(`Error: ${data.error || JSON.stringify(data)}`);
+      }
     } catch {
-      setInvoiceStatus('Failed to create invoice');
+      setInvoiceStatus('Failed to connect to QuickBooks API');
+    } finally {
+      setInvoiceCreating(false);
     }
+  };
+
+  const syncSheets = async () => {
+    setSheetsSyncStatus('syncing');
+    try {
+      const res = await fetch('/api/sheets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync' }),
+      });
+      const data = await res.json();
+      setSheetsSyncStatus(data.ok ? 'synced' : 'error');
+    } catch {
+      setSheetsSyncStatus('error');
+    }
+    setTimeout(() => setSheetsSyncStatus('idle'), 3000);
   };
 
   const statusColors: Record<string, string> = {
@@ -102,6 +161,12 @@ export default function MeatDashboardPage() {
     created: 'bg-blue-900/50 text-blue-400',
     sent: 'bg-purple-900/50 text-purple-400',
     paid: 'bg-green-900/50 text-green-400',
+  };
+
+  const integrationStatusColor = (status: string) => {
+    if (status === 'connected') return 'bg-green-400';
+    if (status === 'error') return 'bg-red-400';
+    return 'bg-gray-500';
   };
 
   return (
@@ -139,15 +204,48 @@ export default function MeatDashboardPage() {
               {integrations.map((intg) => (
                 <div key={intg.name} className="flex items-center justify-between bg-gray-800/50 border border-gray-800 rounded-lg px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${
-                      intg.status === 'connected' ? 'bg-green-400' :
-                      intg.status === 'error' ? 'bg-red-400' : 'bg-gray-500'
+                    <div className={`w-2.5 h-2.5 rounded-full ${
+                      intg.checking ? 'bg-yellow-400 animate-pulse' : integrationStatusColor(intg.status)
                     }`} />
-                    <span className="text-sm font-medium">{intg.name}</span>
+                    <div>
+                      <span className="text-sm font-medium">{intg.name}</span>
+                      <p className={`text-xs ${
+                        intg.status === 'connected' ? 'text-green-500' :
+                        intg.status === 'error' ? 'text-red-500' : 'text-gray-500'
+                      }`}>
+                        {intg.checking ? 'Checking...' : intg.status}
+                      </p>
+                    </div>
                   </div>
                   <span className="text-xs text-gray-500">{intg.lastSync}</span>
                 </div>
               ))}
+            </div>
+
+            {/* Google Sheets Sync */}
+            <div className="mt-5 pt-4 border-t border-gray-800">
+              <h3 className="text-sm font-semibold mb-3">Google Sheets Sync</h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    sheetsSyncStatus === 'syncing' ? 'bg-yellow-400 animate-pulse' :
+                    sheetsSyncStatus === 'synced' ? 'bg-green-400' :
+                    sheetsSyncStatus === 'error' ? 'bg-red-400' : 'bg-gray-500'
+                  }`} />
+                  <span className="text-xs text-gray-400">
+                    {sheetsSyncStatus === 'syncing' ? 'Syncing...' :
+                     sheetsSyncStatus === 'synced' ? 'Synced successfully' :
+                     sheetsSyncStatus === 'error' ? 'Sync failed' : 'Ready to sync'}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={syncSheets}
+                disabled={sheetsSyncStatus === 'syncing'}
+                className="w-full py-2 bg-green-600/20 border border-green-800/50 hover:bg-green-600/30 disabled:opacity-50 rounded-lg text-xs font-medium text-green-400 transition-colors"
+              >
+                {sheetsSyncStatus === 'syncing' ? 'Syncing...' : 'Sync Google Sheets'}
+              </button>
             </div>
           </div>
 
@@ -191,11 +289,19 @@ export default function MeatDashboardPage() {
             </div>
             <button
               onClick={createInvoice}
-              className="mt-4 w-full py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold transition-colors"
+              disabled={invoiceCreating}
+              className="mt-4 w-full py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg text-sm font-semibold transition-colors"
             >
-              Create Invoice (15% VAT)
+              {invoiceCreating ? 'Creating...' : 'Create Invoice (15% VAT)'}
             </button>
-            {invoiceStatus && <p className="text-xs text-gray-400 mt-2">{invoiceStatus}</p>}
+            {invoiceStatus && (
+              <p className={`text-xs mt-2 ${
+                invoiceStatus.startsWith('Error') || invoiceStatus.startsWith('Failed') || invoiceStatus.startsWith('Please')
+                  ? 'text-red-400' : invoiceStatus.includes('success') ? 'text-green-400' : 'text-gray-400'
+              }`}>
+                {invoiceStatus}
+              </p>
+            )}
           </div>
         </div>
 

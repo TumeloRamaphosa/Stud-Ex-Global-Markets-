@@ -98,12 +98,12 @@ export async function POST(req: NextRequest) {
       const config = getLLMConfig();
       const services = {
         llm: { status: 'ok', config },
-        whatsapp: { status: process.env.WHATSAPP_TOKEN ? 'configured' : 'not_configured' },
+        whatsapp: { status: process.env.WHATSAPP_ACCESS_TOKEN ? 'configured' : 'not_configured' },
         shopify: { status: process.env.SHOPIFY_ACCESS_TOKEN ? 'configured' : 'not_configured' },
         quickbooks: { status: process.env.QUICKBOOKS_CLIENT_ID ? 'configured' : 'not_configured' },
         n8n: { status: process.env.N8N_RUNNER_URL ? 'configured' : 'not_configured' },
         hermes: { status: process.env.HERMES_URL ? 'configured' : 'not_configured' },
-        facebook: { status: process.env.FACEBOOK_PAGE_TOKEN ? 'configured' : 'not_configured' },
+        facebook: { status: (process.env.META_ACCESS_TOKEN || process.env.FACEBOOK_PAGE_TOKEN) ? 'configured' : 'not_configured' },
       };
       return NextResponse.json({
         ok: true,

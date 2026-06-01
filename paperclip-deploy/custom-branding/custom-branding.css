@@ -1,0 +1,120 @@
+/**
+ * Custom Branding for Paperclip
+ * Replaces default Paperclip branding with your company branding
+ */
+
+:root {
+  /* Primary brand color - extracted from your gold logo */
+  --brand-primary: #D4AF37;
+  --brand-primary-light: #E5C76B;
+  --brand-primary-dark: #B8960C;
+  
+  /* Login page background */
+  --login-bg-image: url('/login-bg.jpg');
+  
+  /* Logo */
+  --logo-url: url('/logo.png');
+  
+  /* Custom color overrides */
+  --sidebar-bg: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  --header-bg: #0f0f23;
+}
+
+/* Login page custom background */
+.login-page,
+.auth-container {
+  background-image: var(--login-bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
+/* Overlay for better text readability on background */
+.login-page::before,
+.auth-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 0;
+}
+
+.login-content,
+.auth-box {
+  position: relative;
+  z-index: 1;
+  background: rgba(15, 15, 35, 0.9) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+/* Custom logo settings */
+.brand-logo,
+.sidebar-logo,
+.nav-logo {
+  content: var(--logo-url);
+  max-height: 40px;
+  width: auto;
+}
+
+/* Override primary color */
+.btn-primary,
+.button-primary,
+.primary-button {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+  border-color: var(--brand-primary);
+}
+
+.btn-primary:hover,
+.button-primary:hover {
+  background: linear-gradient(135deg, var(--brand-primary-light) 0%, var(--brand-primary) 100%);
+}
+
+/* Sidebar customization */
+.sidebar {
+  background: var(--sidebar-bg);
+}
+
+.sidebar-nav-item.active {
+  border-left-color: var(--brand-primary);
+  background: rgba(212, 175, 55, 0.1);
+}
+
+/* Header customization */
+.app-header,
+.top-bar {
+  background: var(--header-bg);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+/* Links */
+a,
+.link,
+.nav-link {
+  color: var(--brand-primary);
+}
+
+a:hover,
+.link:hover {
+  color: var(--brand-primary-light);
+}
+
+/* Accent elements */
+.accent,
+.highlight,
+.badge-primary {
+  color: var(--brand-primary);
+}
+
+/* Focus states */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+}

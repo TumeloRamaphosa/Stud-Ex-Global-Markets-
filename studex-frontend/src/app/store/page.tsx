@@ -10,29 +10,31 @@ interface Product {
   weight: string;
   pricePerKg: number;
   description: string;
+  color: string;
 }
 
 interface CartItem {
   product: Product;
   quantity: number;
+  weightKg: number;
 }
 
 const products: Product[] = [
-  { id: 1, name: 'Wagyu Ribeye A5', cut: 'Ribeye', marbleScore: 9, weight: '1kg', pricePerKg: 1299, description: 'Japanese-style A5 grade. Extreme marbling.' },
-  { id: 2, name: 'Wagyu Ribeye A4', cut: 'Ribeye', marbleScore: 7, weight: '1kg', pricePerKg: 999, description: 'Excellent marbling with rich beefy flavour.' },
-  { id: 3, name: 'Wagyu Striploin', cut: 'Striploin', marbleScore: 8, weight: '1kg', pricePerKg: 1099, description: 'Tender with beautiful fat distribution.' },
-  { id: 4, name: 'Prime Striploin', cut: 'Striploin', marbleScore: 5, weight: '1kg', pricePerKg: 699, description: 'Prime grade, ideal for grilling.' },
-  { id: 5, name: 'Full Packer Brisket', cut: 'Brisket', marbleScore: 4, weight: '5kg', pricePerKg: 349, description: 'Choice grade, perfect for smoking.' },
-  { id: 6, name: 'Wagyu Brisket', cut: 'Brisket', marbleScore: 7, weight: '5kg', pricePerKg: 599, description: 'Wagyu brisket for competition-level BBQ.' },
-  { id: 7, name: 'Picanha Cap', cut: 'Picanha', marbleScore: 5, weight: '1.5kg', pricePerKg: 549, description: 'Fat cap intact. The Brazilian favourite.' },
-  { id: 8, name: 'Wagyu Picanha', cut: 'Picanha', marbleScore: 7, weight: '1.5kg', pricePerKg: 799, description: 'Wagyu-grade rump cap. Exceptional.' },
-  { id: 9, name: 'Tomahawk Steak', cut: 'Ribeye', marbleScore: 6, weight: '1.2kg', pricePerKg: 899, description: 'Show-stopping bone-in ribeye.' },
-  { id: 10, name: 'Wagyu Cheek', cut: 'Other', marbleScore: 8, weight: '500g', pricePerKg: 449, description: 'Melt-in-your-mouth braising cut.' },
-  { id: 11, name: 'Short Rib Plate', cut: 'Other', marbleScore: 6, weight: '2kg', pricePerKg: 399, description: 'Cross-cut short ribs, great for Korean BBQ.' },
-  { id: 12, name: 'Fillet Mignon', cut: 'Fillet', marbleScore: 5, weight: '250g', pricePerKg: 1199, description: 'The most tender cut. Centre-cut portions.' },
+  { id: 1, name: 'Wagyu Ribeye', cut: 'Ribeye', marbleScore: 9, weight: '1kg', pricePerKg: 899, description: 'Intensely marbled, melt-in-your-mouth perfection. BMS 9+.', color: 'bg-red-900/60' },
+  { id: 2, name: 'Striploin', cut: 'Striploin', marbleScore: 7, weight: '1kg', pricePerKg: 749, description: 'Rich flavour with beautiful fat distribution.', color: 'bg-rose-900/60' },
+  { id: 3, name: 'Brisket', cut: 'Brisket', marbleScore: 4, weight: '1kg', pricePerKg: 399, description: 'Perfect for low-and-slow smoking. Full packer cut.', color: 'bg-amber-900/60' },
+  { id: 4, name: 'Picanha', cut: 'Picanha', marbleScore: 6, weight: '1kg', pricePerKg: 549, description: 'The king of Brazilian cuts. Fat cap intact.', color: 'bg-orange-900/60' },
+  { id: 5, name: 'Fillet', cut: 'Fillet', marbleScore: 5, weight: '1kg', pricePerKg: 999, description: 'The most tender cut. Centre-cut portions.', color: 'bg-red-800/60' },
+  { id: 6, name: 'T-bone', cut: 'T-bone', marbleScore: 5, weight: '1kg', pricePerKg: 699, description: 'Two steaks in one. Strip and tenderloin together.', color: 'bg-stone-800/60' },
+  { id: 7, name: 'Boerewors', cut: 'Sausage', marbleScore: 3, weight: '1kg', pricePerKg: 189, description: 'Authentic South African sausage. Coarse-ground.', color: 'bg-yellow-900/60' },
+  { id: 8, name: 'Lamb Chops', cut: 'Lamb', marbleScore: 4, weight: '1kg', pricePerKg: 449, description: 'Tender loin chops. Perfect on the braai.', color: 'bg-pink-900/60' },
+  { id: 9, name: 'Tomahawk Steak', cut: 'Ribeye', marbleScore: 6, weight: '1.2kg', pricePerKg: 899, description: 'Show-stopping bone-in ribeye.', color: 'bg-red-950/60' },
+  { id: 10, name: 'Wagyu Cheek', cut: 'Other', marbleScore: 8, weight: '500g', pricePerKg: 449, description: 'Melt-in-your-mouth braising cut.', color: 'bg-rose-950/60' },
+  { id: 11, name: 'Short Rib Plate', cut: 'Other', marbleScore: 6, weight: '2kg', pricePerKg: 399, description: 'Cross-cut short ribs, great for Korean BBQ.', color: 'bg-amber-950/60' },
+  { id: 12, name: 'Wagyu Brisket', cut: 'Brisket', marbleScore: 7, weight: '1kg', pricePerKg: 599, description: 'Wagyu brisket for competition-level BBQ.', color: 'bg-orange-950/60' },
 ];
 
-const cutTypes = ['All', 'Ribeye', 'Striploin', 'Brisket', 'Picanha', 'Fillet', 'Other'];
+const cutTypes = ['All', 'Ribeye', 'Striploin', 'Brisket', 'Picanha', 'Fillet', 'T-bone', 'Sausage', 'Lamb', 'Other'];
 const marbleRanges = ['All', '3-5', '6-7', '8-10'];
 const VAT_RATE = 0.15;
 
@@ -57,9 +59,9 @@ export default function StorePage() {
     setCart((prev) => {
       const existing = prev.find((c) => c.product.id === product.id);
       if (existing) {
-        return prev.map((c) => c.product.id === product.id ? { ...c, quantity: c.quantity + 1 } : c);
+        return prev.map((c) => c.product.id === product.id ? { ...c, quantity: c.quantity + 1, weightKg: c.weightKg + 1 } : c);
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product, quantity: 1, weightKg: 1 }];
     });
     setCartOpen(true);
   };
@@ -68,20 +70,29 @@ export default function StorePage() {
     setCart((prev) => prev.filter((c) => c.product.id !== productId));
   };
 
-  const updateQuantity = (productId: number, qty: number) => {
-    if (qty <= 0) { removeFromCart(productId); return; }
-    setCart((prev) => prev.map((c) => c.product.id === productId ? { ...c, quantity: qty } : c));
+  const updateQuantity = (productId: number, delta: number) => {
+    setCart((prev) => {
+      return prev.map((c) => {
+        if (c.product.id !== productId) return c;
+        const newQty = c.weightKg + delta;
+        if (newQty <= 0) return c;
+        return { ...c, quantity: newQty, weightKg: newQty };
+      }).filter(c => c.weightKg > 0);
+    });
   };
 
-  const subtotal = cart.reduce((s, c) => s + c.product.pricePerKg * c.quantity, 0);
-  const vat = subtotal * VAT_RATE;
+  const subtotal = cart.reduce((s, c) => s + c.product.pricePerKg * c.weightKg, 0);
+  const vat = Math.round(subtotal * VAT_RATE);
   const total = subtotal + vat;
 
   const checkoutWhatsApp = () => {
-    const items = cart.map((c) => `${c.quantity}x ${c.product.name} @ R${c.product.pricePerKg}`).join('%0A');
-    const msg = `Hi Studex Meat, I'd like to order:%0A%0A${items}%0A%0ASubtotal: R${subtotal.toLocaleString()}%0AVAT (15%%): R${vat.toFixed(2)}%0ATotal: R${total.toFixed(2)}`;
-    window.open(`https://wa.me/27600000000?text=${msg}`, '_blank');
+    const lines = cart.map(c => `- ${c.weightKg}kg ${c.product.name}`);
+    const message = `Hi! I'd like to order:\n${lines.join('\n')}\nTotal: R${total.toLocaleString()} (incl. VAT)`;
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/27XXXXXXXXXX?text=${encoded}`, '_blank');
   };
+
+  const cartCount = cart.reduce((s, c) => s + c.weightKg, 0);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -94,12 +105,12 @@ export default function StorePage() {
           </div>
           <button
             onClick={() => setCartOpen(!cartOpen)}
-            className="relative px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition-colors"
+            className="relative px-5 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition-colors"
           >
-            Cart ({cart.reduce((s, c) => s + c.quantity, 0)})
+            Cart ({cartCount}kg)
             {cart.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-400 rounded-full text-xs flex items-center justify-center font-bold">
-                {cart.reduce((s, c) => s + c.quantity, 0)}
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-400 rounded-full text-xs flex items-center justify-center font-bold">
+                {cart.length}
               </span>
             )}
           </button>
@@ -152,23 +163,23 @@ export default function StorePage() {
             {filtered.map((product) => (
               <div
                 key={product.id}
-                className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-red-800/50 transition-colors"
+                className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-red-800/50 transition-colors group"
               >
-                <div className="h-40 bg-gray-800 flex items-center justify-center">
-                  <span className="text-5xl opacity-20">🥩</span>
+                <div className={`h-40 ${product.color} flex items-center justify-center relative`}>
+                  <span className="text-5xl opacity-20 group-hover:opacity-30 transition-opacity select-none">{'\u{1F969}'}</span>
+                  <span className="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full bg-amber-900/60 text-amber-300 border border-amber-700/40 font-medium">
+                    BMS {product.marbleScore}
+                  </span>
                 </div>
                 <div className="p-5">
                   <div className="flex items-start justify-between mb-1">
                     <h3 className="font-semibold text-sm">{product.name}</h3>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-900/30 text-amber-400 border border-amber-800/30 shrink-0 ml-2">
-                      BMS {product.marbleScore}
-                    </span>
                   </div>
                   <p className="text-xs text-gray-500 mb-3">{product.description}</p>
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-lg font-bold text-red-400">R{product.pricePerKg.toLocaleString()}</span>
-                      <span className="text-xs text-gray-500 ml-1">/{product.weight}</span>
+                      <span className="text-xs text-gray-500 ml-1">/kg</span>
                     </div>
                     <button
                       onClick={() => addToCart(product)}
@@ -188,26 +199,41 @@ export default function StorePage() {
       {cartOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="absolute inset-0 bg-black/50" onClick={() => setCartOpen(false)} />
-          <div className="relative w-96 bg-gray-900 border-l border-gray-800 h-full flex flex-col">
+          <div className="relative w-[420px] bg-gray-900 border-l border-gray-800 h-full flex flex-col">
             <div className="p-6 border-b border-gray-800 flex items-center justify-between">
               <h2 className="text-lg font-bold">Your Cart</h2>
-              <button onClick={() => setCartOpen(false)} className="text-gray-500 hover:text-gray-300 text-xl">&times;</button>
+              <button onClick={() => setCartOpen(false)} className="text-gray-500 hover:text-gray-300 text-2xl leading-none">&times;</button>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {cart.length === 0 && <p className="text-gray-500 text-sm text-center py-8">Your cart is empty</p>}
               {cart.map((item) => (
                 <div key={item.product.id} className="bg-gray-800/50 border border-gray-800 rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="text-sm font-medium">{item.product.name}</h4>
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h4 className="text-sm font-medium">{item.product.name}</h4>
+                      <p className="text-xs text-gray-500">R{item.product.pricePerKg}/kg</p>
+                    </div>
                     <button onClick={() => removeFromCart(item.product.id)} className="text-gray-500 hover:text-red-400 text-xs">Remove</button>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="w-7 h-7 bg-gray-700 rounded text-sm hover:bg-gray-600">-</button>
-                      <span className="text-sm w-6 text-center">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="w-7 h-7 bg-gray-700 rounded text-sm hover:bg-gray-600">+</button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => updateQuantity(item.product.id, -1)}
+                        className="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium flex items-center justify-center transition-colors"
+                      >
+                        -
+                      </button>
+                      <div className="w-16 text-center">
+                        <span className="text-sm font-semibold">{item.weightKg}kg</span>
+                      </div>
+                      <button
+                        onClick={() => updateQuantity(item.product.id, 1)}
+                        className="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium flex items-center justify-center transition-colors"
+                      >
+                        +
+                      </button>
                     </div>
-                    <span className="text-sm font-semibold text-red-400">R{(item.product.pricePerKg * item.quantity).toLocaleString()}</span>
+                    <span className="text-sm font-bold text-red-400">R{(item.product.pricePerKg * item.weightKg).toLocaleString()}</span>
                   </div>
                 </div>
               ))}
@@ -220,11 +246,11 @@ export default function StorePage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">VAT (15%)</span>
-                  <span>R{vat.toFixed(2)}</span>
+                  <span>R{vat.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-800">
+                <div className="flex justify-between text-base font-bold pt-3 border-t border-gray-800">
                   <span>Total</span>
-                  <span className="text-red-400">R{total.toFixed(2)}</span>
+                  <span className="text-red-400">R{total.toLocaleString()}</span>
                 </div>
                 <button
                   onClick={checkoutWhatsApp}
@@ -232,6 +258,9 @@ export default function StorePage() {
                 >
                   Checkout via WhatsApp
                 </button>
+                <p className="text-xs text-gray-600 text-center">
+                  Opens WhatsApp with your order summary
+                </p>
               </div>
             )}
           </div>

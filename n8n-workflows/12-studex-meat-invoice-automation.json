@@ -1,0 +1,437 @@
+{
+  "name": "Studex Meat Invoice Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "studex-meat-invoice",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "studex-meat-invoice"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Sheet1"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Pending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000002",
+      "name": "Google Sheets Read",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [480, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PLACEHOLDER_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "customer",
+        "operation": "getAll",
+        "filters": {
+          "query": "={{$json[\"customerName\"]}}"
+        },
+        "limit": 1
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000003",
+      "name": "QuickBooks Customer Search",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [720, 300],
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "PLACEHOLDER_QUICKBOOKS_CREDENTIAL_ID",
+          "name": "QuickBooks OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json[\"QueryResponse\"][\"Customer\"]?.length || 0}}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000004",
+      "name": "IF Customer Not Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "resource": "customer",
+        "operation": "create",
+        "additionalFields": {
+          "displayName": "={{$node[\"Webhook Trigger\"].json[\"customerName\"]}}",
+          "primaryEmailAddr": {
+            "address": "={{$node[\"Webhook Trigger\"].json[\"email\"]}}"
+          }
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000005",
+      "name": "QuickBooks Create Customer",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [1200, 180],
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "PLACEHOLDER_QUICKBOOKS_CREDENTIAL_ID",
+          "name": "QuickBooks OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "invoice",
+        "operation": "create",
+        "additionalFields": {
+          "customerRef": "={{$json[\"Customer\"] ? $json[\"Customer\"][\"Id\"] : $json[\"Id\"]}}",
+          "line": "={{$node[\"Webhook Trigger\"].json[\"items\"].map((item, i) => ({\"Amount\": (item.weight * 100).toFixed(2), \"DetailType\": \"SalesItemLineDetail\", \"Description\": item.description + \" | Cut: \" + item.cut + \" | Weight: \" + item.weight + \"kg | Marble Score: \" + item.marbleScore, \"SalesItemLineDetail\": {\"Qty\": item.weight, \"UnitPrice\": 100}}))}}",
+          "globalTaxCalculation": "TaxExcluded",
+          "txnTaxDetail": {
+            "totalTax": "={{$node[\"Webhook Trigger\"].json[\"items\"].reduce((sum, item) => sum + (item.weight * 100 * 0.15), 0).toFixed(2)}}",
+            "txnTaxCodeRef": "VAT"
+          },
+          "billEmail": {
+            "address": "={{$node[\"Webhook Trigger\"].json[\"email\"]}}"
+          }
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000006",
+      "name": "QuickBooks Create Invoice",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [1440, 300],
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "PLACEHOLDER_QUICKBOOKS_CREDENTIAL_ID",
+          "name": "QuickBooks OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "invoice",
+        "operation": "send",
+        "invoiceId": "={{$json[\"Invoice\"][\"Id\"]}}",
+        "emailAddress": "={{$node[\"Webhook Trigger\"].json[\"email\"]}}"
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000007",
+      "name": "QuickBooks Send Invoice",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [1680, 300],
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "PLACEHOLDER_QUICKBOOKS_CREDENTIAL_ID",
+          "name": "QuickBooks OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "invoice",
+        "operation": "send",
+        "invoiceId": "={{$node[\"QuickBooks Create Invoice\"].json[\"Invoice\"][\"Id\"]}}",
+        "emailAddress": "info@studexmeat.com"
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000008",
+      "name": "QuickBooks Send Invoice Copy",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [1920, 300],
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "PLACEHOLDER_QUICKBOOKS_CREDENTIAL_ID",
+          "name": "QuickBooks OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "invoice",
+        "operation": "get",
+        "invoiceId": "={{$node[\"QuickBooks Create Invoice\"].json[\"Invoice\"][\"Id\"]}}",
+        "download": true,
+        "options": {
+          "accept": "application/pdf"
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000009",
+      "name": "QuickBooks Get PDF",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [2160, 300],
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "PLACEHOLDER_QUICKBOOKS_CREDENTIAL_ID",
+          "name": "QuickBooks OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "name": "=Invoice-{{$node[\"QuickBooks Create Invoice\"].json[\"Invoice\"][\"DocNumber\"]}}-{{$node[\"Webhook Trigger\"].json[\"customerName\"]}}.pdf",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000010",
+      "name": "Google Drive Upload",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [2400, 300],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PLACEHOLDER_GOOGLE_DRIVE_CREDENTIAL_ID",
+          "name": "Google Drive OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Processed",
+            "InvoiceId": "={{$node[\"QuickBooks Create Invoice\"].json[\"Invoice\"][\"Id\"]}}",
+            "ProcessedAt": "={{new Date().toISOString()}}"
+          }
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000011",
+      "name": "Google Sheets Update",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [2640, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PLACEHOLDER_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "#invoices",
+        "text": "=:receipt: Invoice created for *{{$node[\"Webhook Trigger\"].json[\"customerName\"]}}*\nInvoice #: {{$node[\"QuickBooks Create Invoice\"].json[\"Invoice\"][\"DocNumber\"]}}\nTotal: R{{$node[\"QuickBooks Create Invoice\"].json[\"Invoice\"][\"TotalAmt\"]}}\nPDF uploaded to Google Drive.",
+        "otherOptions": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000012",
+      "name": "Slack Notification",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [2880, 300],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACK_CREDENTIAL_ID",
+          "name": "Slack OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Read": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks Customer Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks Customer Search": {
+      "main": [
+        [
+          {
+            "node": "IF Customer Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Customer Not Found": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks Create Customer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "QuickBooks Create Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks Create Customer": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks Create Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks Create Invoice": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks Send Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks Send Invoice": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks Send Invoice Copy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks Send Invoice Copy": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks Get PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks Get PDF": {
+      "main": [
+        [
+          {
+            "node": "Google Drive Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Upload": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Update": {
+      "main": [
+        [
+          {
+            "node": "Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Studex Meat",
+      "createdAt": "2026-01-15T00:00:00.000Z",
+      "updatedAt": "2026-01-15T00:00:00.000Z"
+    },
+    {
+      "name": "Invoice Automation",
+      "createdAt": "2026-01-15T00:00:00.000Z",
+      "updatedAt": "2026-01-15T00:00:00.000Z"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-06-01T00:00:00.000Z",
+  "versionId": "1"
+}

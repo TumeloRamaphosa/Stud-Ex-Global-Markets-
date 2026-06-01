@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Netlify Functions
+functions/__pycache__/
+.netlify/
+
+# Environment
+.env
+.env.local
+.env.production
+.venv
+venv/
+ENV/
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+studex-frontend/node_modules/
+studex-frontend/.next/
+studex-frontend/dist/
+hermes-agent/node_modules/
+mcp-meta-ads/node_modules/
+n8n-runner/node_modules/
+packages/*/node_modules/
+packages/*/dist/
+.npm-cache/
+.next/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Logs
+*.log
+
+# Local backend
+backend/__pycache__/
+*.db
+sqlite.db
+Decepticon/
+paperclip/

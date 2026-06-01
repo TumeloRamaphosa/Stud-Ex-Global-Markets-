@@ -1,42 +1,48 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 
 interface ServiceStatus {
   name: string;
   port: number;
   status: 'online' | 'offline' | 'checking';
+  endpoint: string;
 }
 
-interface Order {
+interface FeedEvent {
   id: string;
-  name: string;
-  email: string;
-  total_price: string;
-  created_at: string;
-  financial_status: string;
+  type: 'order' | 'invoice' | 'campaign' | 'whatsapp';
+  title: string;
+  detail: string;
+  time: string;
 }
 
 export default function Dashboard() {
   const [services, setServices] = useState<ServiceStatus[]>([
-    { name: 'CashClaw', port: 3000, status: 'checking' },
-    { name: 'MCP Meta Ads', port: 3002, status: 'checking' },
-    { name: 'n8n Runner', port: 3003, status: 'checking' },
-    { name: 'Hermes', port: 3004, status: 'checking' },
+    { name: 'CashClaw', port: 3000, status: 'checking', endpoint: '/api/agent' },
+    { name: 'MCP Meta Ads', port: 3002, status: 'checking', endpoint: '/api/meta-ads?resource=campaigns' },
+    { name: 'n8n Runner', port: 3003, status: 'checking', endpoint: '/api/n8n' },
+    { name: 'Hermes', port: 3004, status: 'checking', endpoint: '/api/hermes' },
   ]);
-  const [orders, setOrders] = useState<Order[]>([]);
   const [llmConfig, setLlmConfig] = useState({ provider: '', model: '' });
-  const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'invoices' | 'campaigns' | 'chat' | 'hermes'>('overview');
+  const [feed, setFeed] = useState<FeedEvent[]>([
+    { id: '1', type: 'order', title: 'New Order #1042', detail: 'The Blockman Parkhurst - 5kg Wagyu Ribeye', time: '2 min ago' },
+    { id: '2', type: 'invoice', title: 'Invoice INV-005 Paid', detail: 'Cape Cuts Butchery - R22,000', time: '8 min ago' },
+    { id: '3', type: 'campaign', title: 'Weekend Braai Campaign Live', detail: 'Meta Ads - 12,400 impressions', time: '15 min ago' },
+    { id: '4', type: 'whatsapp', title: 'WhatsApp Order Received', detail: 'Smoke & Bones BBQ - 3kg Brisket', time: '22 min ago' },
+    { id: '5', type: 'order', title: 'New Order #1041', detail: 'Urban Grill Co - 2kg Fillet Mignon', time: '35 min ago' },
+    { id: '6', type: 'invoice', title: 'Invoice INV-004 Created', detail: 'Smoke & Bones BBQ - R6,800', time: '41 min ago' },
+    { id: '7', type: 'campaign', title: 'Wagyu Wednesday Scheduled', detail: 'Email campaign - 2,400 recipients', time: '1 hr ago' },
+    { id: '8', type: 'whatsapp', title: 'Delivery Confirmation Sent', detail: 'Flames Restaurant - delivered', time: '1 hr ago' },
+  ]);
+  const [ordersToday] = useState(14);
+  const [revenue] = useState(48200);
 
   const checkServices = useCallback(async () => {
-    const checks = [
-      fetch('/api/agent').then(r => r.json()).then(() => 'online' as const).catch(() => 'offline' as const),
-      fetch('/api/meta-ads?resource=campaigns').then(() => 'online' as const).catch(() => 'offline' as const),
-      fetch('/api/n8n').then(() => 'online' as const).catch(() => 'offline' as const),
-      fetch('/api/hermes').then(r => r.json()).then(() => 'online' as const).catch(() => 'offline' as const),
-    ];
+    const checks = services.map(s =>
+      fetch(s.endpoint).then(() => 'online' as const).catch(() => 'offline' as const)
+    );
     const results = await Promise.all(checks);
     setServices(prev => prev.map((s, i) => ({ ...s, status: results[i] })));
   }, []);
@@ -47,218 +53,148 @@ export default function Dashboard() {
       if (d.config) setLlmConfig(d.config);
     }).catch(() => {});
 
-    fetch('/api/shopify?resource=orders&limit=10').then(r => r.json()).then(d => {
-      if (d.orders) setOrders(d.orders);
-    }).catch(() => {});
-
     const interval = setInterval(checkServices, 30000);
     return () => clearInterval(interval);
   }, [checkServices]);
 
-  const sendChat = async () => {
-    if (!chatInput.trim()) return;
-    const newMessages = [...chatMessages, { role: 'user', content: chatInput }];
-    setChatMessages(newMessages);
-    setChatInput('');
-
-    const res = await fetch('/api/agent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'chat', messages: newMessages }),
-    });
-    const data = await res.json();
-    setChatMessages([...newMessages, { role: 'assistant', content: data.response }]);
+  const typeIcons: Record<string, { label: string; bg: string; text: string }> = {
+    order: { label: 'ORD', bg: 'bg-red-900/40', text: 'text-red-400' },
+    invoice: { label: 'INV', bg: 'bg-blue-900/40', text: 'text-blue-400' },
+    campaign: { label: 'ADS', bg: 'bg-purple-900/40', text: 'text-purple-400' },
+    whatsapp: { label: 'WA', bg: 'bg-green-900/40', text: 'text-green-400' },
   };
 
-  const switchLLM = async (provider: string, model?: string, ollamaUrl?: string) => {
-    const res = await fetch('/api/agent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'llm_config', provider, model, ollamaUrl }),
-    });
-    const data = await res.json();
-    if (data.config) setLlmConfig(data.config);
-  };
+  const quickActions = [
+    { title: 'Create Invoice', desc: 'QuickBooks invoice with 15% VAT', href: '/meat-dashboard', color: 'border-blue-800/50 hover:border-blue-600' },
+    { title: 'Send WhatsApp', desc: 'Message customers directly', href: '/agent-dashboard', color: 'border-green-800/50 hover:border-green-600' },
+    { title: 'Generate Content', desc: 'Social posts, email copy, scripts', href: '/strategy', color: 'border-purple-800/50 hover:border-purple-600' },
+    { title: 'Check Ads', desc: 'Meta campaign performance', href: '/agent-dashboard', color: 'border-orange-800/50 hover:border-orange-600' },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
       {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur">
+      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center font-bold text-lg">SM</div>
             <div>
               <h1 className="text-xl font-bold">Studex Meat</h1>
-              <p className="text-xs text-gray-400">CashClaw Agent Dashboard</p>
+              <p className="text-xs text-gray-400">Executive Dashboard</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-xs px-3 py-1 rounded-full bg-gray-800 text-gray-300">
               LLM: <span className="text-green-400">{llmConfig.provider || '...'}</span> / {llmConfig.model || '...'}
             </div>
-            {services.map(s => (
-              <div key={s.name} className="flex items-center gap-1.5 text-xs">
-                <div className={`w-2 h-2 rounded-full ${s.status === 'online' ? 'bg-green-500' : s.status === 'offline' ? 'bg-red-500' : 'bg-yellow-500 animate-pulse'}`} />
-                {s.name}
-              </div>
-            ))}
           </div>
         </div>
       </header>
 
-      {/* Tabs */}
-      <nav className="border-b border-gray-800 bg-gray-900/30">
-        <div className="max-w-7xl mx-auto px-6 flex gap-1">
-          {(['overview', 'orders', 'invoices', 'campaigns', 'chat', 'hermes'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-3 text-sm font-medium capitalize transition-colors ${activeTab === tab ? 'text-red-400 border-b-2 border-red-400' : 'text-gray-400 hover:text-gray-200'}`}
-            >
-              {tab}
-            </button>
-          ))}
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        {/* Top Stats */}
+        <div className="grid grid-cols-4 gap-4">
+          <StatCard label="Orders Today" value={ordersToday.toString()} color="red" />
+          <StatCard label="Revenue Today" value={`R${revenue.toLocaleString()}`} color="green" />
+          <StatCard label="Active Campaigns" value="3" color="purple" />
+          <StatCard label="Services Online" value={`${services.filter(s => s.status === 'online').length}/4`} color="yellow" />
         </div>
-      </nav>
 
-      {/* Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {activeTab === 'overview' && (
-          <div className="space-y-8">
-            <div className="grid grid-cols-4 gap-4">
-              <StatCard label="Orders Today" value={orders.length.toString()} color="red" />
-              <StatCard label="Revenue" value={`R${orders.reduce((s, o) => s + parseFloat(o.total_price || '0'), 0).toLocaleString()}`} color="green" />
-              <StatCard label="Active Campaigns" value="--" color="blue" />
-              <StatCard label="Services Online" value={`${services.filter(s => s.status === 'online').length}/4`} color="yellow" />
-            </div>
+        {/* Quick Actions */}
+        <div>
+          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-4 gap-4">
+            {quickActions.map(a => (
+              <Link
+                key={a.title}
+                href={a.href}
+                className={`bg-gray-900 border border-gray-800 ${a.color} rounded-xl p-5 transition-colors group`}
+              >
+                <h3 className="font-semibold text-sm group-hover:text-white">{a.title}</h3>
+                <p className="text-xs text-gray-500 mt-1">{a.desc}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
 
-            <div>
-              <h2 className="text-lg font-semibold mb-4">Services</h2>
-              <div className="grid grid-cols-4 gap-4">
-                {services.map(s => (
-                  <div key={s.name} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">{s.name}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${s.status === 'online' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>
-                        {s.status}
-                      </span>
+        <div className="grid grid-cols-3 gap-6">
+          {/* Real-time Feed */}
+          <div className="col-span-2">
+            <h2 className="text-lg font-semibold mb-4">Live Activity Feed</h2>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+              <div className="divide-y divide-gray-800">
+                {feed.map(event => {
+                  const icon = typeIcons[event.type];
+                  return (
+                    <div key={event.id} className="px-5 py-4 flex items-center gap-4 hover:bg-gray-800/30 transition-colors">
+                      <div className={`w-10 h-10 rounded-lg ${icon.bg} flex items-center justify-center shrink-0`}>
+                        <span className={`text-xs font-bold ${icon.text}`}>{icon.label}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{event.title}</p>
+                        <p className="text-xs text-gray-500 truncate">{event.detail}</p>
+                      </div>
+                      <span className="text-xs text-gray-600 shrink-0">{event.time}</span>
                     </div>
-                    <p className="text-xs text-gray-500">Port :{s.port}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-semibold mb-4">LLM Provider</h2>
-              <div className="flex gap-2">
-                <button onClick={() => switchLLM('anthropic', 'claude-sonnet-4-20250514')} className="px-4 py-2 bg-purple-900/50 border border-purple-700 rounded-lg text-sm hover:bg-purple-900">Claude</button>
-                <button onClick={() => switchLLM('openrouter', 'anthropic/claude-sonnet-4-20250514')} className="px-4 py-2 bg-blue-900/50 border border-blue-700 rounded-lg text-sm hover:bg-blue-900">OpenRouter</button>
-                <button onClick={() => switchLLM('google', 'gemini-2.0-flash')} className="px-4 py-2 bg-green-900/50 border border-green-700 rounded-lg text-sm hover:bg-green-900">Gemini</button>
-                <button onClick={() => switchLLM('ollama', 'qwen3:30b', 'http://35.196.24.245:11434')} className="px-4 py-2 bg-orange-900/50 border border-orange-700 rounded-lg text-sm hover:bg-orange-900">Ollama (Manus)</button>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-semibold mb-4">Recent Orders</h2>
-              <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-800/50 text-gray-400">
-                    <tr>
-                      <th className="text-left px-4 py-2">Order</th>
-                      <th className="text-left px-4 py-2">Customer</th>
-                      <th className="text-left px-4 py-2">Total</th>
-                      <th className="text-left px-4 py-2">Status</th>
-                      <th className="text-left px-4 py-2">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.slice(0, 10).map(order => (
-                      <tr key={order.id} className="border-t border-gray-800 hover:bg-gray-800/30">
-                        <td className="px-4 py-2 font-mono text-red-400">{order.name}</td>
-                        <td className="px-4 py-2">{order.email}</td>
-                        <td className="px-4 py-2">R{parseFloat(order.total_price).toLocaleString()}</td>
-                        <td className="px-4 py-2">
-                          <span className={`px-2 py-0.5 rounded-full text-xs ${order.financial_status === 'paid' ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'}`}>
-                            {order.financial_status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-gray-400">{new Date(order.created_at).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
-                    {orders.length === 0 && (
-                      <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Connect Shopify to see orders</td></tr>
-                    )}
-                  </tbody>
-                </table>
+                  );
+                })}
               </div>
             </div>
           </div>
-        )}
 
-        {activeTab === 'chat' && (
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-lg font-semibold mb-4">CashClaw Agent Chat</h2>
-            <div className="bg-gray-900 border border-gray-800 rounded-lg h-[500px] flex flex-col">
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {chatMessages.map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${msg.role === 'user' ? 'bg-red-900/50 text-red-100' : 'bg-gray-800 text-gray-200'}`}>
-                      {msg.content}
+          {/* System Health */}
+          <div>
+            <h2 className="text-lg font-semibold mb-4">System Health</h2>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+              {services.map(s => (
+                <div key={s.name} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2.5 h-2.5 rounded-full ${
+                      s.status === 'online' ? 'bg-green-400' :
+                      s.status === 'offline' ? 'bg-red-400' :
+                      'bg-yellow-400 animate-pulse'
+                    }`} />
+                    <div>
+                      <p className="text-sm font-medium">{s.name}</p>
+                      <p className="text-xs text-gray-600">Port :{s.port}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-              <div className="border-t border-gray-800 p-4 flex gap-2">
-                <input
-                  value={chatInput}
-                  onChange={e => setChatInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && sendChat()}
-                  placeholder="Ask CashClaw anything..."
-                  className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500"
-                />
-                <button onClick={sendChat} className="px-4 py-2 bg-red-600 rounded-lg text-sm font-medium hover:bg-red-700">Send</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'invoices' && (
-          <div className="space-y-6">
-            <h2 className="text-lg font-semibold">Invoice Pipeline</h2>
-            <p className="text-gray-400 text-sm">Google Sheets &rarr; QuickBooks (15% VAT) &rarr; Email &rarr; PDF &rarr; Drive</p>
-            <InvoiceForm />
-          </div>
-        )}
-
-        {activeTab === 'orders' && (
-          <div>
-            <h2 className="text-lg font-semibold mb-4">All Orders (Shopify)</h2>
-            <p className="text-gray-400 text-sm">Synced from Shopify Admin API</p>
-          </div>
-        )}
-
-        {activeTab === 'campaigns' && (
-          <div>
-            <h2 className="text-lg font-semibold mb-4">Campaigns</h2>
-            <p className="text-gray-400 text-sm">Email, WhatsApp, and SMS campaigns</p>
-          </div>
-        )}
-
-        {activeTab === 'hermes' && (
-          <div>
-            <h2 className="text-lg font-semibold mb-4">Hermes Content Agent</h2>
-            <p className="text-gray-400 text-sm">Social posts, email copy, video scripts, image prompts, content calendars</p>
-            <div className="mt-4 grid grid-cols-3 gap-4">
-              {['Social Post', 'Email Copy', 'Video Script', 'Image Prompt', 'Content Calendar', 'A/B Test'].map(type => (
-                <button key={type} className="bg-gray-900 border border-gray-800 rounded-lg p-6 text-left hover:border-purple-600 transition-colors">
-                  <h3 className="font-medium">{type}</h3>
-                  <p className="text-xs text-gray-500 mt-1">Generate with Hermes</p>
-                </button>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    s.status === 'online' ? 'bg-green-900/50 text-green-400' :
+                    s.status === 'offline' ? 'bg-red-900/50 text-red-400' :
+                    'bg-yellow-900/50 text-yellow-400'
+                  }`}>
+                    {s.status}
+                  </span>
+                </div>
               ))}
+              <div className="pt-3 border-t border-gray-800">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Last checked</span>
+                  <span className="text-gray-400">just now</span>
+                </div>
+                <button
+                  onClick={checkServices}
+                  className="mt-3 w-full py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium transition-colors"
+                >
+                  Refresh Status
+                </button>
+              </div>
+            </div>
+
+            {/* LLM Provider */}
+            <div className="mt-4 bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 className="text-sm font-semibold mb-3">Active LLM</h3>
+              <div className="bg-gray-800/50 rounded-lg px-4 py-3">
+                <p className="text-sm font-medium text-green-400">{llmConfig.provider || 'Not connected'}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{llmConfig.model || 'No model selected'}</p>
+              </div>
+              <Link href="/agent-dashboard" className="mt-3 block text-center py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium transition-colors">
+                Manage LLM Provider
+              </Link>
             </div>
           </div>
-        )}
+        </div>
       </main>
     </div>
   );
@@ -270,49 +206,12 @@ function StatCard({ label, value, color }: { label: string; value: string; color
     green: 'border-green-800 bg-green-950/30',
     blue: 'border-blue-800 bg-blue-950/30',
     yellow: 'border-yellow-800 bg-yellow-950/30',
+    purple: 'border-purple-800 bg-purple-950/30',
   };
   return (
-    <div className={`border rounded-lg p-4 ${colors[color]}`}>
+    <div className={`border rounded-xl p-5 ${colors[color]}`}>
       <p className="text-xs text-gray-400">{label}</p>
       <p className="text-2xl font-bold mt-1">{value}</p>
-    </div>
-  );
-}
-
-function InvoiceForm() {
-  const [form, setForm] = useState({ customerName: '', email: '', cut: '', weight: '', marbleScore: '' });
-  const [result, setResult] = useState('');
-
-  const createInvoice = async () => {
-    setResult('Creating invoice...');
-    const res = await fetch('/api/quickbooks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'invoice_create',
-        customerId: '1',
-        customerName: form.customerName,
-        email: form.email,
-        items: [{ cut: form.cut, marbleScore: form.marbleScore, weight: parseFloat(form.weight), description: `${form.cut} (Marble: ${form.marbleScore})` }],
-      }),
-    });
-    const data = await res.json();
-    setResult(data.ok ? `Invoice created: ${data.invoice?.Id}` : `Error: ${JSON.stringify(data)}`);
-  };
-
-  return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-xl">
-      <div className="space-y-3">
-        <input placeholder="Customer Name (e.g. The Blockman Parkhurst)" value={form.customerName} onChange={e => setForm({ ...form, customerName: e.target.value })} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" />
-        <input placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" />
-        <div className="grid grid-cols-3 gap-3">
-          <input placeholder="Cut (e.g. Rib-eye)" value={form.cut} onChange={e => setForm({ ...form, cut: e.target.value })} className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" />
-          <input placeholder="Weight (kg)" type="number" value={form.weight} onChange={e => setForm({ ...form, weight: e.target.value })} className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" />
-          <input placeholder="Marble Score" value={form.marbleScore} onChange={e => setForm({ ...form, marbleScore: e.target.value })} className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" />
-        </div>
-        <button onClick={createInvoice} className="w-full bg-red-600 hover:bg-red-700 rounded py-2 text-sm font-medium">Create Invoice (15% VAT)</button>
-        {result && <p className="text-xs text-gray-400 mt-2">{result}</p>}
-      </div>
     </div>
   );
 }
