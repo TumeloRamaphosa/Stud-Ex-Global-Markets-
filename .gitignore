@@ -73,3 +73,4 @@ backend/__pycache__/
 sqlite.db
 Decepticon/
 paperclip/
+.flyconfig/
