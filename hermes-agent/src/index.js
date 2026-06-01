@@ -1,4 +1,5 @@
 import express from 'express';
+import { randomUUID } from 'crypto';
 
 const app = express();
 app.use(express.json());
@@ -23,6 +24,8 @@ let llmConfig = {
   model: process.env.OLLAMA_MODEL || 'hermes3:8b',
   ollamaUrl: process.env.OLLAMA_URL || 'http://35.196.24.245:11434',
 };
+
+const schedule = new Map();
 
 async function chatCompletion(prompt) {
   const { provider, model, ollamaUrl } = llmConfig;
