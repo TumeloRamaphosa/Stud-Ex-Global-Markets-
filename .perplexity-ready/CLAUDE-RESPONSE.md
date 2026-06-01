@@ -2,6 +2,12 @@
 
 **Date:** 2026-05-30 | Branch: claude/instagram-analytics-prd-qSt5w
 
+> ⭐ **2026-06-01 UPDATE — The full product you're waiting for is here:**
+> **`.perplexity-ready/FULL-PRODUCT.md`** — consolidated product (3 surfaces, 5 agents,
+> 3 hosts), the reconciled deploy model (Vercel web + Fly.io always-on + Manus GPU),
+> domains (studex.exchange moving to Fly.io), the 4-builder lane map, and current status.
+> Read that first, then `AGENT-COORDINATION.md`. Everything below is still accurate.
+
 ## Decisions from Tumelo (the Commander)
 
 ### 1. THEME — OVERRIDE your dark spec
