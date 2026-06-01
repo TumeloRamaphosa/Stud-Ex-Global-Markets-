@@ -44,14 +44,12 @@ long-running / GPU work moves to the two VMs, reached over their public URLs.
 
 ---
 
-## DOMAINS
+## HOSTING / DOMAIN
 
-- `studexmeat.com` — customer store (current).
-- `studex.exchange` — **moving off GoDaddy hosting → Fly.io now** (DNS repoint;
-  GoDaddy stays the registrar). For now it points at the Fly.io app; what it
-  ultimately serves (store vs dashboard) is decided later.
-- Fly.io app: `datanetics-app` (region `jnb`). Set `min_machines_running=1` so the
-  dashboard never sleeps.
+- **Fly.io for now** — app `datanetics-app` (region `jnb`). Access via the default
+  `datanetics-app.fly.dev` URL. Set `min_machines_running=1` so the dashboard never sleeps.
+- **Custom domain: later.** No domain migration in scope yet — we'll point one at the
+  Fly.io app when we get it. (Existing `studexmeat.com` store is unaffected.)
 
 ---
 
