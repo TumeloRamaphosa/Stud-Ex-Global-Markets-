@@ -40,6 +40,7 @@ def handler(event: dict, context: dict) -> dict:
             "video": {"status": "ready", "last_run": None},
             "caption": {"status": "ready", "last_run": None},
             "distribution": {"status": "ready", "last_run": None},
+            "quote": {"status": "ready", "last_run": None},
             "denchclaw_campaigns": {"status": campaign_status, "last_run": None},
             "denchclaw_scraper": {"status": scraper_status, "last_run": None}
         },

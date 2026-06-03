@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { workflow, data } = body;
+function errorResponse(message: string, status = 500) {
+  return NextResponse.json({ ok: false, error: message }, { status });
+}
 
-  // Proxy to n8n Runner service on :3003
+export async function POST(req: NextRequest) {
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return errorResponse('Invalid JSON body', 400);
+  }
+
+  const { workflow, data } = body as { workflow?: string; data?: Record<string, unknown> };
+  if (!workflow || typeof workflow !== 'string') {
+    return errorResponse('Missing or invalid "workflow" field', 400);
+  }
+
   const n8nRunnerUrl = process.env.N8N_RUNNER_URL || 'http://localhost:3003';
   const n8nApiUrl = process.env.N8N_API_URL || 'http://localhost:5678/api/v1';
   const n8nApiKey = process.env.N8N_API_KEY || '';
@@ -18,117 +30,146 @@ export async function POST(req: NextRequest) {
         ...options?.headers,
       },
     });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`n8n API error ${res.status}: ${errorText}`);
+    }
     return res.json();
   }
 
-  switch (workflow) {
-    case 'trigger-invoice': {
-      const res = await fetch(`${n8nRunnerUrl}/trigger-invoice`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      return NextResponse.json(await res.json());
+  async function n8nRunnerFetch(endpoint: string, options?: RequestInit) {
+    const res = await fetch(`${n8nRunnerUrl}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`n8n runner error ${res.status}: ${errorText}`);
     }
+    return res.json();
+  }
 
-    case 'calculate': {
-      const res = await fetch(`${n8nRunnerUrl}/calculate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      return NextResponse.json(await res.json());
+  try {
+    switch (workflow) {
+      case 'trigger-invoice': {
+        const result = await n8nRunnerFetch('/trigger-invoice', {
+          method: 'POST',
+          body: JSON.stringify(data || {}),
+        });
+        return NextResponse.json(result);
+      }
+
+      case 'calculate': {
+        const result = await n8nRunnerFetch('/calculate', {
+          method: 'POST',
+          body: JSON.stringify(data || {}),
+        });
+        return NextResponse.json(result);
+      }
+
+      case 'price-lookup': {
+        const cut = (data as Record<string, unknown> | undefined)?.cut;
+        if (!cut) return errorResponse('Missing data.cut for price-lookup', 400);
+        const result = await n8nRunnerFetch(`/price-lookup?cut=${encodeURIComponent(String(cut))}`);
+        return NextResponse.json(result);
+      }
+
+      case 'webhook': {
+        const webhookUrl = process.env.N8N_WEBHOOK_URL;
+        if (!webhookUrl) return errorResponse('N8N_WEBHOOK_URL not set', 500);
+        const res = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data || {}),
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`n8n webhook error ${res.status}: ${errorText}`);
+        }
+        return NextResponse.json(await res.json());
+      }
+
+      case 'trigger-email': {
+        const result = await n8nRunnerFetch('/trigger-email', {
+          method: 'POST',
+          body: JSON.stringify(data || {}),
+        });
+        return NextResponse.json(result);
+      }
+
+      case 'trigger-whatsapp': {
+        const result = await n8nRunnerFetch('/trigger-whatsapp', {
+          method: 'POST',
+          body: JSON.stringify(data || {}),
+        });
+        return NextResponse.json(result);
+      }
+
+      case 'trigger-sms': {
+        const result = await n8nRunnerFetch('/trigger-sms', {
+          method: 'POST',
+          body: JSON.stringify(data || {}),
+        });
+        return NextResponse.json(result);
+      }
+
+      case 'workflow_list': {
+        const result = await n8nApiFetch('/workflows');
+        return NextResponse.json({ ok: true, workflows: result.data || result });
+      }
+
+      case 'workflow_status': {
+        const workflowData = data as Record<string, unknown> | undefined;
+        if (!workflowData?.workflowId) return errorResponse('Missing data.workflowId', 400);
+        const result = await n8nApiFetch(`/workflows/${workflowData.workflowId}`);
+        return NextResponse.json({ ok: true, workflow: result });
+      }
+
+      case 'workflow_execute': {
+        const workflowData = data as Record<string, unknown> | undefined;
+        if (!workflowData?.workflowId) return errorResponse('Missing data.workflowId', 400);
+        const result = await n8nApiFetch(`/workflows/${workflowData.workflowId}/execute`, {
+          method: 'POST',
+          body: JSON.stringify({ data: workflowData.payload }),
+        });
+        return NextResponse.json({ ok: true, execution: result });
+      }
+
+      case 'automation_create': {
+        const workflowData = data as Record<string, unknown> | undefined;
+        if (!workflowData?.name) return errorResponse('Missing data.name for automation', 400);
+        const result = await n8nApiFetch('/workflows', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: workflowData.name,
+            nodes: workflowData.nodes || [],
+            connections: workflowData.connections || {},
+            settings: workflowData.settings || {},
+            active: workflowData.active ?? false,
+          }),
+        });
+        return NextResponse.json({ ok: true, workflow: result });
+      }
+
+      case 'automation_log': {
+        const workflowData = data as Record<string, unknown> | undefined;
+        const params = new URLSearchParams();
+        if (workflowData?.workflowId) params.set('workflowId', String(workflowData.workflowId));
+        if (workflowData?.limit) params.set('limit', String(workflowData.limit));
+        if (workflowData?.status) params.set('status', String(workflowData.status));
+        const result = await n8nApiFetch(`/executions?${params.toString()}`);
+        return NextResponse.json({ ok: true, executions: result.data || result });
+      }
+
+      default:
+        return errorResponse(`Unknown workflow: ${workflow}`, 400);
     }
-
-    case 'price-lookup': {
-      const res = await fetch(`${n8nRunnerUrl}/price-lookup?cut=${data.cut}`);
-      return NextResponse.json(await res.json());
-    }
-
-    // Direct n8n Cloud webhook trigger
-    case 'webhook': {
-      const webhookUrl = process.env.N8N_WEBHOOK_URL;
-      if (!webhookUrl) return NextResponse.json({ error: 'N8N_WEBHOOK_URL not set' }, { status: 500 });
-      const res = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      return NextResponse.json(await res.json());
-    }
-
-    // Messaging triggers
-    case 'trigger-email': {
-      const res = await fetch(`${n8nRunnerUrl}/trigger-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      return NextResponse.json(await res.json());
-    }
-
-    case 'trigger-whatsapp': {
-      const res = await fetch(`${n8nRunnerUrl}/trigger-whatsapp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      return NextResponse.json(await res.json());
-    }
-
-    case 'trigger-sms': {
-      const res = await fetch(`${n8nRunnerUrl}/trigger-sms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      return NextResponse.json(await res.json());
-    }
-
-    // Workflow management via n8n API
-    case 'workflow_list': {
-      const result = await n8nApiFetch('/workflows');
-      return NextResponse.json({ ok: true, workflows: result.data || result });
-    }
-
-    case 'workflow_status': {
-      const result = await n8nApiFetch(`/workflows/${data.workflowId}`);
-      return NextResponse.json({ ok: true, workflow: result });
-    }
-
-    case 'workflow_execute': {
-      const result = await n8nApiFetch(`/workflows/${data.workflowId}/execute`, {
-        method: 'POST',
-        body: JSON.stringify({ data: data.payload }),
-      });
-      return NextResponse.json({ ok: true, execution: result });
-    }
-
-    // Automation management
-    case 'automation_create': {
-      const result = await n8nApiFetch('/workflows', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: data.name,
-          nodes: data.nodes || [],
-          connections: data.connections || {},
-          settings: data.settings || {},
-          active: data.active ?? false,
-        }),
-      });
-      return NextResponse.json({ ok: true, workflow: result });
-    }
-
-    case 'automation_log': {
-      const params = new URLSearchParams();
-      if (data.workflowId) params.set('workflowId', data.workflowId);
-      if (data.limit) params.set('limit', String(data.limit));
-      if (data.status) params.set('status', data.status);
-      const result = await n8nApiFetch(`/executions?${params.toString()}`);
-      return NextResponse.json({ ok: true, executions: result.data || result });
-    }
-
-    default:
-      return NextResponse.json({ error: `Unknown workflow: ${workflow}` }, { status: 400 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'n8n request failed';
+    console.error(`[n8n/${workflow}] Error:`, err);
+    return errorResponse(message);
   }
 }

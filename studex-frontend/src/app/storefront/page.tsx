@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 const products = [
   { name: 'Wagyu Ribeye', price: 899, grade: 'A5', marble: 9, color: 'bg-red-900/60', desc: 'Intensely marbled, melt-in-your-mouth perfection. BMS 9+.' },
   { name: 'Striploin', price: 749, grade: 'A4', marble: 7, color: 'bg-rose-900/60', desc: 'Rich flavour with beautiful fat distribution. BMS 6-8.' },
@@ -54,9 +56,9 @@ export default function StorefrontPage() {
             and delivered to restaurants, butcheries, and discerning home cooks across Gauteng.
           </p>
           <div className="mt-10 flex gap-4 justify-center">
-            <a href="/store" className="px-8 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold text-sm transition-colors">
+            <Link href="/store" className="px-8 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold text-sm transition-colors">
               Shop Now
-            </a>
+            </Link>
             <button
               onClick={() => orderViaWhatsApp('premium cuts')}
               className="px-8 py-3 border border-gray-700 hover:border-green-600 rounded-lg font-semibold text-sm transition-colors"
@@ -204,9 +206,9 @@ export default function StorefrontPage() {
             we have got you covered. Reach out for wholesale pricing or place your order online.
           </p>
           <div className="flex gap-4 justify-center">
-            <a href="/store" className="px-8 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold text-sm transition-colors">
+            <Link href="/store" className="px-8 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold text-sm transition-colors">
               Browse Our Store
-            </a>
+            </Link>
             <a href="mailto:orders@studexmeat.com" className="px-8 py-3 border border-gray-700 hover:border-gray-500 rounded-lg font-semibold text-sm transition-colors">
               orders@studexmeat.com
             </a>

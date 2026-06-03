@@ -6,24 +6,42 @@ const BASE_URL = process.env.STUDEX_API_URL || 'https://datanetics-app.fly.dev';
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://35.196.24.245:11434';
 
 async function api(path, body) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method: body ? 'POST' : 'GET',
-    headers: { 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  return res.json();
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      method: body ? 'POST' : 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (err) {
+    return { error: `Network error: ${err.message}`, ok: false };
+  }
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { error: `Non-JSON response (${res.status}): ${text.slice(0, 500)}`, ok: false };
+  }
 }
 
 // Facebook Graph API direct calls
 const GRAPH_API = 'https://graph.facebook.com/v21.0';
 async function fbApi(endpoint, method = 'GET', body = null) {
   const token = process.env.FACEBOOK_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
+  if (!token) return { error: 'No Facebook/Meta access token configured', ok: false };
   const sep = endpoint.includes('?') ? '&' : '?';
   const url = `${GRAPH_API}${endpoint}${sep}access_token=${token}`;
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
-  return res.json();
+  let res;
+  try {
+    res = await fetch(url, opts);
+  } catch (err) {
+    return { error: `Facebook API network error: ${err.message}`, ok: false };
+  }
+  const data = await res.json();
+  if (data.error) return { error: data.error.message || JSON.stringify(data.error), code: data.error.code, ok: false };
+  return data;
 }
 
 export function createStudexServer() {
@@ -48,6 +66,16 @@ export function createStudexServer() {
     limit: z.number().optional(),
   }, async ({ limit }) => {
     const data = await api(`/api/shopify?resource=products&limit=${limit || 50}`);
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  });
+
+  server.tool('studex_shopify_customers', 'Get Shopify customers', {
+    limit: z.number().optional().describe('Number of customers (default 50)'),
+    query: z.string().optional().describe('Search query (name or email)'),
+  }, async ({ limit, query }) => {
+    let url = `/api/shopify?resource=customers&limit=${limit || 50}`;
+    if (query) url += `&query=${encodeURIComponent(query)}`;
+    const data = await api(url);
     return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
   });
 
@@ -136,10 +164,19 @@ export function createStudexServer() {
     imageUrl: z.string().describe('Public URL of image'),
   }, async ({ caption, imageUrl }) => {
     const igId = process.env.META_INSTAGRAM_ACCOUNT_ID;
+    if (!igId) return { content: [{ type: 'text', text: 'Error: META_INSTAGRAM_ACCOUNT_ID not configured' }] };
     // Step 1: Create media container
     const container = await fbApi(`/${igId}/media`, 'POST', { image_url: imageUrl, caption });
-    if (!container.id) return { content: [{ type: 'text', text: `Error: ${JSON.stringify(container)}` }] };
-    // Step 2: Publish
+    if (!container.id) return { content: [{ type: 'text', text: `Error creating container: ${JSON.stringify(container)}` }] };
+    // Step 2: Poll until container is ready (IG processes async)
+    const maxAttempts = 30;
+    for (let i = 0; i < maxAttempts; i++) {
+      const status = await fbApi(`/${container.id}?fields=status_code`);
+      if (status.status_code === 'FINISHED') break;
+      if (status.status_code === 'ERROR') return { content: [{ type: 'text', text: `Container processing failed: ${JSON.stringify(status)}` }] };
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    // Step 3: Publish
     const publish = await fbApi(`/${igId}/media_publish`, 'POST', { creation_id: container.id });
     return { content: [{ type: 'text', text: publish.id ? `Instagram posted! ID: ${publish.id}` : JSON.stringify(publish) }] };
   });

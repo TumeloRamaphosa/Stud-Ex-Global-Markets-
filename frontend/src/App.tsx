@@ -69,7 +69,7 @@ interface CampaignReport {
   }
 }
 
-type Tab = 'prompts' | 'campaigns' | 'scraper'
+type Tab = 'prompts' | 'campaigns' | 'scraper' | 'quote'
 
 function App() {
   const [status, setStatus] = useState<PlatformStatus | null>(null)
@@ -77,7 +77,7 @@ function App() {
   const [prompts, setPrompts] = useState<PromptResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<Tab>('campaigns')
+  const [activeTab, setActiveTab] = useState<Tab>('quote')
   
   // Campaign state
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -91,6 +91,19 @@ function App() {
   const [scrapeKeywords, setScrapeKeywords] = useState('')
   const [discoveredEmails, setDiscoveredEmails] = useState<any[]>([])
   const [discoveredContracts, setDiscoveredContracts] = useState<any[]>([])
+
+  // Quote state
+  const [quoteRequirements, setQuoteRequirements] = useState<Array<{feature: string, complexity: string}>>([])
+  const [isRush, setIsRush] = useState(false)
+  const [generatedQuote, setGeneratedQuote] = useState<any>(null)
+  const [selectedFeature, setSelectedFeature] = useState('landing_page')
+  const [selectedComplexity, setSelectedComplexity] = useState('medium')
+
+  const availableFeatures = [
+    'landing_page', 'auth', 'dashboard', 'payment_gateway', 
+    'booking', 'cms', 'ecommerce', 'mobile_app', 
+    'ai_chatbot', 'api_webhooks'
+  ]
 
   // Fetch status on mount
   useEffect(() => {

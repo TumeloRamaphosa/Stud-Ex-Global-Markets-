@@ -105,6 +105,7 @@ export default function StorePage() {
           </div>
           <button
             onClick={() => setCartOpen(!cartOpen)}
+            aria-label="Toggle shopping cart"
             className="relative px-5 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition-colors"
           >
             Cart ({cartCount}kg)
@@ -197,12 +198,12 @@ export default function StorePage() {
 
       {/* Cart Sidebar */}
       {cartOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setCartOpen(false)} />
+        <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-label="Shopping cart">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setCartOpen(false)} aria-hidden="true" />
           <div className="relative w-[420px] bg-gray-900 border-l border-gray-800 h-full flex flex-col">
             <div className="p-6 border-b border-gray-800 flex items-center justify-between">
               <h2 className="text-lg font-bold">Your Cart</h2>
-              <button onClick={() => setCartOpen(false)} className="text-gray-500 hover:text-gray-300 text-2xl leading-none">&times;</button>
+              <button onClick={() => setCartOpen(false)} aria-label="Close cart" className="text-gray-500 hover:text-gray-300 text-2xl leading-none">&times;</button>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {cart.length === 0 && <p className="text-gray-500 text-sm text-center py-8">Your cart is empty</p>}
@@ -219,6 +220,7 @@ export default function StorePage() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => updateQuantity(item.product.id, -1)}
+                        aria-label={`Decrease ${item.product.name} quantity`}
                         className="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium flex items-center justify-center transition-colors"
                       >
                         -
@@ -228,6 +230,7 @@ export default function StorePage() {
                       </div>
                       <button
                         onClick={() => updateQuantity(item.product.id, 1)}
+                        aria-label={`Increase ${item.product.name} quantity`}
                         className="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium flex items-center justify-center transition-colors"
                       >
                         +

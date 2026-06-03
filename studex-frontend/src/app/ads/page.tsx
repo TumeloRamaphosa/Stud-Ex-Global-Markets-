@@ -91,7 +91,7 @@ export default function AdsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           {[
             { label: 'Total Spend', value: `R${totalSpend.toLocaleString()}`, color: 'red' },
             { label: 'Impressions', value: totalImpressions.toLocaleString(), color: 'blue' },
@@ -230,7 +230,7 @@ export default function AdsPage() {
         {activeTab === 'insights' && !loading && (
           <div className="space-y-6">
             {/* Performance Charts Placeholder */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <h3 className="text-sm font-semibold text-gray-400 mb-4">Spend Over Time</h3>
                 <div className="h-48 bg-gray-800/30 rounded-lg flex items-center justify-center text-gray-600 text-sm border border-dashed border-gray-700">

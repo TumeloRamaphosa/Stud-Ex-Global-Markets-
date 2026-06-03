@@ -26,7 +26,7 @@ export default function Dashboard() {
     { name: 'Hermes', port: 3004, status: 'checking', endpoint: '/api/hermes' },
   ]);
   const [llmConfig, setLlmConfig] = useState({ provider: '', model: '' });
-  const [feed, setFeed] = useState<FeedEvent[]>([
+  const [feed] = useState<FeedEvent[]>([
     { id: '1', type: 'order', title: 'New Order #1042', detail: 'The Blockman Parkhurst - 5kg Wagyu Ribeye', time: '2 min ago' },
     { id: '2', type: 'invoice', title: 'Invoice INV-005 Paid', detail: 'Cape Cuts Butchery - R22,000', time: '8 min ago' },
     { id: '3', type: 'campaign', title: 'Weekend Braai Campaign Live', detail: 'Meta Ads - 12,400 impressions', time: '15 min ago' },
@@ -40,8 +40,9 @@ export default function Dashboard() {
   const [revenue] = useState(48200);
 
   const checkServices = useCallback(async () => {
-    const checks = services.map(s =>
-      fetch(s.endpoint).then(() => 'online' as const).catch(() => 'offline' as const)
+    const endpoints = ['/api/agent', '/api/meta-ads?resource=campaigns', '/api/n8n', '/api/hermes'];
+    const checks = endpoints.map(ep =>
+      fetch(ep).then(() => 'online' as const).catch(() => 'offline' as const)
     );
     const results = await Promise.all(checks);
     setServices(prev => prev.map((s, i) => ({ ...s, status: results[i] })));
@@ -93,7 +94,7 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         {/* Top Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Orders Today" value={ordersToday.toString()} color="red" />
           <StatCard label="Revenue Today" value={`R${revenue.toLocaleString()}`} color="green" />
           <StatCard label="Active Campaigns" value="3" color="purple" />
@@ -103,7 +104,7 @@ export default function Dashboard() {
         {/* Quick Actions */}
         <div>
           <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {quickActions.map(a => (
               <Link
                 key={a.title}
@@ -117,9 +118,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Real-time Feed */}
-          <div className="col-span-2">
+          <div className="lg:col-span-2">
             <h2 className="text-lg font-semibold mb-4">Live Activity Feed</h2>
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
               <div className="divide-y divide-gray-800">

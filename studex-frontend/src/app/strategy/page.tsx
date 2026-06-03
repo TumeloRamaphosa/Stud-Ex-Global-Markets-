@@ -125,7 +125,7 @@ export default function StrategyPage() {
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {keyMetrics.map((m) => (
             <div key={m.label} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
               <p className="text-xs text-gray-500 mb-1">{m.label}</p>
@@ -135,9 +135,9 @@ export default function StrategyPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Chat Interface */}
-          <div className="col-span-2">
+          <div className="lg:col-span-2">
             <div className="bg-gray-900 border border-gray-800 rounded-xl flex flex-col h-[600px]">
               <div className="px-5 py-4 border-b border-gray-800">
                 <h2 className="font-semibold text-sm">AI Strategy Advisor</h2>
@@ -233,7 +233,7 @@ export default function StrategyPage() {
         {/* Strategy Board */}
         <div>
           <h2 className="text-lg font-semibold mb-4">Strategy Board</h2>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {columns.map(col => (
               <div
                 key={col.key}

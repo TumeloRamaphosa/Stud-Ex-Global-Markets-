@@ -1,0 +1,8 @@
+<svg width="240" height="72" viewBox="0 0 240 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="240" height="72" rx="24" fill="#FFF1F7"/>
+  <rect x="4" y="4" width="232" height="64" rx="20" fill="#FFE2F0" stroke="#C084FC" stroke-opacity="0.45" stroke-width="1.5"/>
+  <circle cx="36" cy="36" r="16" fill="#7E22CE"/>
+  <path d="M27 37.5C29.8 42.5 33.6 45 38.6 45C43.1 45 46.5 42.1 46.5 38.3C46.5 34.2 43 32.5 38.8 31.5C34.7 30.5 31.6 29.6 31.6 26.5C31.6 23.7 34.2 21.7 37.8 21.7C41.1 21.7 43.7 22.9 46 25.3" stroke="#FFF7FB" stroke-width="3.2" stroke-linecap="round"/>
+  <text x="66" y="32" fill="#3B0764" font-family="Georgia, 'Times New Roman', serif" font-size="24" font-style="italic">StudEx</text>
+  <text x="66" y="52" fill="#7E22CE" font-family="'Courier New', monospace" font-size="11" letter-spacing="2.4">CONTENT HUB</text>
+</svg>

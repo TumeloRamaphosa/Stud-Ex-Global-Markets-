@@ -11,6 +11,10 @@ interface MeatCut {
   origin: string;
 }
 
+function errorResponse(message: string, status = 500) {
+  return NextResponse.json({ ok: false, error: message }, { status });
+}
+
 const meatCuts: Map<string, MeatCut> = new Map([
   ['wagyu-ribeye', {
     id: 'wagyu-ribeye', name: 'Wagyu Ribeye', category: 'Wagyu', pricePerKg: 2800,
@@ -56,7 +60,7 @@ export async function GET(req: NextRequest) {
       (c) => c.name.toLowerCase().includes(cut.toLowerCase()) || c.id.includes(key)
     );
     if (!found) {
-      return NextResponse.json({ error: `Cut not found: ${cut}` }, { status: 404 });
+      return NextResponse.json({ ok: false, error: `Cut not found: ${cut}` }, { status: 404 });
     }
     return NextResponse.json({ ok: true, cut: found });
   }
@@ -65,42 +69,63 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return errorResponse('Invalid JSON body', 400);
+  }
+
   const { action } = body;
+  if (!action || typeof action !== 'string') {
+    return errorResponse('Missing or invalid "action" field', 400);
+  }
 
-  switch (action) {
-    case 'update_price': {
-      const key = body.cutId?.toLowerCase().replace(/\s+/g, '-');
-      const cut = meatCuts.get(key);
-      if (!cut) {
-        return NextResponse.json({ error: `Cut not found: ${body.cutId}` }, { status: 404 });
+  try {
+    switch (action) {
+      case 'update_price': {
+        if (!body.cutId || typeof body.pricePerKg !== 'number') {
+          return errorResponse('Missing required fields: cutId, pricePerKg (number)', 400);
+        }
+        const key = String(body.cutId).toLowerCase().replace(/\s+/g, '-');
+        const cut = meatCuts.get(key);
+        if (!cut) {
+          return errorResponse(`Cut not found: ${body.cutId}`, 404);
+        }
+        const oldPrice = cut.pricePerKg;
+        cut.pricePerKg = body.pricePerKg as number;
+        meatCuts.set(key, cut);
+        return NextResponse.json({ ok: true, cut, oldPrice, newPrice: body.pricePerKg });
       }
-      const oldPrice = cut.pricePerKg;
-      cut.pricePerKg = body.pricePerKg;
-      meatCuts.set(key, cut);
-      return NextResponse.json({ ok: true, cut, oldPrice, newPrice: body.pricePerKg });
-    }
 
-    case 'add_cut': {
-      const id = body.name.toLowerCase().replace(/\s+/g, '-');
-      if (meatCuts.has(id)) {
-        return NextResponse.json({ error: `Cut already exists: ${body.name}` }, { status: 409 });
+      case 'add_cut': {
+        if (!body.name || typeof body.pricePerKg !== 'number') {
+          return errorResponse('Missing required fields: name, pricePerKg (number)', 400);
+        }
+        const id = String(body.name).toLowerCase().replace(/\s+/g, '-');
+        if (meatCuts.has(id)) {
+          return errorResponse(`Cut already exists: ${body.name}`, 409);
+        }
+        const newCut: MeatCut = {
+          id,
+          name: String(body.name),
+          category: String(body.category || 'Wagyu'),
+          pricePerKg: body.pricePerKg as number,
+          marbleScore: String(body.marbleScore || 'N/A'),
+          description: String(body.description || ''),
+          inStock: body.inStock !== false,
+          origin: String(body.origin || 'South Africa'),
+        };
+        meatCuts.set(id, newCut);
+        return NextResponse.json({ ok: true, cut: newCut });
       }
-      const newCut: MeatCut = {
-        id,
-        name: body.name,
-        category: body.category || 'Wagyu',
-        pricePerKg: body.pricePerKg,
-        marbleScore: body.marbleScore || 'N/A',
-        description: body.description || '',
-        inStock: body.inStock ?? true,
-        origin: body.origin || 'South Africa',
-      };
-      meatCuts.set(id, newCut);
-      return NextResponse.json({ ok: true, cut: newCut });
-    }
 
-    default:
-      return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
+      default:
+        return errorResponse(`Unknown action: ${action}`, 400);
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Meat API request failed';
+    console.error(`[meat/${action}] Error:`, err);
+    return errorResponse(message);
   }
 }

@@ -8,7 +8,7 @@ import targetingRouter from "./routes/targeting.js";
 import reportingRouter from "./routes/reporting.js";
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || process.env.META_ADS_PORT || 3002;
 
 // CORS
 app.use((req, res, next) => {

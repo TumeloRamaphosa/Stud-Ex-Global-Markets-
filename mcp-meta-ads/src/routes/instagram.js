@@ -3,6 +3,28 @@ import { graphApi, instagramApi, getInstagramAccountId } from "../lib/meta-api.j
 
 const router = Router();
 
+/**
+ * Poll a container until it reaches FINISHED (or ERROR).
+ * Instagram container creation is async for video/carousel — you must poll
+ * before calling media_publish.
+ */
+async function waitForContainer(containerId, { maxAttempts = 30, intervalMs = 2000 } = {}) {
+  for (let i = 0; i < maxAttempts; i++) {
+    const status = await instagramApi(`/${containerId}`, {
+      params: { fields: "status_code,status" },
+    });
+
+    if (status.status_code === "FINISHED") return status;
+    if (status.status_code === "ERROR") {
+      throw new Error(`Container ${containerId} failed: ${status.status || "unknown error"}`);
+    }
+
+    // IN_PROGRESS — wait and retry
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  throw new Error(`Container ${containerId} timed out after ${maxAttempts * intervalMs / 1000}s`);
+}
+
 // GET /instagram/media — list recent Instagram media
 router.get("/media", async (req, res, next) => {
   try {
@@ -53,6 +75,10 @@ router.post("/media", async (req, res, next) => {
         }
         childParams.is_carousel_item = true;
         const childContainer = await instagramApi(`/${igId}/media`, { method: "POST", params: childParams });
+        // Poll child containers that contain video
+        if (child.media_type === "VIDEO") {
+          await waitForContainer(childContainer.id);
+        }
         childIds.push(childContainer.id);
       }
 
@@ -64,6 +90,7 @@ router.post("/media", async (req, res, next) => {
       if (caption) carouselParams.caption = caption;
       const container = await instagramApi(`/${igId}/media`, { method: "POST", params: carouselParams });
       containerId = container.id;
+      await waitForContainer(containerId);
     } else if (media_type === "REELS") {
       const params = {
         media_type: "REELS",
@@ -73,6 +100,8 @@ router.post("/media", async (req, res, next) => {
       if (share_to_feed !== undefined) params.share_to_feed = share_to_feed;
       const container = await instagramApi(`/${igId}/media`, { method: "POST", params });
       containerId = container.id;
+      // Video containers require polling before publish
+      await waitForContainer(containerId);
     } else {
       // IMAGE
       const params = { image_url };

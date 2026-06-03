@@ -178,7 +178,7 @@ export default function MeatDashboardPage() {
         </div>
 
         {/* Invoice Pipeline */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {pipelineStages.map((p) => {
             const colorMap: Record<string, string> = {
               yellow: 'border-yellow-800 bg-yellow-950/20',
@@ -196,7 +196,7 @@ export default function MeatDashboardPage() {
           })}
         </div>
 
-        <div className="grid grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Integration Status */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h2 className="font-semibold text-sm mb-4">Integrations</h2>
@@ -250,7 +250,7 @@ export default function MeatDashboardPage() {
           </div>
 
           {/* Quick Invoice Form */}
-          <div className="col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div className="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h2 className="font-semibold text-sm mb-4">Create Invoice</h2>
             <div className="grid grid-cols-2 gap-3">
               <input

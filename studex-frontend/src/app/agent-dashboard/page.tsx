@@ -124,7 +124,7 @@ export default function AgentDashboardPage() {
     { label: 'Content Ideas', prompt: 'Generate 5 social media content ideas for Studex Meat premium Wagyu products.' },
   ];
 
-  const llmProviders = [
+  const llmProviders: { provider: string; model: string; label: string; color: string; ollamaUrl?: string; colorClasses: { active: string; inactive: string } }[] = [
     { provider: 'anthropic', model: 'claude-sonnet-4-20250514', label: 'Claude', color: 'purple', colorClasses: { active: 'border-purple-600 bg-purple-900/40 ring-1 ring-purple-500/30', inactive: 'border-gray-800 bg-gray-800/30 hover:bg-gray-800' } },
     { provider: 'openrouter', model: 'anthropic/claude-sonnet-4-20250514', label: 'OpenRouter', color: 'blue', colorClasses: { active: 'border-blue-600 bg-blue-900/40 ring-1 ring-blue-500/30', inactive: 'border-gray-800 bg-gray-800/30 hover:bg-gray-800' } },
     { provider: 'google', model: 'gemini-2.0-flash', label: 'Gemini', color: 'green', colorClasses: { active: 'border-green-600 bg-green-900/40 ring-1 ring-green-500/30', inactive: 'border-gray-800 bg-gray-800/30 hover:bg-gray-800' } },
@@ -145,7 +145,7 @@ export default function AgentDashboardPage() {
         </div>
 
         {/* Service Status Grid */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {services.map((s) => (
             <div key={s.name} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
               <div className="flex items-center justify-between mb-3">
@@ -169,7 +169,7 @@ export default function AgentDashboardPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LLM Provider Switcher */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h2 className="font-semibold text-sm mb-4">LLM Provider</h2>

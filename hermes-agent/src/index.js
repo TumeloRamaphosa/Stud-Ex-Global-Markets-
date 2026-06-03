@@ -4,6 +4,15 @@ import { randomUUID } from 'crypto';
 const app = express();
 app.use(express.json());
 
+// CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 // Brand voice — prepended to all generation prompts
 let brandVoice = {
   voice: 'professional, warm, meat-enthusiast',
@@ -27,6 +36,18 @@ let llmConfig = {
 
 const schedule = new Map();
 
+// Schedule cleanup — evict entries older than 7 days every hour
+const SCHEDULE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const scheduleCleanupInterval = setInterval(() => {
+  const cutoff = Date.now() - SCHEDULE_MAX_AGE_MS;
+  for (const [id, entry] of schedule) {
+    if (new Date(entry.createdAt).getTime() < cutoff) {
+      schedule.delete(id);
+    }
+  }
+}, 60 * 60 * 1000);
+scheduleCleanupInterval.unref();
+
 async function chatCompletion(prompt) {
   const { provider, model, ollamaUrl } = llmConfig;
 
@@ -44,6 +65,10 @@ async function chatCompletion(prompt) {
         messages: [{ role: 'user', content: prompt }],
       }),
     });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Anthropic API error (${res.status}): ${text}`);
+    }
     const data = await res.json();
     return data.content?.[0]?.text || '';
   }
@@ -58,6 +83,10 @@ async function chatCompletion(prompt) {
       stream: false,
     }),
   });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Ollama API error (${res.status}): ${text}`);
+  }
   const data = await res.json();
   return data.message?.content || '';
 }
@@ -80,51 +109,75 @@ app.post('/api/hermes', (req, res) => {
 });
 
 // Social posts
-app.post('/api/hermes/social', async (req, res) => {
-  const { platform, topic, tone, hashtags } = req.body;
-  const prompt = brandVoicePrefix() + `Generate a ${platform || 'Instagram'} post for Studex Meat about: ${topic}. Tone: ${tone || 'engaging, meat-lover'}. ${hashtags ? `Include hashtags: ${hashtags}` : 'Include relevant hashtags.'}`;
-  const content = await chatCompletion(prompt);
-  res.json({ ok: true, content, platform });
+app.post('/api/hermes/social', async (req, res, next) => {
+  try {
+    const { platform, topic, tone, hashtags } = req.body;
+    const prompt = brandVoicePrefix() + `Generate a ${platform || 'Instagram'} post for Studex Meat about: ${topic}. Tone: ${tone || 'engaging, meat-lover'}. ${hashtags ? `Include hashtags: ${hashtags}` : 'Include relevant hashtags.'}`;
+    const content = await chatCompletion(prompt);
+    res.json({ ok: true, content, platform });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Email copy
-app.post('/api/hermes/email', async (req, res) => {
-  const { topic, audience, type } = req.body;
-  const prompt = brandVoicePrefix() + `Write a ${type || 'promotional'} email for Studex Meat:\nTopic: ${topic}\nAudience: ${audience || 'existing customers'}\nInclude: subject line, preview text, body, CTA button text`;
-  const content = await chatCompletion(prompt);
-  res.json({ ok: true, content });
+app.post('/api/hermes/email', async (req, res, next) => {
+  try {
+    const { topic, audience, type } = req.body;
+    const prompt = brandVoicePrefix() + `Write a ${type || 'promotional'} email for Studex Meat:\nTopic: ${topic}\nAudience: ${audience || 'existing customers'}\nInclude: subject line, preview text, body, CTA button text`;
+    const content = await chatCompletion(prompt);
+    res.json({ ok: true, content });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Video scripts
-app.post('/api/hermes/video', async (req, res) => {
-  const { topic, duration, style } = req.body;
-  const prompt = brandVoicePrefix() + `Write a ${duration || '60-second'} video script for Studex Meat about: ${topic}. Style: ${style || 'professional, appetizing'}. Include: scene descriptions, narration, text overlays, music cues. Format for Wan2 video generation.`;
-  const content = await chatCompletion(prompt);
-  res.json({ ok: true, content });
+app.post('/api/hermes/video', async (req, res, next) => {
+  try {
+    const { topic, duration, style } = req.body;
+    const prompt = brandVoicePrefix() + `Write a ${duration || '60-second'} video script for Studex Meat about: ${topic}. Style: ${style || 'professional, appetizing'}. Include: scene descriptions, narration, text overlays, music cues. Format for Wan2 video generation.`;
+    const content = await chatCompletion(prompt);
+    res.json({ ok: true, content });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Image prompts
-app.post('/api/hermes/image', async (req, res) => {
-  const { subject, style, purpose } = req.body;
-  const prompt = brandVoicePrefix() + `Generate a detailed FLUX image generation prompt for Studex Meat:\nSubject: ${subject}\nStyle: ${style || 'professional food photography'}\nPurpose: ${purpose || 'social media'}\nOutput the prompt only, optimized for FLUX model.`;
-  const content = await chatCompletion(prompt);
-  res.json({ ok: true, prompt: content });
+app.post('/api/hermes/image', async (req, res, next) => {
+  try {
+    const { subject, style, purpose } = req.body;
+    const prompt = brandVoicePrefix() + `Generate a detailed FLUX image generation prompt for Studex Meat:\nSubject: ${subject}\nStyle: ${style || 'professional food photography'}\nPurpose: ${purpose || 'social media'}\nOutput the prompt only, optimized for FLUX model.`;
+    const content = await chatCompletion(prompt);
+    res.json({ ok: true, prompt: content });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Content calendar
-app.post('/api/hermes/calendar', async (req, res) => {
-  const { days, platforms, focus } = req.body;
-  const prompt = brandVoicePrefix() + `Create a ${days || 7}-day content calendar for Studex Meat:\nPlatforms: ${(platforms || ['Instagram', 'Facebook', 'WhatsApp']).join(', ')}\nFocus: ${focus || 'product promotion, customer engagement'}\nFor each day include: platform, content type, topic, caption draft, best posting time (SAST)`;
-  const content = await chatCompletion(prompt);
-  res.json({ ok: true, calendar: content });
+app.post('/api/hermes/calendar', async (req, res, next) => {
+  try {
+    const { days, platforms, focus } = req.body;
+    const prompt = brandVoicePrefix() + `Create a ${days || 7}-day content calendar for Studex Meat:\nPlatforms: ${(platforms || ['Instagram', 'Facebook', 'WhatsApp']).join(', ')}\nFocus: ${focus || 'product promotion, customer engagement'}\nFor each day include: platform, content type, topic, caption draft, best posting time (SAST)`;
+    const content = await chatCompletion(prompt);
+    res.json({ ok: true, calendar: content });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // A/B test variants
-app.post('/api/hermes/ab-test', async (req, res) => {
-  const { original, type, variants } = req.body;
-  const prompt = brandVoicePrefix() + `Generate ${variants || 3} A/B test variants for this ${type || 'email subject line'}:\nOriginal: "${original}"\nContext: Studex Meat premium wagyu products\nFor each variant: the text, why it might perform better, expected impact`;
-  const content = await chatCompletion(prompt);
-  res.json({ ok: true, variants: content });
+app.post('/api/hermes/ab-test', async (req, res, next) => {
+  try {
+    const { original, type, variants } = req.body;
+    const prompt = brandVoicePrefix() + `Generate ${variants || 3} A/B test variants for this ${type || 'email subject line'}:\nOriginal: "${original}"\nContext: Studex Meat premium wagyu products\nFor each variant: the text, why it might perform better, expected impact`;
+    const content = await chatCompletion(prompt);
+    res.json({ ok: true, variants: content });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Brand voice config
@@ -142,49 +195,61 @@ app.post('/api/hermes/brand-voice', (req, res) => {
 });
 
 // Repurpose content across platforms
-app.post('/api/hermes/repurpose', async (req, res) => {
-  const { content, from, to } = req.body;
-  if (!content || !to || !Array.isArray(to)) {
-    return res.status(400).json({ error: 'Provide content, from, and to (array of platforms).' });
+app.post('/api/hermes/repurpose', async (req, res, next) => {
+  try {
+    const { content, from, to } = req.body;
+    if (!content || !to || !Array.isArray(to)) {
+      return res.status(400).json({ error: 'Provide content, from, and to (array of platforms).' });
+    }
+    const prompt = brandVoicePrefix() + `You are a social media expert for Studex Meat. Repurpose the following ${from || 'general'} content for each target platform. Return JSON with a key per platform.\n\nOriginal content:\n"${content}"\n\nTarget platforms: ${to.join(', ')}\n\nFor each platform, adapt the tone, length, formatting, hashtags/emojis as appropriate. Return valid JSON: { "platform_name": "adapted content", ... }`;
+    const raw = await chatCompletion(prompt);
+    let adapted;
+    try { adapted = JSON.parse(raw); } catch { adapted = raw; }
+    res.json({ ok: true, original: content, from: from || 'general', adapted });
+  } catch (err) {
+    next(err);
   }
-  const prompt = brandVoicePrefix() + `You are a social media expert for Studex Meat. Repurpose the following ${from || 'general'} content for each target platform. Return JSON with a key per platform.\n\nOriginal content:\n"${content}"\n\nTarget platforms: ${to.join(', ')}\n\nFor each platform, adapt the tone, length, formatting, hashtags/emojis as appropriate. Return valid JSON: { "platform_name": "adapted content", ... }`;
-  const raw = await chatCompletion(prompt);
-  let adapted;
-  try { adapted = JSON.parse(raw); } catch { adapted = raw; }
-  res.json({ ok: true, original: content, from: from || 'general', adapted });
 });
 
 // Trend scan
-app.post('/api/hermes/trend-scan', async (req, res) => {
-  const { industry, region } = req.body;
-  const prompt = brandVoicePrefix() + `You are a trend analyst for Studex Meat. Identify 5-8 currently trending topics relevant to the ${industry || 'premium meat'} industry in ${region || 'South Africa'}. For each trend provide: topic name, why it's trending, content angle for a premium meat brand, suggested post idea. Return as JSON array.`;
-  const raw = await chatCompletion(prompt);
-  let trends;
-  try { trends = JSON.parse(raw); } catch { trends = raw; }
-  res.json({ ok: true, industry: industry || 'premium meat', region: region || 'South Africa', trends });
+app.post('/api/hermes/trend-scan', async (req, res, next) => {
+  try {
+    const { industry, region } = req.body;
+    const prompt = brandVoicePrefix() + `You are a trend analyst for Studex Meat. Identify 5-8 currently trending topics relevant to the ${industry || 'premium meat'} industry in ${region || 'South Africa'}. For each trend provide: topic name, why it's trending, content angle for a premium meat brand, suggested post idea. Return as JSON array.`;
+    const raw = await chatCompletion(prompt);
+    let trends;
+    try { trends = JSON.parse(raw); } catch { trends = raw; }
+    res.json({ ok: true, industry: industry || 'premium meat', region: region || 'South Africa', trends });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Competitor content analysis
-app.post('/api/hermes/competitor-content', async (req, res) => {
-  const { competitor, url } = req.body;
-  if (!competitor) {
-    return res.status(400).json({ error: 'Provide competitor name.' });
+app.post('/api/hermes/competitor-content', async (req, res, next) => {
+  try {
+    const { competitor, url } = req.body;
+    if (!competitor) {
+      return res.status(400).json({ error: 'Provide competitor name.' });
+    }
+    const prompt = brandVoicePrefix() + `You are a competitive intelligence analyst for Studex Meat. Analyze the likely content strategy of competitor "${competitor}"${url ? ` (${url})` : ''}.\n\nProvide:\n1. Likely content themes and messaging pillars\n2. Strengths and weaknesses of their approach\n3. Gaps and opportunities for Studex Meat\n4. 3 counter-content ideas that position Studex Meat favourably\n\nReturn as structured JSON with keys: themes, strengths, weaknesses, gaps, counterContent.`;
+    const raw = await chatCompletion(prompt);
+    let analysis;
+    try { analysis = JSON.parse(raw); } catch { analysis = raw; }
+    res.json({ ok: true, competitor, analysis });
+  } catch (err) {
+    next(err);
   }
-  const prompt = brandVoicePrefix() + `You are a competitive intelligence analyst for Studex Meat. Analyze the likely content strategy of competitor "${competitor}"${url ? ` (${url})` : ''}.\n\nProvide:\n1. Likely content themes and messaging pillars\n2. Strengths and weaknesses of their approach\n3. Gaps and opportunities for Studex Meat\n4. 3 counter-content ideas that position Studex Meat favourably\n\nReturn as structured JSON with keys: themes, strengths, weaknesses, gaps, counterContent.`;
-  const raw = await chatCompletion(prompt);
-  let analysis;
-  try { analysis = JSON.parse(raw); } catch { analysis = raw; }
-  res.json({ ok: true, competitor, analysis });
 });
 
 // Batch content generation
-app.post('/api/hermes/batch', async (req, res) => {
-  const { requests } = req.body;
-  if (!requests || !Array.isArray(requests) || requests.length === 0) {
-    return res.status(400).json({ error: 'Provide requests array.' });
-  }
-  const results = await Promise.all(requests.map(async (r, i) => {
-    try {
+app.post('/api/hermes/batch', async (req, res, next) => {
+  try {
+    const { requests } = req.body;
+    if (!requests || !Array.isArray(requests) || requests.length === 0) {
+      return res.status(400).json({ error: 'Provide requests array.' });
+    }
+    const settled = await Promise.allSettled(requests.map(async (r, i) => {
       let prompt;
       switch (r.type) {
         case 'social':
@@ -203,12 +268,20 @@ app.post('/api/hermes/batch', async (req, res) => {
           prompt = brandVoicePrefix() + `Generate content for Studex Meat about: ${r.topic || 'premium meat'}. Type: ${r.type || 'general'}.`;
       }
       const content = await chatCompletion(prompt);
-      return { index: i, ok: true, type: r.type, content };
-    } catch (err) {
-      return { index: i, ok: false, type: r.type, error: err.message };
-    }
-  }));
-  res.json({ ok: true, count: results.length, results });
+      return { index: i, type: r.type, content };
+    }));
+
+    const results = settled.map((result, i) => {
+      if (result.status === 'fulfilled') {
+        return { ...result.value, ok: true };
+      }
+      return { index: i, ok: false, type: requests[i]?.type, error: result.reason?.message || 'Unknown error' };
+    });
+
+    res.json({ ok: true, count: results.length, results });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Schedule content — POST
@@ -228,5 +301,22 @@ app.get('/api/hermes/schedule', (req, res) => {
   res.json({ ok: true, count: items.length, schedule: items });
 });
 
-const PORT = process.env.HERMES_PORT || 3004;
+// Schedule content — DELETE
+app.delete('/api/hermes/schedule/:id', (req, res) => {
+  const { id } = req.params;
+  if (!schedule.has(id)) {
+    return res.status(404).json({ error: 'Scheduled item not found.' });
+  }
+  schedule.delete(id);
+  res.json({ ok: true, deleted: id });
+});
+
+// Global error handler
+app.use((err, _req, res, _next) => {
+  console.error('[hermes-agent]', err);
+  const status = err.status || 500;
+  res.status(status).json({ ok: false, error: err.message });
+});
+
+const PORT = process.env.PORT || process.env.HERMES_PORT || 3004;
 app.listen(PORT, () => console.log(`Hermes Content Agent running on :${PORT}`));
