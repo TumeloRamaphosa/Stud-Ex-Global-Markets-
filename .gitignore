@@ -74,3 +74,8 @@ sqlite.db
 Decepticon/
 paperclip/
 .flyconfig/
+.gstack/
+
+# Read-only reference clones of external repos (keep the README that explains what's in here)
+reference/*
+!reference/README.md

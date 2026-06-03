@@ -5,6 +5,34 @@ import { z } from 'zod';
 const BASE_URL = process.env.STUDEX_API_URL || 'https://datanetics-app.fly.dev';
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://35.196.24.245:11434';
 
+// Hoist (Polsia) domain/deploy MCP — https://hoist-g8do.polsia.app
+// Public API: search + guest-checkout require no auth; authenticated ops need HOIST_API_KEY
+const HOIST_BASE = process.env.HOIST_API_URL || 'https://hoist-g8do.polsia.app/api';
+async function hoistApi(path, { method = 'GET', body = null, auth = false } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth) {
+    const key = process.env.HOIST_API_KEY;
+    if (!key) return { error: 'HOIST_API_KEY not set — required for authenticated Hoist endpoints', ok: false };
+    headers['Authorization'] = `Bearer ${key}`;
+  }
+  let res;
+  try {
+    res = await fetch(`${HOIST_BASE}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (err) {
+    return { error: `Hoist network error: ${err.message}`, ok: false };
+  }
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { error: `Hoist non-JSON response (${res.status}): ${text.slice(0, 500)}`, ok: false };
+  }
+}
+
 async function api(path, body) {
   let res;
   try {
@@ -351,6 +379,51 @@ export function createStudexServer() {
     items: z.array(z.object({ cut: z.string(), weight: z.number(), marbleScore: z.string().optional() })),
   }, async ({ items }) => {
     const data = await api('/api/n8n', { workflow: 'calculate', data: { items } });
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  });
+
+  // ═══════════════════════════════════════════
+  // HOIST (Polsia) — Domain registration & deploys
+  //   Vendor: hoist-g8do.polsia.app
+  //   Free for search; HOIST_API_KEY required for authenticated registration
+  // ═══════════════════════════════════════════
+
+  server.tool('hoist_search_domain', 'Search available domains across 14 TLDs (.com, .io, .dev, .ai, .app, .xyz, .site, .org, .net, .co, .me, .sh, .tech, .cc). No auth required.', {
+    name: z.string().describe('Domain name without TLD (e.g. "naledi-meat")'),
+  }, async ({ name }) => {
+    const data = await hoistApi('/domains/search', { method: 'POST', body: { name } });
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  });
+
+  server.tool('hoist_pricing', 'Get live pricing for all supported TLDs.', {}, async () => {
+    const data = await hoistApi('/pricing');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  });
+
+  server.tool('hoist_list_tlds', 'List all supported TLDs with prices.', {}, async () => {
+    const data = await hoistApi('/domains/tlds');
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  });
+
+  server.tool('hoist_guest_checkout', 'Register a domain via guest checkout (no account required). Returns a Stripe payment URL the caller must complete.', {
+    domain: z.string().describe('Full domain to register, e.g. "naledi-meat.com"'),
+    email: z.string().describe('Contact email for the registration'),
+  }, async ({ domain, email }) => {
+    const data = await hoistApi('/domains/checkout', { method: 'POST', body: { domain, email } });
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  });
+
+  server.tool('hoist_register_domain', 'Register a domain for an authenticated Hoist account. Requires HOIST_API_KEY env var.', {
+    domain: z.string().describe('Full domain to register, e.g. "naledi-meat.com"'),
+  }, async ({ domain }) => {
+    const data = await hoistApi('/domains/register', { method: 'POST', body: { domain }, auth: true });
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+  });
+
+  server.tool('hoist_deploy', 'Deploy a site from a public source URL (e.g. GitHub repo). Returns a temporary slug.hoist-g8do.polsia.app URL.', {
+    source_url: z.string().describe('Public source URL — typically a GitHub repository'),
+  }, async ({ source_url }) => {
+    const data = await hoistApi('/deploy', { method: 'POST', body: { source_url } });
     return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
   });
 
