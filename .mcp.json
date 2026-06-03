@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "polsia-hoist": {
+      "command": "node",
+      "args": ["studex-mcp-server/src/stdio.js"],
+      "env": {
+        "HOIST_API_URL": "https://hoist-g8do.polsia.app/api"
+      }
+    }
+  }
+}
