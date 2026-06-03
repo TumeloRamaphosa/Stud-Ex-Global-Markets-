@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import Card from '@/components/ui/Card';
@@ -15,16 +15,28 @@ import {
   Trash2,
   Calendar,
   BarChart3,
+  XCircle,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
-const timeEntries = [
+const STORAGE_KEY = 'studex_time_entries';
+
+interface TimeEntry {
+  id: number;
+  task: string;
+  project: string;
+  duration: number;
+  date: string; // ISO string for serialization
+  category: string;
+}
+
+const defaultEntries: TimeEntry[] = [
   {
     id: 1,
     task: 'Client Meeting - Series A Discussion',
     project: 'TechStartup Inc',
     duration: 2.5,
-    date: new Date(),
+    date: new Date().toISOString(),
     category: 'Meetings',
   },
   {
@@ -32,7 +44,7 @@ const timeEntries = [
     task: 'Due Diligence Review',
     project: 'TechStartup Inc',
     duration: 3.75,
-    date: new Date(Date.now() - 86400000),
+    date: new Date(Date.now() - 86400000).toISOString(),
     category: 'Analysis',
   },
   {
@@ -40,7 +52,7 @@ const timeEntries = [
     task: 'Contract Negotiation',
     project: 'Global Partners LLC',
     duration: 1.5,
-    date: new Date(Date.now() - 172800000),
+    date: new Date(Date.now() - 172800000).toISOString(),
     category: 'Legal',
   },
   {
@@ -48,12 +60,35 @@ const timeEntries = [
     task: 'Pitch Preparation',
     project: 'Innovation Corp',
     duration: 4.25,
-    date: new Date(Date.now() - 259200000),
+    date: new Date(Date.now() - 259200000).toISOString(),
     category: 'Meetings',
   },
 ];
 
 const categories = ['All', 'Meetings', 'Analysis', 'Legal', 'Administrative'];
+
+function loadEntries(): TimeEntry[] {
+  if (typeof window === 'undefined') return defaultEntries;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as TimeEntry[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return defaultEntries;
+}
+
+function saveEntries(entries: TimeEntry[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  } catch {
+    // ignore quota errors
+  }
+}
 
 export default function TrackerPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -62,22 +97,77 @@ export default function TrackerPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [newTaskName, setNewTaskName] = useState('');
   const [newProjectName, setNewProjectName] = useState('');
+  const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [mounted, setMounted] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Load entries from localStorage on mount
+  useEffect(() => {
+    setEntries(loadEntries());
+    setMounted(true);
+  }, []);
+
+  // Persist entries whenever they change (after initial mount)
+  useEffect(() => {
+    if (mounted) {
+      saveEntries(entries);
+    }
+  }, [entries, mounted]);
+
+  // Timer interval
+  useEffect(() => {
+    if (isRunning) {
+      intervalRef.current = setInterval(() => {
+        setElapsed((prev) => prev + 1);
+      }, 1000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [isRunning]);
 
   const filteredEntries = selectedCategory === 'All'
-    ? timeEntries
-    : timeEntries.filter((entry) => entry.category === selectedCategory);
+    ? entries
+    : entries.filter((entry) => entry.category === selectedCategory);
 
   const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.duration, 0);
   const averagePerDay = totalHours / 7; // Assuming weekly
 
-  const handleAddTask = (e: React.FormEvent) => {
+  const handleAddTask = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    if (newTaskName.trim()) {
-      console.log('Add task:', { task: newTaskName, project: newProjectName });
-      setNewTaskName('');
-      setNewProjectName('');
-    }
-  };
+    if (!newTaskName.trim()) return;
+
+    const durationHours = elapsed / 3600;
+    const newEntry: TimeEntry = {
+      id: Date.now(),
+      task: newTaskName.trim(),
+      project: newProjectName.trim() || 'Unassigned',
+      duration: durationHours > 0 ? parseFloat(durationHours.toFixed(2)) : 0,
+      date: new Date().toISOString(),
+      category: 'Meetings', // default category
+    };
+
+    setEntries((prev) => [newEntry, ...prev]);
+    setNewTaskName('');
+    setNewProjectName('');
+    setElapsed(0);
+    setIsRunning(false);
+  }, [newTaskName, newProjectName, elapsed]);
+
+  const handleDeleteEntry = useCallback((id: number) => {
+    setEntries((prev) => prev.filter((entry) => entry.id !== id));
+  }, []);
+
+  const handleClearAll = useCallback(() => {
+    setEntries([]);
+    setElapsed(0);
+    setIsRunning(false);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-dark text-white">
@@ -181,8 +271,8 @@ export default function TrackerPage() {
               </Card>
             </div>
 
-            {/* Category Filter */}
-            <div className="mb-6 flex flex-wrap gap-2">
+            {/* Category Filter + Clear All */}
+            <div className="mb-6 flex flex-wrap items-center gap-2">
               {categories.map((cat) => (
                 <button
                   key={cat}
@@ -196,47 +286,71 @@ export default function TrackerPage() {
                   {cat}
                 </button>
               ))}
+              <div className="ml-auto">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<XCircle size={16} />}
+                  onClick={handleClearAll}
+                  disabled={entries.length === 0}
+                >
+                  Clear All
+                </Button>
+              </div>
             </div>
 
             {/* Time Entries List */}
             <Card>
               <h2 className="text-2xl font-bold mb-6">Time Entries</h2>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-primary-700/20">
-                      <th className="text-left py-3 px-4 font-semibold">Task</th>
-                      <th className="text-left py-3 px-4 font-semibold">Project</th>
-                      <th className="text-left py-3 px-4 font-semibold">Category</th>
-                      <th className="text-left py-3 px-4 font-semibold">Duration</th>
-                      <th className="text-left py-3 px-4 font-semibold">Date</th>
-                      <th className="text-left py-3 px-4 font-semibold">Action</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {filteredEntries.map((entry) => (
-                      <tr key={entry.id} className="border-b border-primary-700/10 hover:bg-dark-800/50 transition-colors">
-                        <td className="py-3 px-4">{entry.task}</td>
-                        <td className="py-3 px-4">{entry.project}</td>
-                        <td className="py-3 px-4">
-                          <Badge variant="primary" size="sm">
-                            {entry.category}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4 font-semibold">{entry.duration.toFixed(2)}h</td>
-                        <td className="py-3 px-4 text-gray-400">
-                          {formatDate(entry.date)}
-                        </td>
-                        <td className="py-3 px-4">
-                          <Button variant="ghost" size="sm" icon={<Trash2 size={16} />} />
-                        </td>
+              {filteredEntries.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <Clock size={48} className="mx-auto mb-4 opacity-40" />
+                  <p className="text-lg">No time entries yet</p>
+                  <p className="text-sm mt-1">Start the timer and save a task to see entries here</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-primary-700/20">
+                        <th className="text-left py-3 px-4 font-semibold">Task</th>
+                        <th className="text-left py-3 px-4 font-semibold">Project</th>
+                        <th className="text-left py-3 px-4 font-semibold">Category</th>
+                        <th className="text-left py-3 px-4 font-semibold">Duration</th>
+                        <th className="text-left py-3 px-4 font-semibold">Date</th>
+                        <th className="text-left py-3 px-4 font-semibold">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+
+                    <tbody>
+                      {filteredEntries.map((entry) => (
+                        <tr key={entry.id} className="border-b border-primary-700/10 hover:bg-dark-800/50 transition-colors">
+                          <td className="py-3 px-4">{entry.task}</td>
+                          <td className="py-3 px-4">{entry.project}</td>
+                          <td className="py-3 px-4">
+                            <Badge variant="primary" size="sm">
+                              {entry.category}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4 font-semibold">{entry.duration.toFixed(2)}h</td>
+                          <td className="py-3 px-4 text-gray-400">
+                            {formatDate(entry.date)}
+                          </td>
+                          <td className="py-3 px-4">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<Trash2 size={16} />}
+                              onClick={() => handleDeleteEntry(entry.id)}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </Card>
 
             {/* Weekly Breakdown */}

@@ -1,11 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { api } from '@/lib/api';
+import type { Message } from '@/lib/api';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
   MessageSquare,
   Send,
@@ -18,95 +22,147 @@ import {
   Info,
 } from 'lucide-react';
 
-const conversations = [
-  {
-    id: 1,
-    name: 'Alice Johnson',
-    role: 'Investor',
-    avatar: 'AJ',
-    lastMessage: 'That sounds great! When can we...',
-    time: '2m ago',
-    unread: 2,
-    online: true,
-  },
-  {
-    id: 2,
-    name: 'Bob Smith',
-    role: 'Entrepreneur',
-    avatar: 'BS',
-    lastMessage: 'Thanks for the feedback on the pitch',
-    time: '15m ago',
-    unread: 0,
-    online: true,
-  },
-  {
-    id: 3,
-    name: 'Carol Davis',
-    role: 'Investor',
-    avatar: 'CD',
-    lastMessage: 'Let me check with my partners',
-    time: '1h ago',
-    unread: 1,
-    online: false,
-  },
-  {
-    id: 4,
-    name: 'Dave Wilson',
-    role: 'Entrepreneur',
-    avatar: 'DW',
-    lastMessage: 'Perfect! Let\'s schedule a call',
-    time: '3h ago',
-    unread: 0,
-    online: false,
-  },
-];
-
-const messages = [
-  {
-    id: 1,
-    sender: 'other',
-    text: 'Hi! I reviewed your business proposal and I\'m very interested.',
-    time: '10:30 AM',
-  },
-  {
-    id: 2,
-    sender: 'you',
-    text: 'Great! I\'m excited to discuss the details with you.',
-    time: '10:35 AM',
-  },
-  {
-    id: 3,
-    sender: 'other',
-    text: 'That sounds great! When can we schedule a call?',
-    time: '10:40 AM',
-  },
-  {
-    id: 4,
-    sender: 'you',
-    text: 'I\'m free tomorrow at 2 PM or Thursday at 10 AM. What works best for you?',
-    time: '10:42 AM',
-  },
-];
+interface Conversation {
+  id: string;
+  participant_ids: string[];
+  last_message?: string;
+  last_message_at?: any;
+  [key: string]: any;
+}
 
 export default function MessagesPage() {
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [selectedConversation, setSelectedConversation] = useState<number | null>(conversations[0].id);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const currentConversation = conversations.find((c) => c.id === selectedConversation);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loadingConversations, setLoadingConversations] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch conversations
+  useEffect(() => {
+    if (!user) return;
+
+    async function fetchConversations() {
+      try {
+        setLoadingConversations(true);
+        const data = await api.messages.getConversations();
+        setConversations(data as Conversation[]);
+        // Auto-select the first conversation if none selected
+        if (data.length > 0 && !selectedConversation) {
+          setSelectedConversation((data[0] as Conversation).id);
+        }
+      } catch (err) {
+        console.error('Failed to fetch conversations:', err);
+      } finally {
+        setLoadingConversations(false);
+      }
+    }
+
+    fetchConversations();
+  }, [user]);
+
+  // Fetch messages when conversation changes
+  useEffect(() => {
+    if (!selectedConversation || !user) return;
+
+    let unsubscribe: (() => void) | undefined;
+
+    async function loadMessages() {
+      try {
+        setLoadingMessages(true);
+        const data = await api.messages.getMessages(selectedConversation!);
+        setMessages(data);
+      } catch (err) {
+        console.error('Failed to fetch messages:', err);
+      } finally {
+        setLoadingMessages(false);
+      }
+    }
+
+    loadMessages();
+
+    // Subscribe to real-time updates
+    try {
+      unsubscribe = api.messages.onMessagesSnapshot(selectedConversation, (newMessages) => {
+        setMessages(newMessages);
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to messages:', err);
+    }
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [selectedConversation, user]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (messageInput.trim()) {
-      console.log('Send message:', messageInput);
+    if (!messageInput.trim() || !selectedConversation || sending) return;
+
+    try {
+      setSending(true);
+      await api.messages.sendMessage(selectedConversation, messageInput.trim());
       setMessageInput('');
+    } catch (err) {
+      console.error('Failed to send message:', err);
+    } finally {
+      setSending(false);
     }
   };
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = conversations.filter((conv) => {
+    const name = conv.display_name || conv.name || conv.id || '';
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const currentConversation = conversations.find((c) => c.id === selectedConversation);
+
+  const getConversationName = (conv: Conversation) => {
+    return conv.display_name || conv.name || conv.title || 'Conversation';
+  };
+
+  const getConversationAvatar = (conv: Conversation) => {
+    const name = getConversationName(conv);
+    return name
+      .split(' ')
+      .map((w: string) => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const formatTime = (timestamp: any) => {
+    if (!timestamp) return '';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
+
+  const formatMessageTime = (timestamp: any) => {
+    if (!timestamp) return '';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-dark text-white">
@@ -141,6 +197,20 @@ export default function MessagesPage() {
 
               {/* Conversations */}
               <div className="flex-1 overflow-y-auto">
+                {loadingConversations && (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <LoadingSpinner size="sm" />
+                    <p className="text-gray-500 text-sm mt-2">Loading conversations...</p>
+                  </div>
+                )}
+
+                {!loadingConversations && filteredConversations.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-12 px-4">
+                    <MessageSquare size={32} className="text-gray-600 mb-2" />
+                    <p className="text-gray-500 text-sm text-center">No messages yet</p>
+                  </div>
+                )}
+
                 {filteredConversations.map((conv) => (
                   <button
                     key={conv.id}
@@ -152,25 +222,19 @@ export default function MessagesPage() {
                     <div className="flex items-start gap-3">
                       <div className="relative">
                         <div className="h-12 w-12 rounded-full bg-primary-600 flex items-center justify-center font-bold">
-                          {conv.avatar}
+                          {getConversationAvatar(conv)}
                         </div>
-                        {conv.online && (
-                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-dark-900"></div>
-                        )}
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <p className="font-semibold">{conv.name}</p>
-                          {conv.unread > 0 && (
-                            <span className="text-xs bg-primary-600 px-2 py-1 rounded-full">
-                              {conv.unread}
-                            </span>
-                          )}
+                          <p className="font-semibold">{getConversationName(conv)}</p>
                         </div>
 
-                        <p className="text-sm text-gray-400 truncate">{conv.lastMessage}</p>
-                        <p className="text-xs text-gray-500 mt-1">{conv.time}</p>
+                        <p className="text-sm text-gray-400 truncate">{conv.last_message || 'No messages'}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {conv.last_message_at ? formatTime(conv.last_message_at) : ''}
+                        </p>
                       </div>
                     </div>
                   </button>
@@ -179,17 +243,16 @@ export default function MessagesPage() {
             </div>
 
             {/* Chat Window */}
-            {currentConversation && (
+            {currentConversation ? (
               <div className="hidden md:flex flex-1 flex-col border border-primary-700/20 rounded-2xl bg-dark-900/50 backdrop-blur-md overflow-hidden">
                 {/* Chat Header */}
                 <div className="flex items-center justify-between border-b border-primary-700/20 p-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center font-bold">
-                      {currentConversation.avatar}
+                      {getConversationAvatar(currentConversation)}
                     </div>
                     <div>
-                      <p className="font-semibold">{currentConversation.name}</p>
-                      <p className="text-xs text-gray-400">{currentConversation.role}</p>
+                      <p className="font-semibold">{getConversationName(currentConversation)}</p>
                     </div>
                   </div>
 
@@ -202,26 +265,47 @@ export default function MessagesPage() {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {messages.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.sender === 'you' ? 'justify-end' : 'justify-start'}`}>
-                      <div
-                        className={`max-w-xs px-4 py-2 rounded-lg ${
-                          msg.sender === 'you'
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-dark-800 border border-primary-700/30 text-gray-300'
-                        }`}
-                      >
-                        <p>{msg.text}</p>
-                        <p className="text-xs mt-1 opacity-70">{msg.time}</p>
-                      </div>
+                  {loadingMessages && (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <LoadingSpinner size="md" />
+                      <p className="text-gray-500 text-sm mt-2">Loading messages...</p>
                     </div>
-                  ))}
+                  )}
+
+                  {!loadingMessages && messages.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <MessageSquare size={32} className="text-gray-600 mb-2" />
+                      <p className="text-gray-500 text-sm">No messages yet. Start the conversation!</p>
+                    </div>
+                  )}
+
+                  {messages.map((msg) => {
+                    const isYou = msg.sender_id === user?.uid;
+                    return (
+                      <div key={msg.id} className={`flex ${isYou ? 'justify-end' : 'justify-start'}`}>
+                        <div
+                          className={`max-w-xs px-4 py-2 rounded-lg ${
+                            isYou
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-dark-800 border border-primary-700/30 text-gray-300'
+                          }`}
+                        >
+                          {!isYou && msg.sender_name && (
+                            <p className="text-xs font-semibold text-primary-400 mb-1">{msg.sender_name}</p>
+                          )}
+                          <p>{msg.text}</p>
+                          <p className="text-xs mt-1 opacity-70">{formatMessageTime(msg.created_at)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Message Input */}
                 <form onSubmit={handleSendMessage} className="border-t border-primary-700/20 p-4">
                   <div className="flex items-end gap-2">
-                    <Button variant="ghost" size="sm" icon={<Paperclip size={18} />} />
+                    <Button variant="ghost" size="sm" icon={<Paperclip size={18} />} type="button" />
                     <input
                       type="text"
                       placeholder="Type your message..."
@@ -229,50 +313,71 @@ export default function MessagesPage() {
                       onChange={(e) => setMessageInput(e.target.value)}
                       className="flex-1 rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-2.5 text-white placeholder-gray-500 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                     />
-                    <Button variant="ghost" size="sm" icon={<Smile size={18} />} />
+                    <Button variant="ghost" size="sm" icon={<Smile size={18} />} type="button" />
                     <Button
                       type="submit"
                       variant="primary"
                       size="sm"
                       icon={<Send size={18} />}
-                      disabled={!messageInput.trim()}
+                      disabled={!messageInput.trim() || sending}
                     />
                   </div>
                 </form>
               </div>
+            ) : (
+              <div className="hidden md:flex flex-1 flex-col items-center justify-center border border-primary-700/20 rounded-2xl bg-dark-900/50 backdrop-blur-md">
+                <MessageSquare size={48} className="text-gray-600 mb-4" />
+                <p className="text-gray-400">Select a conversation to start messaging</p>
+              </div>
             )}
 
             {/* Mobile Chat View */}
-            {currentConversation && (
+            {currentConversation && selectedConversation && (
               <div className="md:hidden absolute inset-0 z-50 flex flex-col bg-gradient-dark">
                 {/* Chat Header */}
                 <div className="flex items-center justify-between border-b border-primary-700/20 p-4">
                   <div className="flex items-center gap-3">
                     <button onClick={() => setSelectedConversation(null)} className="text-gray-400 hover:text-white">
-                      ← Back
+                      &larr; Back
                     </button>
                     <div>
-                      <p className="font-semibold">{currentConversation.name}</p>
-                      <p className="text-xs text-gray-400">{currentConversation.role}</p>
+                      <p className="font-semibold">{getConversationName(currentConversation)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {messages.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.sender === 'you' ? 'justify-end' : 'justify-start'}`}>
-                      <div
-                        className={`max-w-xs px-4 py-2 rounded-lg ${
-                          msg.sender === 'you'
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-dark-800 border border-primary-700/30 text-gray-300'
-                        }`}
-                      >
-                        <p>{msg.text}</p>
-                      </div>
+                  {loadingMessages && (
+                    <div className="flex justify-center py-12">
+                      <LoadingSpinner size="md" />
                     </div>
-                  ))}
+                  )}
+
+                  {!loadingMessages && messages.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <MessageSquare size={32} className="text-gray-600 mb-2" />
+                      <p className="text-gray-500 text-sm">No messages yet</p>
+                    </div>
+                  )}
+
+                  {messages.map((msg) => {
+                    const isYou = msg.sender_id === user?.uid;
+                    return (
+                      <div key={msg.id} className={`flex ${isYou ? 'justify-end' : 'justify-start'}`}>
+                        <div
+                          className={`max-w-xs px-4 py-2 rounded-lg ${
+                            isYou
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-dark-800 border border-primary-700/30 text-gray-300'
+                          }`}
+                        >
+                          <p>{msg.text}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Message Input */}
@@ -285,7 +390,7 @@ export default function MessagesPage() {
                       onChange={(e) => setMessageInput(e.target.value)}
                       className="flex-1 rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-2.5 text-white placeholder-gray-500"
                     />
-                    <Button type="submit" variant="primary" size="sm" icon={<Send size={18} />} />
+                    <Button type="submit" variant="primary" size="sm" icon={<Send size={18} />} disabled={!messageInput.trim() || sending} />
                   </div>
                 </form>
               </div>
