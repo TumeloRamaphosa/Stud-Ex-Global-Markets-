@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "studex-facebook": {
+      "command": "node",
+      "args": ["./studex-frontend/mcp-servers/facebook/dist/index.js"],
+      "env": {
+        "META_ACCESS_TOKEN": "",
+        "FB_PAGE_ID": "108934711902801"
+      }
+    },
+    "studex-higgsfield": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-higgsfield"],
+      "env": {
+        "HIGGSFIELD_API_KEY": "",
+        "OUTPUT_DIR": "./generated/videos"
+      }
+    },
+    "studex-zernio": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-zernio"],
+      "env": {
+        "ZERNIO_API_KEY": "",
+        "INSTAGRAM_ACCESS_TOKEN": "",
+        "FACEBOOK_PAGE_TOKEN": ""
+      }
+    },
+    "studex-pixa": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-pixa"],
+      "env": {
+        "PIXA_API_KEY": "",
+        "COMFYUI_URL": "http://localhost:8188",
+        "OUTPUT_DIR": "./generated/images"
+      }
+    }
+  }
+}

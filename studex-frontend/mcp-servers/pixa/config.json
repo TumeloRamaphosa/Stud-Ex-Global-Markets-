@@ -1,0 +1,25 @@
+{
+  "name": "studex-pixa",
+  "description": "Pixa MCP — AI image generation and editing for product photos and social graphics",
+  "capabilities": ["text-to-image", "image-edit", "background-remove", "upscale", "style-transfer"],
+  "config": {
+    "default_model": "sdxl",
+    "default_resolution": "1024x1024",
+    "output_format": "png",
+    "brand_style": {
+      "primary_color": "#D4A017",
+      "background": "#FFF8F0",
+      "font": "premium-serif",
+      "tone": "luxury-meat-brand"
+    }
+  },
+  "claude_desktop_config": {
+    "command": "npx",
+    "args": ["-y", "@anthropic-ai/mcp-pixa"],
+    "env": {
+      "PIXA_API_KEY": "",
+      "COMFYUI_URL": "http://localhost:8188",
+      "OUTPUT_DIR": "./generated/images"
+    }
+  }
+}

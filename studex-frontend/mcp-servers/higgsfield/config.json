@@ -1,0 +1,23 @@
+{
+  "name": "studex-higgsfield",
+  "description": "Higgsfield AI video generation MCP for Instagram Reels and TikTok",
+  "endpoint": "http://localhost:3004/video",
+  "engine": "wan2.5",
+  "capabilities": ["text-to-video", "image-to-video", "audio-overlay"],
+  "config": {
+    "default_duration": "15s",
+    "default_resolution": "1080x1920",
+    "default_fps": 30,
+    "audio_enabled": true,
+    "output_format": "mp4"
+  },
+  "claude_desktop_config": {
+    "command": "npx",
+    "args": ["-y", "@anthropic-ai/mcp-higgsfield"],
+    "env": {
+      "HIGGSFIELD_API_KEY": "",
+      "OUTPUT_DIR": "./generated/videos"
+    }
+  },
+  "notes": "Audio must be baked into the video file before posting to Instagram — IG API cannot select music from their library"
+}

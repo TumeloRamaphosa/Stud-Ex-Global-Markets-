@@ -1,0 +1,22 @@
+{
+  "name": "studex-zernio-mcp",
+  "version": "1.0.0",
+  "description": "Zernio MCP — AI caption writer + social media publisher for Instagram and Facebook",
+  "type": "module",
+  "bin": {
+    "studex-zernio-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
