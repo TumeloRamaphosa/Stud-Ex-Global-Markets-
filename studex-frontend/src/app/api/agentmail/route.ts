@@ -160,6 +160,23 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true, result });
       }
 
+      case 'create_inbox': {
+        if (!body.username || !body.domain) {
+          return errorResponse('Missing required fields: username, domain', 400);
+        }
+        const result = await agentmailFetch('/api/inboxes', {
+          method: 'POST',
+          body: JSON.stringify({
+            username: body.username,
+            domain: body.domain,
+            description: body.description,
+            labels: body.labels,
+            metadata: body.metadata,
+          }),
+        });
+        return NextResponse.json({ ok: true, inbox: result });
+      }
+
       default:
         return errorResponse(`Unknown action: ${action}`, 400);
     }

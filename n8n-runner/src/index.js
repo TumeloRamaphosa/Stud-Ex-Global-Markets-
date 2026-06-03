@@ -5,6 +5,7 @@ import { priceLookupRouter } from './routes/price-lookup.js';
 import { emailRouter } from './routes/email.js';
 import { whatsappRouter } from './routes/whatsapp.js';
 import { workflowsRouter } from './routes/workflows.js';
+import { registerRouter } from './routes/register.js';
 
 const app = express();
 const PORT = process.env.PORT || process.env.N8N_RUNNER_PORT || 3003;
@@ -30,6 +31,7 @@ app.use(priceLookupRouter);
 app.use(emailRouter);
 app.use(whatsappRouter);
 app.use(workflowsRouter);
+app.use(registerRouter);
 
 app.use((err, _req, res, _next) => {
   console.error('Unhandled error:', err);

@@ -11,6 +11,7 @@ const navItems = [
   { href: '/strategy', label: 'Strategy Room', icon: '◈' },
   { href: '/agent-dashboard', label: 'CashClaw Agent', icon: '⚡' },
   { href: '/meat-dashboard', label: 'Operations', icon: '▤' },
+  { href: '/onboarding', label: 'KYC / Onboarding', icon: '◇' },
 ];
 
 export function Sidebar() {
