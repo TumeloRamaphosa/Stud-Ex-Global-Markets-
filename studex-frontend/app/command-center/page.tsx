@@ -1,415 +1,545 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
+import StatusIndicator from '@/components/ui/StatusIndicator';
+import Modal from '@/components/ui/Modal';
 import {
-  Instagram, Facebook, Send, Sparkles, Image as ImageIcon, Video, BarChart3,
-  TrendingUp, Heart, MessageCircle, RefreshCw, Loader2, ExternalLink,
-  AlertCircle, CheckCircle, Target, Zap, Clock, Users, Brain, Lightbulb,
+  Terminal,
+  Server,
+  Cpu,
+  HardDrive,
+  Wifi,
+  MessageSquare,
+  Link,
+  Settings,
+  Activity,
+  Send,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  EyeOff,
+  Loader2,
+  X,
 } from 'lucide-react';
 
-function fmt(n: number): string {
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-  return n.toLocaleString();
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+interface AgentConnection {
+  name: string;
+  connected: boolean;
 }
 
-interface Advice {
-  type: string; priority: string; title: string; text: string;
+interface AgentConfig {
+  id: string;
+  name: string;
+  description: string;
+  port: string;
+  chatEndpoint: string;
+  chatPayloadKey: string;
+  connections: AgentConnection[];
 }
 
-export default function CommandCenter() {
-  const [tab, setTab] = useState<'post' | 'advice' | 'analytics'>('post');
-  const [platform, setPlatform] = useState<'instagram' | 'facebook'>('instagram');
-  const [postType, setPostType] = useState<'image' | 'video'>('image');
-  const [caption, setCaption] = useState('');
-  const [mediaUrl, setMediaUrl] = useState('');
-  const [posting, setPosting] = useState(false);
-  const [postResult, setPostResult] = useState<any>(null);
-  const [advice, setAdvice] = useState<Advice[]>([]);
-  const [adviceStats, setAdviceStats] = useState<any>(null);
-  const [topPosts, setTopPosts] = useState<any[]>([]);
-  const [loadingAdvice, setLoadingAdvice] = useState(false);
-  const [dashData, setDashData] = useState<any>(null);
-  const [loadingDash, setLoadingDash] = useState(false);
+interface ChatMessage {
+  role: 'user' | 'agent';
+  text: string;
+  ts: number;
+}
 
-  async function handlePost() {
-    if (!caption.trim()) return;
-    setPosting(true);
-    setPostResult(null);
-    try {
-      let action = '';
-      if (platform === 'instagram') action = postType === 'image' ? 'post_instagram_image' : 'post_instagram_reel';
-      else action = 'post_facebook';
+interface VMConfig {
+  id: string;
+  title: string;
+  status: 'active' | 'inactive' | 'pending';
+  metrics: { label: string; value: string; icon: React.ReactNode }[];
+  agents: AgentConfig[];
+}
 
-      const res = await fetch('/api/composio/post', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, platform, caption, imageUrl: mediaUrl, videoUrl: mediaUrl }),
-      });
-      const data = await res.json();
-      setPostResult(data);
-    } catch (err: any) {
-      setPostResult({ error: err.message });
-    } finally {
-      setPosting(false);
-    }
-  }
+/* ------------------------------------------------------------------ */
+/*  Data                                                               */
+/* ------------------------------------------------------------------ */
 
-  async function loadAdvice() {
-    setLoadingAdvice(true);
-    try {
-      const res = await fetch('/api/composio/post', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'get_ai_advice' }),
-      });
-      const data = await res.json();
-      setAdvice(data.advice || []);
-      setAdviceStats(data.stats || null);
-      setTopPosts(data.topPosts || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingAdvice(false);
-    }
-  }
+const VMS: VMConfig[] = [
+  {
+    id: 'flyio',
+    title: 'Fly.io VM — JNB',
+    status: 'active',
+    metrics: [
+      { label: 'CPU', value: '24%', icon: <Cpu size={14} /> },
+      { label: 'RAM', value: '1.2 / 2 GB', icon: <Activity size={14} /> },
+    ],
+    agents: [
+      {
+        id: 'cashclaw',
+        name: 'CashClaw',
+        description: 'Ops agent',
+        port: '3000',
+        chatEndpoint: '/api/agent',
+        chatPayloadKey: 'message',
+        connections: [
+          { name: 'Shopify', connected: true },
+          { name: 'Meta', connected: true },
+          { name: 'QuickBooks', connected: false },
+          { name: 'Slack', connected: true },
+          { name: 'Discord', connected: false },
+          { name: 'AgentMail', connected: true },
+        ],
+      },
+      {
+        id: 'metaads',
+        name: 'Meta Ads MCP',
+        description: 'Ads proxy',
+        port: '3002',
+        chatEndpoint: '/api/meta-ads',
+        chatPayloadKey: 'message',
+        connections: [{ name: 'Meta API', connected: true }],
+      },
+      {
+        id: 'n8n',
+        name: 'n8n Runner',
+        description: 'Invoice automation',
+        port: '3003',
+        chatEndpoint: '/api/n8n',
+        chatPayloadKey: 'message',
+        connections: [
+          { name: 'n8n Cloud', connected: true },
+          { name: 'Google Sheets', connected: false },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'manus',
+    title: 'Manus VM — GPU',
+    status: 'active',
+    metrics: [
+      { label: 'CPU', value: '38%', icon: <Cpu size={14} /> },
+      { label: 'RAM', value: '6.4 / 16 GB', icon: <Activity size={14} /> },
+      { label: 'GPU', value: '52%', icon: <HardDrive size={14} /> },
+    ],
+    agents: [
+      {
+        id: 'hermes',
+        name: 'Hermes',
+        description: 'Content agent',
+        port: '3004',
+        chatEndpoint: '/api/hermes',
+        chatPayloadKey: 'task',
+        connections: [
+          { name: 'Ollama', connected: true },
+          { name: 'ComfyUI', connected: true },
+          { name: 'Anthropic', connected: true },
+          { name: 'OpenRouter', connected: false },
+        ],
+      },
+      {
+        id: 'ollama',
+        name: 'Ollama',
+        description: 'Local LLM',
+        port: '11434',
+        chatEndpoint: '/api/ollama',
+        chatPayloadKey: 'message',
+        connections: [],
+      },
+      {
+        id: 'comfyui',
+        name: 'ComfyUI',
+        description: 'Image / video generation',
+        port: '8188',
+        chatEndpoint: '/api/comfyui',
+        chatPayloadKey: 'message',
+        connections: [],
+      },
+    ],
+  },
+];
 
-  async function loadDashboard() {
-    setLoadingDash(true);
-    try {
-      const res = await fetch('/api/composio');
-      const data = await res.json();
-      setDashData(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingDash(false);
-    }
-  }
+/* ------------------------------------------------------------------ */
+/*  Theme constants                                                    */
+/* ------------------------------------------------------------------ */
+
+const CREAM = '#FFF8F0';
+const GOLD = '#D4A017';
+const TEXT = '#1A1A1A';
+const GOLD_LIGHT = '#F5E6C8';
+const GOLD_BORDER = '#E8D5A3';
+
+/* ------------------------------------------------------------------ */
+/*  Agent Card                                                         */
+/* ------------------------------------------------------------------ */
+
+function AgentCard({ agent }: { agent: AgentConfig }) {
+  const [expanded, setExpanded] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [pasteInput, setPasteInput] = useState('');
+  const [showPaste, setShowPaste] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sending, setSending] = useState(false);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [keyValue, setKeyValue] = useState('');
+  const [showKeyValue, setShowKeyValue] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (tab === 'advice' && advice.length === 0) loadAdvice();
-    if (tab === 'analytics' && !dashData) loadDashboard();
-  }, [tab]);
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-  const priorityColors: Record<string, string> = {
-    high: 'text-red-400 bg-red-400/10 border-red-400/20',
-    medium: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-    low: 'text-green-400 bg-green-400/10 border-green-400/20',
-  };
+  const sendMessage = useCallback(async () => {
+    const text = chatInput.trim();
+    if (!text || sending) return;
+    const userMsg: ChatMessage = { role: 'user', text, ts: Date.now() };
+    setMessages((prev) => [...prev, userMsg]);
+    setChatInput('');
+    setSending(true);
+    try {
+      const res = await fetch(agent.chatEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [agent.chatPayloadKey]: text }),
+      });
+      const data = await res.json();
+      const reply =
+        data.reply || data.response || data.message || data.result || JSON.stringify(data);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'agent', text: typeof reply === 'string' ? reply : JSON.stringify(reply), ts: Date.now() },
+      ]);
+    } catch (err: any) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'agent', text: `Error: ${err.message}`, ts: Date.now() },
+      ]);
+    } finally {
+      setSending(false);
+    }
+  }, [chatInput, sending, agent]);
 
-  const typeIcons: Record<string, React.ReactNode> = {
-    content: <ImageIcon size={16} />, engagement: <Heart size={16} />, pattern: <TrendingUp size={16} />,
-    reach: <Users size={16} />, posting: <Clock size={16} />, growth: <Target size={16} />,
-  };
+  const statusVariant: 'success' | 'error' | 'warning' = 'success';
 
   return (
-    <div className="min-h-screen bg-gradient-dark text-white">
-      <main className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
-              <Zap size={24} className="text-white" />
+    <div
+      className="rounded-xl border p-4 transition-all duration-200"
+      style={{
+        borderColor: GOLD_BORDER,
+        backgroundColor: 'rgba(255,248,240,0.6)',
+      }}
+    >
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Terminal size={16} style={{ color: GOLD }} />
+          <span className="font-bold text-base" style={{ color: TEXT }}>
+            {agent.name}
+          </span>
+          <Badge variant={statusVariant} size="sm">
+            running
+          </Badge>
+        </div>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="p-1 rounded hover:bg-black/5 transition-colors"
+          aria-label={expanded ? 'Collapse' : 'Expand'}
+        >
+          {expanded ? <ChevronUp size={16} color={TEXT} /> : <ChevronDown size={16} color={TEXT} />}
+        </button>
+      </div>
+      <p className="text-sm mb-3" style={{ color: '#666' }}>
+        {agent.description} &middot; port {agent.port}
+      </p>
+
+      {expanded && (
+        <div className="space-y-4 animate-fade-in">
+          {/* ---- Chat Box ---- */}
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wide mb-1 block" style={{ color: GOLD }}>
+              <MessageSquare size={12} className="inline mr-1" />
+              Chat
+            </label>
+            <div
+              className="rounded-lg border p-3 max-h-48 overflow-y-auto mb-2"
+              style={{ borderColor: GOLD_BORDER, backgroundColor: '#FFFDF8' }}
+            >
+              {messages.length === 0 && (
+                <p className="text-xs italic" style={{ color: '#999' }}>
+                  Send a message to start chatting with {agent.name}...
+                </p>
+              )}
+              {messages.map((m, i) => (
+                <div key={i} className={`mb-2 text-sm ${m.role === 'user' ? 'text-right' : 'text-left'}`}>
+                  <span
+                    className="inline-block rounded-lg px-3 py-1.5 max-w-[85%]"
+                    style={{
+                      backgroundColor: m.role === 'user' ? GOLD : '#F0EAD6',
+                      color: m.role === 'user' ? '#fff' : TEXT,
+                    }}
+                  >
+                    {m.text}
+                  </span>
+                </div>
+              ))}
+              <div ref={chatEndRef} />
             </div>
-            Social Command Center
-          </h1>
-          <p className="text-gray-400 mt-1">Post, analyze, and get AI advice — all in one place</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder={`Message ${agent.name}...`}
+                className="flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                style={{
+                  borderColor: GOLD_BORDER,
+                  backgroundColor: '#fff',
+                  color: TEXT,
+                  // @ts-ignore
+                  '--tw-ring-color': GOLD,
+                }}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={sending || !chatInput.trim()}
+                className="rounded-lg px-3 py-2 text-white font-medium text-sm disabled:opacity-40 transition-colors flex items-center gap-1"
+                style={{ backgroundColor: GOLD }}
+              >
+                {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                Send
+              </button>
+            </div>
+          </div>
+
+          {/* ---- Paste Link / Doc ---- */}
+          <div>
+            <button
+              onClick={() => setShowPaste(!showPaste)}
+              className="text-xs font-semibold flex items-center gap-1 hover:underline"
+              style={{ color: GOLD }}
+            >
+              <Link size={12} />
+              Paste Link / Doc
+            </button>
+            {showPaste && (
+              <div className="mt-2 flex gap-2">
+                <input
+                  type="text"
+                  value={pasteInput}
+                  onChange={(e) => setPasteInput(e.target.value)}
+                  placeholder="Paste a URL or text..."
+                  className="flex-1 rounded-lg border px-3 py-1.5 text-sm focus:outline-none"
+                  style={{ borderColor: GOLD_BORDER, color: TEXT }}
+                />
+                <button
+                  onClick={() => {
+                    if (pasteInput.trim()) {
+                      setMessages((prev) => [
+                        ...prev,
+                        { role: 'user', text: `[Link/Doc] ${pasteInput}`, ts: Date.now() },
+                      ]);
+                      setPasteInput('');
+                      setShowPaste(false);
+                    }
+                  }}
+                  className="rounded-lg px-3 py-1.5 text-white text-sm font-medium"
+                  style={{ backgroundColor: GOLD }}
+                >
+                  Attach
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* ---- Connections ---- */}
+          {agent.connections.length > 0 && (
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wide mb-2 block" style={{ color: GOLD }}>
+                <Wifi size={12} className="inline mr-1" />
+                Connections
+              </label>
+              <div className="space-y-1.5">
+                {agent.connections.map((conn) => (
+                  <div
+                    key={conn.name}
+                    className="flex items-center justify-between rounded-lg px-3 py-1.5"
+                    style={{ backgroundColor: 'rgba(212,160,23,0.06)' }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: conn.connected ? '#22c55e' : '#ef4444' }}
+                      />
+                      <span className="text-sm" style={{ color: TEXT }}>
+                        {conn.name}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingKey(editingKey === conn.name ? null : conn.name);
+                        setKeyValue('');
+                        setShowKeyValue(false);
+                      }}
+                      className="text-xs font-medium flex items-center gap-1 hover:underline"
+                      style={{ color: GOLD }}
+                    >
+                      <Settings size={11} />
+                      Edit API Key
+                    </button>
+                  </div>
+                ))}
+                {editingKey && (
+                  <div
+                    className="rounded-lg border p-3 mt-2"
+                    style={{ borderColor: GOLD_BORDER, backgroundColor: '#FFFDF8' }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold" style={{ color: TEXT }}>
+                        API Key for {editingKey}
+                      </span>
+                      <button onClick={() => setEditingKey(null)} className="text-gray-400 hover:text-gray-600">
+                        <X size={14} />
+                      </button>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type={showKeyValue ? 'text' : 'password'}
+                          value={keyValue}
+                          onChange={(e) => setKeyValue(e.target.value)}
+                          placeholder="sk-..."
+                          className="w-full rounded-lg border px-3 py-1.5 text-sm pr-8 focus:outline-none"
+                          style={{ borderColor: GOLD_BORDER, color: TEXT }}
+                        />
+                        <button
+                          onClick={() => setShowKeyValue(!showKeyValue)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showKeyValue ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setEditingKey(null);
+                          setKeyValue('');
+                        }}
+                        className="rounded-lg px-3 py-1.5 text-white text-sm font-medium"
+                        style={{ backgroundColor: GOLD }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ---- Logs ---- */}
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wide mb-1 block" style={{ color: GOLD }}>
+              <Terminal size={12} className="inline mr-1" />
+              Logs
+            </label>
+            <pre
+              className="rounded-lg p-3 text-xs font-mono leading-relaxed overflow-x-auto max-h-32 overflow-y-auto"
+              style={{ backgroundColor: '#1A1A1A', color: '#A8A29E' }}
+            >
+              {`[${new Date().toISOString().slice(0, 19)}] Waiting for logs...`}
+            </pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  VM Screen                                                          */
+/* ------------------------------------------------------------------ */
+
+function VMScreen({ vm }: { vm: VMConfig }) {
+  return (
+    <div
+      className="rounded-2xl border p-5 flex flex-col gap-4"
+      style={{
+        borderColor: GOLD_BORDER,
+        backgroundColor: CREAM,
+        boxShadow: '0 1px 12px rgba(212,160,23,0.08)',
+      }}
+    >
+      {/* VM Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Server size={20} style={{ color: GOLD }} />
+          <h2 className="text-lg font-bold" style={{ color: TEXT }}>
+            {vm.title}
+          </h2>
+          <StatusIndicator status={vm.status} label={vm.status === 'active' ? 'Online' : 'Offline'} size="sm" />
+        </div>
+      </div>
+
+      {/* Metrics bar */}
+      <div className="flex flex-wrap gap-3">
+        {vm.metrics.map((m) => (
+          <div
+            key={m.label}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium"
+            style={{ backgroundColor: GOLD_LIGHT, color: TEXT }}
+          >
+            {m.icon}
+            <span className="font-semibold">{m.label}:</span> {m.value}
+          </div>
+        ))}
+      </div>
+
+      {/* Agent cards */}
+      <div className="space-y-3">
+        {vm.agents.map((agent) => (
+          <AgentCard key={agent.id} agent={agent} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
+
+export default function CommandCenter() {
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: CREAM }}>
+      <main className="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-1">
+            <div
+              className="p-2.5 rounded-xl"
+              style={{ backgroundColor: GOLD }}
+            >
+              <Activity size={22} color="#fff" />
+            </div>
+            <h1 className="text-3xl font-bold" style={{ color: TEXT }}>
+              Mission Control
+            </h1>
+          </div>
+          <p className="text-sm ml-[52px]" style={{ color: '#888' }}>
+            Monitor and interact with all agents across your VM environments
+          </p>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex gap-2 mb-8">
-          {[
-            { id: 'post' as const, label: 'Create Post', icon: <Send size={16} /> },
-            { id: 'advice' as const, label: 'AI Advice', icon: <Brain size={16} /> },
-            { id: 'analytics' as const, label: 'Analytics', icon: <BarChart3 size={16} /> },
-          ].map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all ${
-                tab === t.id ? 'bg-primary-600/20 text-primary-300 border border-primary-600/50' : 'text-gray-400 hover:text-white hover:bg-dark-800/50'
-              }`}>
-              {t.icon} {t.label}
-            </button>
+        {/* Two VM screens side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {VMS.map((vm) => (
+            <VMScreen key={vm.id} vm={vm} />
           ))}
         </div>
 
-        {/* === POST TAB === */}
-        {tab === 'post' && (
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              {/* Platform Select */}
-              <Card>
-                <h2 className="font-bold mb-4">Platform</h2>
-                <div className="flex gap-3">
-                  <button onClick={() => setPlatform('instagram')}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all flex-1 ${
-                      platform === 'instagram' ? 'border-pink-500 bg-pink-500/10 text-pink-300' : 'border-primary-700/30 text-gray-400 hover:border-primary-600/50'}`}>
-                    <Instagram size={20} /> Instagram
-                  </button>
-                  <button onClick={() => setPlatform('facebook')}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all flex-1 ${
-                      platform === 'facebook' ? 'border-blue-500 bg-blue-500/10 text-blue-300' : 'border-primary-700/30 text-gray-400 hover:border-primary-600/50'}`}>
-                    <Facebook size={20} /> Facebook
-                  </button>
-                </div>
-              </Card>
-
-              {/* Post Type (Instagram only) */}
-              {platform === 'instagram' && (
-                <Card>
-                  <h2 className="font-bold mb-4">Post Type</h2>
-                  <div className="flex gap-3">
-                    <button onClick={() => setPostType('image')}
-                      className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all flex-1 ${
-                        postType === 'image' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300' : 'border-primary-700/30 text-gray-400'}`}>
-                      <ImageIcon size={18} /> Image
-                    </button>
-                    <button onClick={() => setPostType('video')}
-                      className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all flex-1 ${
-                        postType === 'video' ? 'border-purple-500 bg-purple-500/10 text-purple-300' : 'border-primary-700/30 text-gray-400'}`}>
-                      <Video size={18} /> Reel / Video
-                    </button>
-                  </div>
-                </Card>
-              )}
-
-              {/* Media URL */}
-              <Card>
-                <h2 className="font-bold mb-4">{postType === 'video' ? 'Video URL' : 'Image URL'}</h2>
-                <input type="url" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)}
-                  placeholder="https://example.com/your-image.jpg (must be publicly accessible)"
-                  className="w-full rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-3 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500" />
-                <p className="text-xs text-gray-500 mt-2">Image/video must be hosted publicly (not a local file)</p>
-              </Card>
-
-              {/* Caption */}
-              <Card>
-                <h2 className="font-bold mb-4">Caption</h2>
-                <textarea value={caption} onChange={(e) => setCaption(e.target.value)}
-                  placeholder="Write your caption here... Use hashtags and emojis for maximum reach"
-                  rows={5}
-                  className="w-full rounded-lg border border-primary-700/30 bg-dark-800/50 px-4 py-3 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none" />
-                <div className="flex justify-between mt-2">
-                  <span className="text-xs text-gray-500">{caption.length} characters</span>
-                  <span className="text-xs text-gray-500">{caption.length > 2200 ? 'Too long!' : caption.length > 1800 ? 'Getting long' : 'Good length'}</span>
-                </div>
-              </Card>
-
-              {/* Post Button */}
-              <Button size="lg" fullWidth onClick={handlePost}
-                disabled={posting || !caption.trim() || (platform === 'instagram' && !mediaUrl.trim())}
-                icon={posting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 py-4">
-                {posting ? 'Publishing...' : `Post to ${platform === 'instagram' ? 'Instagram' : 'Facebook'}`}
-              </Button>
-
-              {/* Result */}
-              {postResult && (
-                <Card className={postResult.error ? 'border-red-500/30' : 'border-green-500/30'}>
-                  {postResult.error ? (
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={20} />
-                      <div>
-                        <p className="font-bold text-red-400">Failed to post</p>
-                        <p className="text-sm text-gray-400 mt-1">{typeof postResult.error === 'string' ? postResult.error : JSON.stringify(postResult.error)}</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="text-green-400 flex-shrink-0 mt-0.5" size={20} />
-                      <div>
-                        <p className="font-bold text-green-400">Posted successfully!</p>
-                        <p className="text-sm text-gray-400 mt-1">{postResult.message || `Published to ${postResult.platform}`}</p>
-                      </div>
-                    </div>
-                  )}
-                </Card>
-              )}
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              <Card className="bg-gradient-to-br from-pink-900/20 to-transparent">
-                <h3 className="font-bold mb-3 flex items-center gap-2">
-                  <Lightbulb size={18} className="text-amber-400" /> Quick Tips
-                </h3>
-                <ul className="space-y-2 text-sm text-gray-400">
-                  <li>• Use 20-25 relevant hashtags</li>
-                  <li>• First line is your hook — make it count</li>
-                  <li>• Post Reels for 3.5x more reach</li>
-                  <li>• Best times: 7-8am, 12pm, 6-8pm SAST</li>
-                  <li>• End with a question for more comments</li>
-                  <li>• Carousel posts get the highest saves</li>
-                </ul>
-              </Card>
-              <Card>
-                <h3 className="font-bold mb-3">Connected Platforms</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-dark-800/50">
-                    <span className="flex items-center gap-2 text-sm"><Instagram size={16} className="text-pink-400" /> Instagram</span>
-                    <Badge variant="success" size="sm">Active</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-dark-800/50">
-                    <span className="flex items-center gap-2 text-sm"><Facebook size={16} className="text-blue-400" /> Facebook</span>
-                    <Badge variant="warning" size="sm">Needs Pages</Badge>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {/* === AI ADVICE TAB === */}
-        {tab === 'advice' && (
-          <div className="space-y-6">
-            {loadingAdvice ? (
-              <div className="text-center py-16">
-                <Loader2 size={48} className="animate-spin text-purple-500 mx-auto mb-4" />
-                <p className="text-gray-400">Analyzing your Instagram data with AI...</p>
-              </div>
-            ) : (
-              <>
-                {adviceStats && (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="text-center">
-                      <p className="text-xs text-gray-400">Followers</p>
-                      <p className="text-2xl font-bold">{fmt(adviceStats.followers)}</p>
-                    </Card>
-                    <Card className="text-center">
-                      <p className="text-xs text-gray-400">Avg Engagement</p>
-                      <p className="text-2xl font-bold">{adviceStats.avgEngRate}%</p>
-                    </Card>
-                    <Card className="text-center">
-                      <p className="text-xs text-gray-400">Reel Avg Likes</p>
-                      <p className="text-2xl font-bold">{fmt(adviceStats.reelAvgLikes)}</p>
-                    </Card>
-                    <Card className="text-center">
-                      <p className="text-xs text-gray-400">Image Avg Likes</p>
-                      <p className="text-2xl font-bold">{fmt(adviceStats.imageAvgLikes)}</p>
-                    </Card>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold flex items-center gap-2">
-                    <Brain size={22} className="text-purple-400" /> AI Recommendations
-                  </h2>
-                  <Button variant="secondary" size="sm" icon={<RefreshCw size={14} />} onClick={loadAdvice}>Refresh</Button>
-                </div>
-
-                <div className="space-y-4">
-                  {advice.map((a, i) => (
-                    <Card key={i} className="hover:border-primary-600/30 transition-colors">
-                      <div className="flex items-start gap-4">
-                        <div className="p-2 rounded-lg bg-dark-800/80 text-gray-400 mt-0.5">
-                          {typeIcons[a.type] || <Sparkles size={16} />}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-xs px-2 py-0.5 rounded-full border ${priorityColors[a.priority]}`}>
-                              {a.priority.toUpperCase()}
-                            </span>
-                            <span className="text-xs text-gray-500 capitalize">{a.type}</span>
-                          </div>
-                          <h3 className="font-bold mb-1">{a.title}</h3>
-                          <p className="text-sm text-gray-400">{a.text}</p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-
-                {topPosts.length > 0 && (
-                  <>
-                    <h2 className="text-xl font-bold flex items-center gap-2 mt-8">
-                      <TrendingUp size={22} className="text-gold-500" /> Your Top Posts
-                    </h2>
-                    <div className="grid sm:grid-cols-3 gap-4">
-                      {topPosts.map((p: any, i: number) => (
-                        <Card key={i}>
-                          <Badge variant={p.type === 'VIDEO' ? 'primary' : 'success'} size="sm">{p.type}</Badge>
-                          <p className="text-sm text-gray-300 mt-2 line-clamp-2">{p.caption || 'No caption'}</p>
-                          <div className="flex gap-3 mt-3 text-sm">
-                            <span className="text-red-400 flex items-center gap-1"><Heart size={14} /> {fmt(p.likes)}</span>
-                            <span className="text-blue-400 flex items-center gap-1"><MessageCircle size={14} /> {fmt(p.comments)}</span>
-                          </div>
-                          <a href={p.permalink} target="_blank" rel="noopener noreferrer"
-                            className="text-xs text-primary-400 mt-2 inline-flex items-center gap-1 hover:underline">
-                            View <ExternalLink size={12} />
-                          </a>
-                        </Card>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {/* === ANALYTICS TAB === */}
-        {tab === 'analytics' && (
-          <div className="space-y-6">
-            {loadingDash ? (
-              <div className="text-center py-16">
-                <Loader2 size={48} className="animate-spin text-pink-500 mx-auto mb-4" />
-                <p className="text-gray-400">Loading live analytics...</p>
-              </div>
-            ) : dashData ? (
-              <>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card>
-                    <p className="text-xs text-gray-400">Followers</p>
-                    <p className="text-3xl font-bold">{fmt(dashData.summary?.followers || 0)}</p>
-                  </Card>
-                  <Card>
-                    <p className="text-xs text-gray-400">Total Posts</p>
-                    <p className="text-3xl font-bold">{fmt(dashData.summary?.totalPosts || 0)}</p>
-                  </Card>
-                  <Card>
-                    <p className="text-xs text-gray-400">Recent Likes</p>
-                    <p className="text-3xl font-bold">{fmt(dashData.summary?.totalLikes || 0)}</p>
-                  </Card>
-                  <Card>
-                    <p className="text-xs text-gray-400">Engagement Rate</p>
-                    <p className="text-3xl font-bold">{dashData.summary?.avgEngagementRate || 0}%</p>
-                  </Card>
-                </div>
-
-                <h2 className="text-lg font-bold flex items-center gap-2">
-                  <ImageIcon size={20} className="text-pink-400" /> Recent Posts
-                </h2>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {(dashData.posts || []).slice(0, 9).map((post: any) => (
-                    <Card key={post.id} className="hover:border-pink-500/30">
-                      <div className="flex justify-between mb-2">
-                        <Badge variant={post.type === 'VIDEO' ? 'primary' : 'success'} size="sm">
-                          {post.type === 'VIDEO' ? 'REEL' : 'IMAGE'}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-300 line-clamp-2 mb-2">{post.caption || 'No caption'}</p>
-                      <div className="flex gap-3 text-sm">
-                        <span className="text-red-400 flex items-center gap-1"><Heart size={14} /> {fmt(post.likes)}</span>
-                        <span className="text-blue-400 flex items-center gap-1"><MessageCircle size={14} /> {fmt(post.comments)}</span>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <Card className="text-center py-12">
-                <p className="text-gray-400">Failed to load analytics. Check your Composio API key.</p>
-                <Button variant="secondary" size="sm" className="mt-4" icon={<RefreshCw size={14} />} onClick={loadDashboard}>Retry</Button>
-              </Card>
-            )}
-          </div>
-        )}
-
-        <div className="text-center py-6">
-          <p className="text-xs text-gray-600">Stud-Ex Social Command Center — Powered by Composio + Proprietary AI Engine</p>
+        {/* Footer */}
+        <div className="text-center py-8">
+          <p className="text-xs" style={{ color: '#bbb' }}>
+            Stud-Ex Mission Control &mdash; Real-time agent orchestration
+          </p>
         </div>
       </main>
     </div>
