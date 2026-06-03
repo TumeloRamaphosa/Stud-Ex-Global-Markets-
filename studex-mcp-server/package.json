@@ -1,0 +1,17 @@
+{
+  "name": "@studex/mcp-server",
+  "version": "1.0.0",
+  "description": "Studex Meat MCP Server — unified business operations for any AI agent",
+  "type": "module",
+  "bin": {
+    "studex-mcp-server": "./src/stdio.js"
+  },
+  "scripts": {
+    "start": "node src/stdio.js",
+    "dev": "node --watch src/stdio.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.24.2"
+  }
+}
