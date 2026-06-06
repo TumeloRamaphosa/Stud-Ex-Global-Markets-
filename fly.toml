@@ -1,0 +1,47 @@
+# fly.toml — StudEx Global Markets (datanetics-app)
+# Single VM architecture: store + nexus dashboard + API proxies
+# App: datanetics-app
+# Docs: https://fly.io/docs/reference/configuration/
+
+app = "datanetics-app"
+primary_region = "jnb"  # Johannesburg — closest to your audience
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1  # Keep one running for dashboard + agent
+  processes = ["app"]
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  path = "/api/health"
+  timeout = "5s"
+
+[checks]
+  [checks.alive]
+    grace_period = "5s"
+    interval = "15s"
+    method = "get"
+    path = "/api/health"
+    port = 3000
+    timeout = "2s"
+    type = "http"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+
+# Secrets to set:
+# flyctl secrets set SHOPIFY_ACCESS_TOKEN=xxx SHOPIFY_STORE_DOMAIN=studexmeat.myshopify.com ELEVENLABS_API_KEY=xxx AGENTMAIL_API_KEY=xxx WHATSAPP_ACCESS_TOKEN=xxx BLOTATO_API_KEY=xxx META_ACCESS_TOKEN=xxx SUPABASE_URL=xxx SUPABASE_ANON_KEY=xxx NEXUS_PASSWORD=xxx --app datanetics-app

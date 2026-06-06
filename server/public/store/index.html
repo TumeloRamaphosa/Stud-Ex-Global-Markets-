@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudEx Meat | Premium Wagyu & Ankole Cuts</title>
+    <meta name="description" content="South Africa's finest Wagyu and Ankole beef delivered nationwide">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --obsidian: #0D0D0D;
+            --obsidian-light: #1A1A1A;
+            --gold: #C9A84C;
+            --gold-light: #E5CE7A;
+            --cream: #F8F4E8;
+            --slate: #4A4A4A;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--obsidian);
+            color: var(--cream);
+            min-height: 100vh;
+        }
+        .header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(201, 168, 76, 0.2);
+        }
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            color: var(--gold);
+            letter-spacing: 2px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        .nav-links a {
+            color: var(--cream);
+            text-decoration: none;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover {
+            color: var(--gold);
+        }
+        .hero {
+            padding: 100px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--obsidian) 0%, var(--obsidian-light) 100%);
+        }
+        .hero h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 72px;
+            color: var(--gold);
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+        }
+        .hero p {
+            font-size: 18px;
+            color: var(--cream);
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: var(--gold);
+            color: var(--obsidian);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .cta-button:hover {
+            background: var(--gold-light);
+            transform: translateY(-2px);
+        }
+        .features {
+            padding: 80px 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .feature {
+            padding: 40px;
+            background: var(--obsidian-light);
+            border: 1px solid rgba(201, 168, 76, 0.2);
+            border-radius: 8px;
+        }
+        .feature h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 24px;
+            color: var(--gold);
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+        }
+        .feature p {
+            color: var(--cream);
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+        .footer {
+            padding: 40px;
+            text-align: center;
+            border-top: 1px solid rgba(201, 168, 76, 0.2);
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--slate);
+        }
+        .nexus-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(201, 168, 76, 0.1);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            text-decoration: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            border-radius: 4px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        .nexus-link:hover {
+            opacity: 1;
+        }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 48px; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">STUDEX MEAT</div>
+        <nav class="nav-links">
+            <a href="/">Store</a>
+            <a href="/nexus">Dashboard</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>PREMIUM CUTS</h1>
+        <p>South Africa's finest Wagyu and Ankole beef, ethically sourced and delivered nationwide.</p>
+        <a href="https://studexmeat.myshopify.com" class="cta-button">Shop Now</a>
+    </section>
+
+    <section class="features">
+        <div class="feature">
+            <h3>WAGYU BEEF</h3>
+            <p>World-renowned Japanese beef cattle breed known for its exceptional marbling and flavor profile.</p>
+        </div>
+        <div class="feature">
+            <h3>ANKOLE CATTLE</h3>
+            <p>Ancient African breed with distinctive long horns, prized for lean, flavorful meat.</p>
+        </div>
+        <div class="feature">
+            <h3>NATIONWIDE DELIVERY</h3>
+            <p>Flash-frozen and vacuum-sealed, delivered to your door anywhere in South Africa.</p>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>© 2026 StudEx Global Markets. Powered by StudEx Meat.</p>
+        <p style="margin-top: 10px;">Orders #1922 & #1925 archived per business rules.</p>
+    </footer>
+
+    <a href="/nexus" class="nexus-link">NEXUS →</a>
+</body>
+</html>
