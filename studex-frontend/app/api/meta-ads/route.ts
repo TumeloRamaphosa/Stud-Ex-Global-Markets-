@@ -28,13 +28,13 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const action = searchParams.get('action') || 'status';
 
-  if (!ACCESS_TOKEN) {
-    return NextResponse.json({ error: 'META_ACCESS_TOKEN not set. Get it from developers.facebook.com/tools/explorer', connected: false });
+  if (!PAGE_TOKEN && !USER_TOKEN) {
+    return NextResponse.json({ error: 'META_PAGE_TOKEN / META_USER_TOKEN not set. Get from developers.facebook.com/tools/explorer', connected: false });
   }
 
   try {
     if (action === 'status') {
-      return NextResponse.json({ connected: !!ACCESS_TOKEN, adAccountId: AD_ACCOUNT_ID });
+      return NextResponse.json({ connected: !!(PAGE_TOKEN || USER_TOKEN), adAccountId: AD_ACCOUNT_ID });
     }
 
     if (action === 'campaigns') {
