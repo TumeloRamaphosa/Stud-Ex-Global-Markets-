@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading, error] = useAuthState(auth as any);
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
