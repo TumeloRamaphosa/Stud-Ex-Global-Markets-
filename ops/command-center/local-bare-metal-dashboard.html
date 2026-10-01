@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StudEx Bare Metal — Local Operator Rack</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;900&family=Orbitron:wght@500;800&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --rack: #070b08;
+      --bay: #101710;
+      --phosphor: #7CFF6B;
+      --phosphor-dim: rgba(124, 255, 107, 0.18);
+      --copper: #C9A84C;
+      --warn: #FF6B6B;
+      --text: #d7ead0;
+      --mute: rgba(215, 234, 208, 0.45);
+      --font-display: "Cinzel", serif;
+      --font-mono: "Share Tech Mono", monospace;
+      --font-num: "Orbitron", sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(1200px 500px at 10% -10%, rgba(201, 168, 76, 0.12), transparent 50%),
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.25) 3px),
+        var(--rack);
+      color: var(--text);
+      font-family: var(--font-mono);
+    }
+    body::after {
+      content: "";
+      pointer-events: none;
+      position: fixed; inset: 0;
+      background: linear-gradient(rgba(12, 20, 12, 0.08) 50%, transparent 50%);
+      background-size: 100% 3px;
+      opacity: 0.35;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 16px;
+      align-items: end;
+      padding: 28px 32px 18px;
+      border-bottom: 1px solid rgba(124, 255, 107, 0.25);
+    }
+    header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 48px);
+      letter-spacing: 0.12em;
+      color: var(--copper);
+      line-height: 1;
+    }
+    header p { color: var(--mute); margin-top: 8px; font-size: 13px; letter-spacing: 0.08em; }
+    .clock { font-family: var(--font-num); color: var(--phosphor); font-size: 22px; }
+    .link {
+      color: var(--copper);
+      text-decoration: none;
+      border: 1px solid var(--copper);
+      padding: 10px 14px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .rack { padding: 24px 32px 48px; display: grid; gap: 14px; max-width: 1280px; }
+    .ru {
+      background: linear-gradient(180deg, #161c16, var(--bay));
+      border: 1px solid rgba(124, 255, 107, 0.2);
+      display: grid;
+      grid-template-columns: 92px 1fr 140px;
+      gap: 16px;
+      padding: 16px 18px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.4), 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .ears {
+      font-family: var(--font-num);
+      color: var(--phosphor);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      display: flex; flex-direction: column; justify-content: center;
+      border-right: 1px dashed rgba(124, 255, 107, 0.25);
+    }
+    h2 { font-family: var(--font-display); color: var(--copper); font-size: 18px; letter-spacing: 0.16em; }
+    .meta { color: var(--mute); font-size: 12px; margin-top: 6px; line-height: 1.5; }
+    .lamp {
+      align-self: center;
+      justify-self: end;
+      padding: 8px 12px;
+      border: 1px solid var(--phosphor);
+      color: var(--phosphor);
+      background: var(--phosphor-dim);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .lamp.down { border-color: var(--warn); color: var(--warn); background: rgba(255,107,107,0.12); }
+    .lamp.wait { border-color: var(--copper); color: var(--copper); background: rgba(201,168,76,0.12); }
+    pre {
+      margin-top: 12px;
+      background: #050805;
+      color: var(--phosphor);
+      padding: 12px;
+      overflow-x: auto;
+      font-size: 12px;
+      border-left: 3px solid var(--copper);
+    }
+    button.copy {
+      margin-top: 10px;
+      background: transparent;
+      color: var(--copper);
+      border: 1px solid var(--copper);
+      padding: 8px 12px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    button.copy:hover { background: var(--copper); color: #050805; }
+    footer { padding: 0 32px 40px; color: var(--mute); font-size: 12px; max-width: 1280px; }
+    @media (max-width: 720px) {
+      header, .ru { grid-template-columns: 1fr; }
+      .ears { border: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>BARE METAL RACK</h1>
+      <p>Local Hermes · MiniMax Token Plan · Ollama / llama.cpp · ClawX OpenClaw — this machine only</p>
+    </div>
+    <div class="clock" id="clock">00:00:00</div>
+    <a class="link" href="./studex-unified-command-center.html">Command Center →</a>
+  </header>
+
+  <div class="rack" id="rack"></div>
+  <footer>
+    This page is the laptop operator panel. Cursor cloud cannot see 127.0.0.1.
+    Run the copy commands in Terminal.app. Desktop originals lived at
+    <code>file:///Users/tumeloramaphosa/Desktop/local-bare-metal-dashboard.html</code> —
+    this repo copy is the source of truth for Vercel / Cloudflare deploys.
+  </footer>
+
+  <script>
+    const units = [
+      {
+        ru: "U1",
+        title: "HERMES + MINIMAX",
+        probe: null,
+        lamp: "APPLY",
+        meta: "Token Plan key in ~/.hermes/.env as MINIMAX_API_KEY. Local models stay on named providers ollama / llamacpp.",
+        cmd: "cd ops/agent-stack/hermes && ./apply-local.sh && hermes doctor && hermes chat --provider minimax --model MiniMax-M3"
+      },
+      {
+        ru: "U2",
+        title: "OLLAMA :11434",
+        probe: "http://127.0.0.1:11434/api/tags",
+        lamp: "PROBE",
+        meta: "Local weights. Switch inside Hermes with /model custom:ollama:<name>.",
+        cmd: "ollama list && curl -s http://127.0.0.1:11434/api/tags | head"
+      },
+      {
+        ru: "U3",
+        title: "LLAMA.CPP :8080",
+        probe: "http://127.0.0.1:8080/v1/models",
+        lamp: "PROBE",
+        meta: "Start llama-server with --jinja or tool calls become raw JSON.",
+        cmd: "curl -s http://127.0.0.1:8080/v1/models"
+      },
+      {
+        ru: "U4",
+        title: "CLAWX OPENCLAW",
+        probe: "http://127.0.0.1:18789/",
+        lamp: "PROBE",
+        meta: "State is ~/.clawx/openclaw. Quit ClawX before backup. Do not run this gateway after Orgo cutover.",
+        cmd: "ops/agent-stack/openclaw/backup-clawx.sh"
+      },
+      {
+        ru: "U5",
+        title: "ORGO CUTOVER",
+        probe: null,
+        lamp: "KEY",
+        meta: "Needs ORGO_API_KEY + WORKSPACE_ID + STATE_URL. Keep ClawX stopped after restore.",
+        cmd: "export ORGO_API_KEY=sk_live_… WORKSPACE_ID=… STATE_URL=…\nops/agent-stack/openclaw/migrate-to-orgo.sh"
+      }
+    ];
+
+    const rack = document.getElementById("rack");
+    units.forEach((u, i) => {
+      const el = document.createElement("article");
+      el.className = "ru";
+      el.innerHTML = `
+        <div class="ears">RACK<br/>${u.ru}</div>
+        <div>
+          <h2>${u.title}</h2>
+          <p class="meta">${u.meta}</p>
+          <pre id="cmd-${i}">${u.cmd}</pre>
+          <button class="copy" data-i="${i}">Copy command</button>
+        </div>
+        <div class="lamp wait" id="lamp-${i}">${u.lamp}</div>`;
+      rack.appendChild(el);
+    });
+
+    document.querySelectorAll("button.copy").forEach((b) => {
+      b.addEventListener("click", async () => {
+        const i = b.dataset.i;
+        await navigator.clipboard.writeText(document.getElementById("cmd-" + i).textContent);
+        b.textContent = "Copied";
+        setTimeout(() => (b.textContent = "Copy command"), 1200);
+      });
+    });
+
+    async function probe() {
+      for (let i = 0; i < units.length; i++) {
+        const u = units[i];
+        const lamp = document.getElementById("lamp-" + i);
+        if (!u.probe) continue;
+        try {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), 1200);
+          const res = await fetch(u.probe, { signal: ctrl.signal, mode: "no-cors" });
+          clearTimeout(t);
+          lamp.textContent = "REACHABLE";
+          lamp.className = "lamp";
+          void res;
+        } catch {
+          lamp.textContent = "DOWN / BLOCKED";
+          lamp.className = "lamp down";
+        }
+      }
+    }
+    probe();
+    setInterval(() => {
+      document.getElementById("clock").textContent = new Date().toISOString().slice(11, 19) + "Z";
+    }, 1000);
+  </script>
+</body>
+</html>

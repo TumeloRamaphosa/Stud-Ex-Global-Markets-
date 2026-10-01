@@ -1,0 +1,5 @@
+# Local dumps from collect-ids.sh / vercel env pull. Never commit secrets.
+ids.env
+.env
+.env.local
+*.tgz

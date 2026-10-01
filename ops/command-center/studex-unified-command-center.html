@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StudEx Unified Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;900&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #030409;
+      --gold: #C9A84C;
+      --gold-2: #F0D878;
+      --teal: #2EC4B6;
+      --text: #F0E8D4;
+      --dim: rgba(240, 232, 212, 0.52);
+      --red: #FF6B6B;
+      --green: #51E89A;
+      --display: "Cinzel", serif;
+      --body: "Rajdhani", sans-serif;
+      --mono: "Share Tech Mono", monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(900px 400px at 80% -20%, rgba(46, 196, 182, 0.12), transparent 55%),
+        radial-gradient(700px 400px at 0% 100%, rgba(201, 168, 76, 0.1), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 32px 36px 20px;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.22);
+    }
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(32px, 5vw, 64px);
+      letter-spacing: 0.14em;
+      color: var(--gold);
+      line-height: 0.9;
+    }
+    .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.28em; color: var(--teal); text-transform: uppercase; margin-bottom: 10px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    a.btn, button.btn {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      background: transparent;
+      padding: 12px 16px;
+      cursor: pointer;
+    }
+    a.btn.solid, button.btn.solid { background: var(--gold); color: #120e04; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+      padding: 24px 36px 48px;
+      max-width: 1400px;
+    }
+    .tile {
+      background: rgba(4, 6, 16, 0.88);
+      border: 1px solid rgba(201, 168, 76, 0.22);
+      padding: 20px;
+      min-height: 180px;
+      position: relative;
+      overflow: hidden;
+    }
+    .tile::before {
+      content: "";
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--teal));
+    }
+    .span-8 { grid-column: span 8; }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-3 { grid-column: span 3; }
+    .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--dim); text-transform: uppercase; }
+    h2 { font-family: var(--display); font-size: 22px; color: var(--gold-2); margin: 8px 0 12px; letter-spacing: 0.08em; }
+    p { color: var(--dim); line-height: 1.45; }
+    ul { list-style: none; margin-top: 8px; }
+    li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(201,168,76,0.12); font-family: var(--mono); font-size: 13px; }
+    .ok { color: var(--green); }
+    .hold { color: var(--gold); }
+    .bad { color: var(--red); }
+    pre {
+      margin-top: 12px;
+      background: #010205;
+      color: var(--teal);
+      padding: 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    @media (max-width: 900px) {
+      .span-8, .span-4, .span-6, .span-3 { grid-column: span 12; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div>
+      <div class="eyebrow">StudEx · Situation Room</div>
+      <h1>COMMAND CENTER</h1>
+    </div>
+    <div class="actions">
+      <a class="btn" href="./local-bare-metal-dashboard.html">← Bare metal</a>
+      <a class="btn" href="./diagrams/studex-agent-mesh.flowchart.md">Excalidraw mesh</a>
+      <button class="btn solid" id="copyVercel">Copy vercel-ops prompt</button>
+      <button class="btn" id="copyCf">Copy cloudflare-ops prompt</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="tile span-8">
+      <div class="k">Delegate from Cursor chat</div>
+      <h2>Vercel + Cloudflare agents</h2>
+      <p>This cloud VM cannot finish <code>vercel login</code> / <code>wrangler login</code>. Authenticate on the laptop, then paste this into Cursor so the subagents take over.</p>
+      <pre id="prompts">Use vercel-ops to deploy ops/command-center to production, then alias it for studex-group.com. Do not print env values.
+
+Use cloudflare-ops to attach DNS for studex-group.com (and www) to that Vercel deployment. Prefer grey-cloud if Vercel TLS conflicts with orange proxy.</pre>
+    </section>
+    <section class="tile span-4">
+      <div class="k">Auth gates</div>
+      <h2>Keys this VM lacks</h2>
+      <ul>
+        <li><span>Vercel MCP / CLI</span><span class="bad">LOGGED OUT</span></li>
+        <li><span>Cloudflare MCP / Wrangler</span><span class="bad">LOGGED OUT</span></li>
+        <li><span>MiniMax Token Plan</span><span class="hold">LAPTOP .env</span></li>
+        <li><span>Orgo API</span><span class="hold">LAPTOP</span></li>
+      </ul>
+    </section>
+
+    <section class="tile span-3">
+      <div class="k">Agent</div>
+      <h2>vercel-ops</h2>
+      <p>Deploys this folder and <code>studex-frontend</code>. Reads <code>.cursor/agents/vercel-ops.md</code>.</p>
+    </section>
+    <section class="tile span-3">
+      <div class="k">Agent</div>
+      <h2>cloudflare-ops</h2>
+      <p>Zone, Pages, DNS for studex-group.com. Reads <code>.cursor/agents/cloudflare-ops.md</code>.</p>
+    </section>
+    <section class="tile span-3">
+      <div class="k">Skill</div>
+      <h2>Excalidraw</h2>
+      <p>Obsidian diagrams via <code>.cursor/skills/excalidraw-diagram</code>. Same workflow as the MCP Market skill.</p>
+    </section>
+    <section class="tile span-3">
+      <div class="k">Local</div>
+      <h2>Hermes rack</h2>
+      <p>MiniMax-M3 + Ollama + llama.cpp. Operate from the bare-metal dashboard, not from this origin.</p>
+    </section>
+
+    <section class="tile span-6">
+      <div class="k">Pipeline</div>
+      <h2>Cutover order</h2>
+      <ul>
+        <li><span>1. Hermes MiniMax + local models</span><span class="hold">LAPTOP</span></li>
+        <li><span>2. Backup ClawX</span><span class="hold">LAPTOP</span></li>
+        <li><span>3. Restore OpenClaw on Orgo</span><span class="hold">ORGO VM</span></li>
+        <li><span>4. vercel-ops deploys this center</span><span class="ok">REPO READY</span></li>
+        <li><span>5. cloudflare-ops publishes DNS</span><span class="ok">REPO READY</span></li>
+      </ul>
+    </section>
+    <section class="tile span-6">
+      <div class="k">Collect IDs</div>
+      <h2>After laptop login</h2>
+      <pre>npm i -g vercel wrangler
+vercel login && wrangler login
+ops/agent-stack/cloud/collect-ids.sh
+# paste ops/agent-stack/cloud/ids.env back into Cursor</pre>
+    </section>
+  </div>
+
+  <script>
+    const vercelPrompt = "Use the vercel-ops subagent. Deploy ops/command-center to Vercel production and report the URL plus whether studex-group.com is aliased. Do not print secrets.";
+    const cfPrompt = "Use the cloudflare-ops subagent. Point studex-group.com and www at the Vercel command-center deployment. Confirm TLS. Do not print tokens.";
+    document.getElementById("copyVercel").onclick = async () => {
+      await navigator.clipboard.writeText(vercelPrompt);
+      document.getElementById("copyVercel").textContent = "Copied";
+    };
+    document.getElementById("copyCf").onclick = async () => {
+      await navigator.clipboard.writeText(cfPrompt);
+      document.getElementById("copyCf").textContent = "Copied";
+    };
+  </script>
+</body>
+</html>
