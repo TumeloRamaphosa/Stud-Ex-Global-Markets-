@@ -15,6 +15,8 @@ gateway. Run these scripts **on your laptop**, not in this Cursor cloud VM.
 | Snapshot ClawX OpenClaw state | Laptop | `openclaw/backup-clawx.sh` |
 | Move that snapshot onto an Orgo VM | Laptop with `ORGO_API_KEY` | `openclaw/migrate-to-orgo.sh` |
 | Collect Vercel / Cloudflare IDs | Laptop after `vercel login` / `wrangler login` | `cloud/collect-ids.sh` |
+| Dispatch one Cursor Cloud Agent (implementer) | Laptop / Mac Mini with `CURSOR_API_KEY` | `factory/dispatch-cursor.sh` (dry-run unless `--go`) |
+| List Cursor Cloud Agents | Laptop | `factory/status-cursor.sh` |
 
 ## Why this Cursor session cannot finish the last mile
 

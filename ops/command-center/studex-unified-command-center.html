@@ -85,6 +85,7 @@
     .span-4 { grid-column: span 4; }
     .span-6 { grid-column: span 6; }
     .span-3 { grid-column: span 3; }
+    .span-12 { grid-column: span 12; }
     .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--dim); text-transform: uppercase; }
     h2 { font-family: var(--display); font-size: 22px; color: var(--gold-2); margin: 8px 0 12px; letter-spacing: 0.08em; }
     p { color: var(--dim); line-height: 1.45; }
@@ -104,7 +105,7 @@
       white-space: pre-wrap;
     }
     @media (max-width: 900px) {
-      .span-8, .span-4, .span-6, .span-3 { grid-column: span 12; }
+      .span-8, .span-4, .span-6, .span-3, .span-12 { grid-column: span 12; }
     }
   </style>
 </head>
@@ -172,6 +173,7 @@ Use cloudflare-ops to attach DNS for studex-group.com (and www) to that Vercel d
         <li><span>3. Restore OpenClaw on Orgo</span><span class="hold">ORGO VM</span></li>
         <li><span>4. vercel-ops deploys this center</span><span class="ok">REPO READY</span></li>
         <li><span>5. cloudflare-ops publishes DNS</span><span class="ok">REPO READY</span></li>
+        <li><span>6. Factory: Hermes loop, one Cursor worker</span><span class="hold">AFTER RESET</span></li>
       </ul>
     </section>
     <section class="tile span-6">
@@ -207,6 +209,12 @@ ops/agent-stack/cloud/collect-ids.sh
         <li><span><a href="https://tango.applayer.io/tasks">Tango board</a></span><span class="hold">HUMAN</span></li>
         <li><span>Paperclip / OpenMausBot</span><span class="bad">DOWN ~40d</span></li>
       </ul>
+    </section>
+
+    <section class="tile span-12">
+      <div class="k">Software factory · 24/7</div>
+      <h2>Hermes loop + Cursor worker</h2>
+      <p>Pro includes Cursor Models (Grok / Composer) plus $20 Other Models. Cloud Agents draw those pools — that is how Pro still capped. Until 3 Oct 20:06, implement with MiniMax. After reset, one Cloud Agent at a time via <code>ops/agent-stack/factory/dispatch-cursor.sh --go</code>. Grok prompt: <code>GROK-HANDOFF.md</code>. Foreman (eve) and Portable-agents Mission Control stay separate apps. Plan: <code>ops/SOFTWARE-FACTORY.md</code>.</p>
     </section>
   </div>
 

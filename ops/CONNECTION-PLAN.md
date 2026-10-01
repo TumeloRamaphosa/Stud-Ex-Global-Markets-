@@ -6,6 +6,8 @@ Read this before adding more dashboards, VMs, or agents. The MacBook is already 
 
 **Live Google Drive command centers** (18 folder IDs, Agentcyberpunk7 Drive) are in [`DRIVE-MAP.md`](DRIVE-MAP.md). Drive is shared memory. OpenClaw on the laptop is `:18789`. Tango is the human board. Do not copy Drive onto the MacBook.
 
+**Software factory** (24/7 loop on Hermes, Cursor Cloud Agents as workers) is [`SOFTWARE-FACTORY.md`](SOFTWARE-FACTORY.md). Dispatcher scripts: `ops/agent-stack/factory/`.
+
 ---
 
 ## What the names mean
@@ -18,6 +20,8 @@ Read this before adding more dashboards, VMs, or agents. The MacBook is already 
 | Auto-Meat | [TumeloRamaphosa/studex-auto-meat](https://github.com/TumeloRamaphosa/studex-auto-meat) | Meat command centre + Shopify connector; shop is already https://studexmeat.com |
 | This repo | [stud-ex-global-markets-](https://github.com/tumeloramaphosa/stud-ex-global-markets-) | Global Markets Next.js + Fly nexus + the agent-stack scripts in `ops/` |
 | agentic-lab-v3 | **Not found** | `StudEX/agentic-lab-v3` 404s for this token. Closest public labs: `StudEX/StudExHermes-Command`, `StudEX/super-agents`, `StudEX/StudEx-Cognitive-System-`. Need org access or the real URL. |
+| eve factory | [vercel-labs/eve-software-factory-template](https://github.com/vercel-labs/eve-software-factory-template) | Foreman: four stations → draft PR. Clone as its own Vercel app later. |
+| Portable-agents | [TumeloRamaphosa/Portable-agents](https://github.com/TumeloRamaphosa/Portable-agents) | Mission Control console (P1). Not the coder. |
 
 ---
 
@@ -227,6 +231,8 @@ Scripts already in **this** repo for the laptop:
 | `ops/command-center/` | Operator HTML (not the two public sites) |
 | `ops/DRIVE-MAP.md` | Live Drive folder IDs + OpenClaw `:18789` wiring |
 | `ops/drive-ids.json` | Same IDs, machine-readable |
+| `ops/SOFTWARE-FACTORY.md` | 24/7 factory: Hermes loop + Cursor workers |
+| `ops/agent-stack/factory/` | `dispatch-cursor.sh`, Grok handoff prompt |
 
 ---
 
