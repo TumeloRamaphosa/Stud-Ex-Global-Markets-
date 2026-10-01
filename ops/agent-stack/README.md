@@ -1,8 +1,10 @@
 # Agent stack: Hermes + OpenClaw on Orgo
 
 Full mesh (two sites, Herdr, OpenRouter, GCP, Mac mini) is in
-[`../CONNECTION-PLAN.md`](../CONNECTION-PLAN.md). This folder is only the
-laptop scripts.
+[`../CONNECTION-PLAN.md`](../CONNECTION-PLAN.md). Live Drive folder IDs are in
+[`../DRIVE-MAP.md`](../DRIVE-MAP.md). This folder is only the laptop scripts.
+
+OpenClaw on the laptop listens on **`:18789`**. Probe: `curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:18789/`.
 
 This folder is the wiring for the local Hermes session and the ClawX OpenClaw
 gateway. Run these scripts **on your laptop**, not in this Cursor cloud VM.

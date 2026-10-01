@@ -174,8 +174,16 @@
         title: "CLAWX OPENCLAW",
         probe: "http://127.0.0.1:18789/",
         lamp: "PROBE",
-        meta: "State is ~/.clawx/openclaw. Quit ClawX before backup. Do not run this gateway after Orgo cutover.",
-        cmd: "ops/agent-stack/openclaw/backup-clawx.sh"
+        meta: "State is ~/.clawx/openclaw. Quit ClawX before backup. Do not run this gateway after Orgo cutover. Shared memory: ops/DRIVE-MAP.md (Agent Bus + Clients #6).",
+        cmd: "curl -sS -o /dev/null -w '%{http_code}\\n' http://127.0.0.1:18789/ && ops/agent-stack/openclaw/backup-clawx.sh"
+      },
+      {
+        ru: "U4b",
+        title: "DRIVE MAP (LIVE IDs)",
+        probe: null,
+        lamp: "MCP",
+        meta: "18 live hubs on Agentcyberpunk7 Drive. Cursor Google Drive MCP already authenticated. Do not copy the vault onto this disk.",
+        cmd: "open https://drive.google.com/drive/folders/1TFDjIVv5UWx-VHCLg-6mj4i6UImIkkWe"
       },
       {
         ru: "U5",

@@ -4,6 +4,8 @@ Inventory of the three repos plus this workspace, then the order to bring **two 
 
 Read this before adding more dashboards, VMs, or agents. The MacBook is already disk- and RAM-bound. New compute goes to the Mac Mini, an existing Orgo desk, or an existing GCP VM — not a sixth cloud.
 
+**Live Google Drive command centers** (18 folder IDs, Agentcyberpunk7 Drive) are in [`DRIVE-MAP.md`](DRIVE-MAP.md). Drive is shared memory. OpenClaw on the laptop is `:18789`. Tango is the human board. Do not copy Drive onto the MacBook.
+
 ---
 
 ## What the names mean
@@ -41,7 +43,8 @@ This workspace’s `ops/command-center/` HTML is a **fourth** operator surface (
 **MacBook (primary desk)** — `macbook-pro-5` `100.95.66.29`
 
 - ~21 GB free, RAM already tight. No new models, Docker images, or Drive mirrors.
-- CashClaw, Hermes profiles, ClawX OpenClaw `:18789`, Herdr, OrbStack `studx-dev`, `~/studex-auto-meat`, `~/grokbot-os`.
+- CashClaw, Hermes profiles, ClawX OpenClaw **`:18789`**, Herdr, OrbStack `studx-dev`, `~/studex-auto-meat`, `~/grokbot-os`.
+- Brain telemetry still lists Paperclip `:44783` and OpenMausBot `:8799` on `185.209.179.145` as down (~40 days). Do not revive them with a new VM. Route jobs through Hermes / OpenClaw / existing Orgo.
 - Tailscale coordination was blocked by Fortinet when last checked.
 
 **Mac Mini (second desk)** — `projects-mac-mini` `100.112.109.40`
@@ -93,13 +96,18 @@ Cloudflare DNS + Worker  (studex-group.com)
           ▼              ▼              ▼              ▼
      Mac Mini        MacBook         Orgo desks      GCP VMs
      Herdr           CashClaw        Auto-Meat       factory/
-     Hermes          ClawX (until    Naledi          command/
-     OpenRouter      cutover)        Global Markets  nexus-hub
+     Hermes          ClawX :18789    Naledi          command/
+     OpenRouter      (until cutover) Global Markets  nexus-hub
      :5555 relay     Cursor desk     Super Agents
-     Ollama if RAM
+     Ollama if RAM   Drive MCP
+                         │
+                         ▼
+              Agentcyberpunk7 Drive (18 live hubs)
 ```
 
 OpenRouter is the **cloud model bus**. MiniMax Token Plan and local Ollama stay as Hermes providers beside it (`/model` switch), not a second gateway.
+
+Shared files live on Drive ([`DRIVE-MAP.md`](DRIVE-MAP.md)): Agent Bus for dispatch, Registry for roster, Brain for daily briefs, Clients folder `#6` for IGH/Raws/Straegy/Bohlale/PwC/UAE/Bitfury. OpenClaw `:18789` reads those folders; it does not join this Cursor chat.
 
 ---
 
@@ -217,6 +225,8 @@ Scripts already in **this** repo for the laptop:
 | `.cursor/agents/vercel-ops.md` | Subagent for site deploys |
 | `.cursor/agents/cloudflare-ops.md` | Subagent for DNS / Pages |
 | `ops/command-center/` | Operator HTML (not the two public sites) |
+| `ops/DRIVE-MAP.md` | Live Drive folder IDs + OpenClaw `:18789` wiring |
+| `ops/drive-ids.json` | Same IDs, machine-readable |
 
 ---
 
@@ -227,5 +237,6 @@ Scripts already in **this** repo for the laptop:
 3. Unlock `StudEX/agentic-lab-v3` or send the renamed URL.
 4. Bring Mac Mini on Tailscale; install Hermes + Herdr + OpenRouter there only.
 5. Pick **one** Orgo box for OpenClaw 24/7; stop ClawX after cutover.
+6. Point OpenClaw / Hermes at the live Drive IDs in `ops/DRIVE-MAP.md` (Clients `#6`, Notion `#2`). Close stale Brain tasks before dispatching new Agent Bus jobs.
 
 When IDs and Our-OS deploy logs are pasted back, the next implementation step is DNS + the two Vercel projects — not more architecture documents.
