@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "vercel": {
+      "url": "https://mcp.vercel.com"
+    },
+    "cloudflare": {
+      "url": "https://mcp.cloudflare.com/sse"
+    }
+  }
+}

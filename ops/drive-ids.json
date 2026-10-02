@@ -1,0 +1,53 @@
+{
+  "verified": "2026-10-01",
+  "owner": "agentcyberpunk7@gmail.com",
+  "sharedDriveRoot": "0APNXlQ2YzOL9Uk9PVA",
+  "openclawGateway": "http://127.0.0.1:18789/",
+  "tango": "https://tango.applayer.io/tasks",
+  "live": {
+    "1_agent_bus": "1TFDjIVv5UWx-VHCLg-6mj4i6UImIkkWe",
+    "2_notion_command_center": "1Fp-jYTqv9a90R07Tp_t55vZXjpynaBHT",
+    "3_obsidian_brain": "1vzzTYCpo0hSwHkIF293msDgKtUy6RdlK",
+    "4_base44_os": "1djabbphWNXSVaNhbx_V4h81FREWMHfOZ",
+    "5_agent_registry": "1a7jcTmgaNs66aoedht-lI1u4vNQPwaNu",
+    "6_clients": "1_8ab1VK3qdSv-8EnMlbmhaARr3XfRcoA",
+    "7_marketing": "1_0JERjf8uq-Nr0_B72ta3K_W7jrqtbHU",
+    "8_obsidian_vault": "1PzRisVPg7HTvlqtQZ-YwpLIMS20D6eoE",
+    "9_studex_operations": "11M3sCRCkOMUxQbJa9bvHcqaKU3a-6YMa",
+    "10_kigali_summit_2026": "1eQW9WPgyQwY_TqJvkZvquF8yOrbgobTK",
+    "11_data_room": "1UI-sJTu2zJdxB2brMGPzj3jPsC7UkfHk",
+    "12_software_factory": "17dttaaf9fXAp3bynDaPf2xXw-0Pvukl8",
+    "13_coding_agents": "1tkB2zFIfll6DxcuOG9FQw1s1bDE1WOp-",
+    "14_studex_skills": "1JaQfnTHtSP58R9V9CZNa9c0fMAbyN6A7",
+    "15_hermes_notes": "1UMpeygpC7gDmZIUtYjK1PPwnQ40p-6bo",
+    "16_studex_meat": "1IgG8DF5QBghpaxOUcSZBo5eUKLxl5w0X",
+    "17_global_markets": "1xfsCCLWjWm8gfD5hHhnX_Entaac9ci0y",
+    "18_dark_factory": "1Yr1dfanbjzJoFBcy6H1LPUI0hz8ueNKU"
+  },
+  "files": {
+    "notion_command_center_md": "17RMHX9K7qCAPemnDfokHKuW13_iasgKQ"
+  },
+  "agentBusChildren": {
+    "agent_registry": "1UfF_0tpMnYSvxPigVnLT3ZStrQYlqf6y",
+    "agent_configs": "1sbgwqxt9lKAX9GapmuUWdvzzqhwaEQwJ",
+    "runbooks": "1gowmZvWb0HOCHIoCN4wCC94cZ4xU74hn",
+    "tasks": "1i8XGV3H9bXA8UpPE8DMKIQ5OqLYyuzE2",
+    "results": "13UBWOYRc74IJzlWGFNtIzg6Vuo1w0S3x"
+  },
+  "clientsLive": {
+    "IGH": "1mu0x5mWHadnx-WTs7WG4x_VOI_T4up4D",
+    "Raws": "1VbMSj5J1z_udPpjeI6XRA7gCYKQW5UR3",
+    "Straegy": "1rcU6mjm-6FeM0-8SAFhSobpmQ94qn5Cf",
+    "Bohlale": "1g3MBnlRe6X1F0x_ZoFAeXWXW1N32qjDm",
+    "PwC": "1964uHNUQipViedmG7YcheOZSpwzQxvVs",
+    "UAE": "1Nq1etYQrlnnGiWmtBd3zl3UXet1s2cZB",
+    "Huawei": "12916IHynaVUVseSFB2gA_4hwVJZa3zme",
+    "Bitfury": "18jOdujw1Uon6vIdFjGksq3MZ3Eq8KCzf"
+  },
+  "doNotUse": {
+    "registry_clients_copy": "1wQYHCGGwpGMYdC_H6PvpBlzdfmw_Mtxr",
+    "registry_global_markets_copy": "1WtaccEdHiDCTce9A3Ik2MoHJX9M71dgc",
+    "notion_clients_mirror": "1e9GZWoeFPQGwnPcSGtYkJ95tXRbK3JKy",
+    "marketing_nested_agent_bus": "1rkNce1omWk-LqxXrDR2rgqA6MnfLgc4s"
+  }
+}

@@ -1,0 +1,49 @@
+# Hermes Agent — MiniMax Token Plan (default) + local models.
+# Copy via apply-local.sh. Secrets stay in ~/.hermes/.env, never here.
+#
+# Switch inside a session:
+#   /model MiniMax-M3
+#   /model MiniMax-M2.7
+#   /model custom:ollama:qwen2.5-coder:32b
+#   /model custom:llamacpp:<llama-server model id>
+
+model:
+  provider: minimax
+  default: MiniMax-M3
+  # Global Token Plan endpoint. China Token Plan: provider minimax-cn
+  # and MINIMAX_CN_API_KEY in .env instead.
+
+custom_providers:
+  - name: ollama
+    base_url: http://127.0.0.1:11434/v1
+    api_mode: chat_completions
+  - name: llamacpp
+    base_url: http://127.0.0.1:8080/v1
+    api_mode: chat_completions
+
+# Hermes desktop / managed llama-server. Disabled until you click Use
+# in the Local Models picker or set enabled: true.
+local_runtime:
+  enabled: false
+  backend: auto
+  detect_ports: [8080, 8081]
+
+# Cheap/fast MiniMax for titles + compression so the Token Plan quota
+# is not spent on bookkeeping.
+auxiliary:
+  title_generation:
+    provider: minimax
+    model: MiniMax-M2.7-highspeed
+  compression:
+    provider: minimax
+    model: MiniMax-M2.7-highspeed
+
+providers:
+  minimax:
+    # Filled by MINIMAX_API_KEY in ~/.hermes/.env (Token Plan subscription key).
+    # Optional override if MiniMax relocates the global endpoint:
+    # base_url: https://api.minimax.io/v1
+  ollama:
+    base_url: http://127.0.0.1:11434/v1
+  llamacpp:
+    base_url: http://127.0.0.1:8080/v1

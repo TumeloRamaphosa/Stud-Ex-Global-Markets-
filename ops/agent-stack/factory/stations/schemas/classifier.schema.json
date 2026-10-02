@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "priority",
+    "complexity",
+    "affected_area",
+    "actionable",
+    "needs_clarification",
+    "questions",
+    "summary"
+  ],
+  "properties": {
+    "type": {
+      "enum": ["bug", "feature", "refactor", "question", "chore", "security"]
+    },
+    "priority": { "enum": ["critical", "high", "medium", "low"] },
+    "complexity": { "enum": ["trivial", "small", "medium", "large"] },
+    "affected_area": { "type": "string" },
+    "actionable": { "type": "boolean" },
+    "needs_clarification": { "type": "boolean" },
+    "questions": { "type": "array", "items": { "type": "string" } },
+    "summary": { "type": "string" }
+  }
+}
