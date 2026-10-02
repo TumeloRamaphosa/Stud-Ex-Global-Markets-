@@ -11,7 +11,8 @@ gateway. Run these scripts **on your laptop**, not in this Cursor cloud VM.
 
 | Goal | Where it runs | Script |
 | --- | --- | --- |
-| MiniMax Token Plan + local models on Hermes | Laptop (`~/.hermes`) | `hermes/apply-local.sh` |
+| MiniMax Token Plan + local models on Hermes | Laptop / Mini (`~/.hermes`) | `hermes/apply-local.sh` |
+| 24/7 `hermes serve :9119` for Desktop Remote | Mac Mini | `hermes/serve-mini.sh` (see `hermes/GATEWAY.md`) |
 | Snapshot ClawX OpenClaw state | Laptop | `openclaw/backup-clawx.sh` |
 | Move that snapshot onto an Orgo VM | Laptop with `ORGO_API_KEY` | `openclaw/migrate-to-orgo.sh` |
 | Collect Vercel / Cloudflare IDs | Laptop after `vercel login` / `wrangler login` | `cloud/collect-ids.sh` |
@@ -34,7 +35,7 @@ MiniMax Token Plan subscription keys are **not** the same as MiniMax pay-as-you-
 API keys. Get the subscription key from the Token Plan page, then:
 
 ```bash
-# on your laptop
+# on your laptop / Mini
 cd ops/agent-stack/hermes
 cp env.example ~/.hermes/.env   # only if you do not already have ~/.hermes/.env
 # edit ~/.hermes/.env and set MINIMAX_API_KEY=<Token Plan subscription key>
@@ -43,6 +44,11 @@ chmod 600 ~/.hermes/.env
 hermes doctor
 hermes chat --provider minimax --model MiniMax-M3
 ```
+
+24/7 factory: on the **Mac Mini**, fill `HERMES_DASHBOARD_BASIC_AUTH_*` then
+`./serve-mini.sh`. On the MacBook, Hermes Desktop → Settings → Gateways →
+**Remote gateway** → `http://100.112.109.40:9119`. Do not pick Hermes Cloud.
+See [`hermes/GATEWAY.md`](hermes/GATEWAY.md).
 
 Inside an existing Hermes chat, switch without leaving:
 

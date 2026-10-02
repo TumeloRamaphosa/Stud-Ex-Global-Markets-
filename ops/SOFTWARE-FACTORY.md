@@ -70,7 +70,8 @@ Portable-agents Mission Control (`mission-control/index.html`) is the PwC/sovere
 2. Connect GitHub to Cursor (Cloud Agents → repos) for `TumeloRamaphosa/Stud-Ex-Global-Markets-` and later Our-OS / Portable-agents / studex-auto-meat.
 3. Spending tab: on-demand **off** until reset if you want a hard stop; or on with a low cap (e.g. $20) after 3 Oct.
 4. Hermes: `ops/agent-stack/hermes/apply-local.sh` (MiniMax Token Plan).
-5. OpenClaw stays `:18789` until one Orgo cutover.
+5. Mac Mini: `ops/agent-stack/hermes/serve-mini.sh` (`hermes serve :9119`). MacBook Desktop → **Remote gateway** at `http://100.112.109.40:9119`. Do **not** pick Hermes Cloud. Details: [`ops/agent-stack/hermes/GATEWAY.md`](agent-stack/hermes/GATEWAY.md).
+6. OpenClaw stays `:18789` until one Orgo cutover.
 
 ```bash
 # dry run (prints JSON, does not start a Cloud Agent)
@@ -100,7 +101,7 @@ Job files go in Drive Agent Bus `tasks/` (folder `1i8XGV3H9bXA8UpPE8DMKIQ5OqLYyu
 1. **Now (Cursor capped until ~3 Oct 20:06):** Hermes MiniMax does classifier/analyst/implementer. No new Cloud Agents.
 2. **After reset:** one Cursor implementer at a time via `dispatch-cursor.sh --go`.
 3. **When Vercel CLI is logged in:** `ops/agent-stack/factory/bootstrap-foreman.sh` then `eve deploy` on the Mac Mini. GitHub label `factory` becomes intake.
-4. **Mac Mini 24/7:** Hermes + Herdr + this dispatcher. Not a sixth VM. Not a second OpenClaw.
+4. **Mac Mini 24/7:** `hermes serve :9119` + Herdr + this dispatcher. MacBook Desktop is Remote, not Cloud. Not a sixth VM. Not a second OpenClaw.
 5. **Portable-agents:** keep Mission Control as the human pane; factory draft PRs are the feed.
 
 Human still merges. Human still pays. Human still fulfils.

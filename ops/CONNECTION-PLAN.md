@@ -8,6 +8,8 @@ Read this before adding more dashboards, VMs, or agents. The MacBook is already 
 
 **Software factory** (24/7 loop on Hermes, Cursor Cloud Agents as workers) is [`SOFTWARE-FACTORY.md`](SOFTWARE-FACTORY.md). Dispatcher scripts: `ops/agent-stack/factory/`.
 
+**Hermes Desktop Gateways** (the Local / Hermes Cloud / Remote / SSH radios): pick **Remote** to the Mac Mini `:9119` over Tailscale — not Hermes Cloud. Wiring: [`agent-stack/hermes/GATEWAY.md`](agent-stack/hermes/GATEWAY.md).
+
 ---
 
 ## What the names mean
@@ -100,10 +102,11 @@ Cloudflare DNS + Worker  (studex-group.com)
           ▼              ▼              ▼              ▼
      Mac Mini        MacBook         Orgo desks      GCP VMs
      Herdr           CashClaw        Auto-Meat       factory/
-     Hermes          ClawX :18789    Naledi          command/
-     OpenRouter      (until cutover) Global Markets  nexus-hub
-     :5555 relay     Cursor desk     Super Agents
-     Ollama if RAM   Drive MCP
+     Hermes :9119    Desktop→Remote  Naledi          command/
+     OpenRouter      ClawX :18789    Global Markets  nexus-hub
+     :5555 relay     (until cutover) Super Agents
+     Ollama if RAM   Cursor desk
+                     Drive MCP
                          │
                          ▼
               Agentcyberpunk7 Drive (18 live hubs)
@@ -161,13 +164,19 @@ hermes config set model.default '~anthropic/claude-sonnet-latest'
 # Keep MiniMax + local as extras (from this repo’s template)
 # copy ops/agent-stack/hermes/config.yaml custom_providers onto the Mini
 
+# Factory backend the MacBook Desktop attaches to (not Hermes Cloud)
+# Fill HERMES_DASHBOARD_BASIC_AUTH_* in ~/.hermes/.env first — GATEWAY.md
+ops/agent-stack/hermes/serve-mini.sh
+# Desktop on the MacBook: Settings → Gateways → Remote
+#   http://100.112.109.40:9119   (or Connect via SSH if Fortinet still blocks Tailscale)
+
 # Herdr
 # https://herdr.dev — install, then:
 herdr integration install hermes
 herdr integration install cursor
 ```
 
-Hermes inside a Herdr pane is the orchestrator. OpenRouter is the brain. Cursor CLI / Cloud Agents stay workers for git repos.
+Hermes inside a Herdr pane is the orchestrator. OpenRouter is the brain. Cursor CLI / Cloud Agents stay workers for git repos. The Desktop app on the MacBook is a **client** of Mini `:9119`; it is not a second factory.
 
 Do **not** start a second OpenClaw gateway on the Mini (Our-OS rule). 24/7 OpenClaw belongs on **one** Orgo computer (Super Agents Command or Auto-Meat), using `ops/agent-stack/openclaw/migrate-to-orgo.sh`, then stop ClawX on the MacBook so tokens do not race.
 
@@ -215,6 +224,7 @@ Do not “fully automate” payments. Wire status into Relay so the nine seats s
 
 - `vercel login` / `wrangler login` (device OAuth hung here already)
 - Reading `file:///Users/tumeloramaphosa/Desktop/*.html`
+- Reading the Claude Code frame `e11f3522-a196-493c-b569-7faccb679995` (Cloudflare / session gated)
 - Talking to ClawX, Herdr, Ollama, or Orgo without keys
 - Cloning `StudEX/agentic-lab-v3` (404)
 
@@ -223,6 +233,8 @@ Scripts already in **this** repo for the laptop:
 | Path | Purpose |
 | --- | --- |
 | `ops/agent-stack/hermes/apply-local.sh` | MiniMax + local providers on Hermes |
+| `ops/agent-stack/hermes/GATEWAY.md` | Desktop radios → Mini `:9119` Remote (not Hermes Cloud) |
+| `ops/agent-stack/hermes/serve-mini.sh` | `hermes serve` on the Mini |
 | `ops/agent-stack/openclaw/backup-clawx.sh` | Snapshot ClawX |
 | `ops/agent-stack/openclaw/migrate-to-orgo.sh` | Restore on Orgo |
 | `ops/agent-stack/cloud/collect-ids.sh` | Vercel / Cloudflare IDs |
@@ -241,7 +253,7 @@ Scripts already in **this** repo for the laptop:
 1. `vercel login` and `wrangler login`, then `ops/agent-stack/cloud/collect-ids.sh`.
 2. Clone Our-OS on the MacBook, build `dashboards-relay`, ask this chat to “use vercel-ops on Our-OS relay + master-os HTML”.
 3. Unlock `StudEX/agentic-lab-v3` or send the renamed URL.
-4. Bring Mac Mini on Tailscale; install Hermes + Herdr + OpenRouter there only.
+4. Bring Mac Mini on Tailscale; install Hermes + Herdr + OpenRouter there only. Start `serve-mini.sh`. On the MacBook: Settings → Gateways → **Remote** `http://100.112.109.40:9119` (SSH if Fortinet still blocks). Do not pick Hermes Cloud.
 5. Pick **one** Orgo box for OpenClaw 24/7; stop ClawX after cutover.
 6. Point OpenClaw / Hermes at the live Drive IDs in `ops/DRIVE-MAP.md` (Clients `#6`, Notion `#2`). Close stale Brain tasks before dispatching new Agent Bus jobs.
 

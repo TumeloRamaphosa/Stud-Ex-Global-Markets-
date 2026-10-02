@@ -161,18 +161,18 @@ Use cloudflare-ops to attach DNS for studex-group.com (and www) to that Vercel d
     <section class="tile span-3">
       <div class="k">Local</div>
       <h2>Hermes rack</h2>
-      <p>MiniMax-M3 + Ollama + llama.cpp. Operate from the bare-metal dashboard, not from this origin.</p>
+      <p>MiniMax-M3 + Ollama + llama.cpp. Desktop Gateways: Remote to Mini <code>:9119</code>, not Hermes Cloud. <code>ops/agent-stack/hermes/GATEWAY.md</code>.</p>
     </section>
 
     <section class="tile span-6">
       <div class="k">Pipeline</div>
       <h2>Cutover order</h2>
       <ul>
-        <li><span>1. Hermes MiniMax + local models</span><span class="hold">LAPTOP</span></li>
-        <li><span>2. Backup ClawX</span><span class="hold">LAPTOP</span></li>
-        <li><span>3. Restore OpenClaw on Orgo</span><span class="hold">ORGO VM</span></li>
-        <li><span>4. vercel-ops deploys this center</span><span class="ok">REPO READY</span></li>
-        <li><span>5. cloudflare-ops publishes DNS</span><span class="ok">REPO READY</span></li>
+        <li><span>1. Hermes MiniMax + local models</span><span class="hold">LAPTOP / MINI</span></li>
+        <li><span>2. Mini <code>hermes serve :9119</code> · Desktop Remote</span><span class="hold">NOT CLOUD</span></li>
+        <li><span>3. Backup ClawX</span><span class="hold">LAPTOP</span></li>
+        <li><span>4. Restore OpenClaw on Orgo</span><span class="hold">ORGO VM</span></li>
+        <li><span>5. vercel-ops / cloudflare-ops</span><span class="ok">REPO READY</span></li>
         <li><span>6. Factory: Hermes loop, one Cursor worker</span><span class="hold">AFTER RESET</span></li>
       </ul>
     </section>
@@ -214,7 +214,7 @@ ops/agent-stack/cloud/collect-ids.sh
     <section class="tile span-12">
       <div class="k">Software factory · 24/7</div>
       <h2>Hermes loop + Cursor worker</h2>
-      <p>Foreman stations from the eve template live in <code>ops/agent-stack/factory/stations/</code> (classifier → analyst → implementer → reviewer). Clone the real eve app with <code>bootstrap-foreman.sh</code> onto the Mac Mini, never this repo. Until then: <code>run-line.sh</code> plus one Cursor worker after quota resets. Plan: <code>ops/SOFTWARE-FACTORY.md</code>.</p>
+      <p>Foreman stations from the eve template live in <code>ops/agent-stack/factory/stations/</code> (classifier → analyst → implementer → reviewer). Clone the real eve app with <code>bootstrap-foreman.sh</code> onto the Mac Mini, never this repo. Mini runs <code>serve-mini.sh</code>; MacBook Desktop is Remote to <code>http://100.112.109.40:9119</code>, not Hermes Cloud. Until then: <code>run-line.sh</code> plus one Cursor worker after quota resets. Plan: <code>ops/SOFTWARE-FACTORY.md</code> · gateway: <code>ops/agent-stack/hermes/GATEWAY.md</code>.</p>
     </section>
   </div>
 

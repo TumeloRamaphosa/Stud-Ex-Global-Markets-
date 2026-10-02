@@ -154,6 +154,14 @@
         cmd: "cd ops/agent-stack/hermes && ./apply-local.sh && hermes doctor && hermes chat --provider minimax --model MiniMax-M3"
       },
       {
+        ru: "U1b",
+        title: "HERMES GATEWAY :9119",
+        probe: "http://127.0.0.1:9119/api/status",
+        lamp: "REMOTE",
+        meta: "Factory backend. MacBook Desktop → Remote gateway (not Hermes Cloud). On the Mini: serve-mini.sh. Fortinet still blocking Tailscale → Connect via SSH. ops/agent-stack/hermes/GATEWAY.md",
+        cmd: "ops/agent-stack/hermes/serve-mini.sh"
+      },
+      {
         ru: "U2",
         title: "OLLAMA :11434",
         probe: "http://127.0.0.1:11434/api/tags",
