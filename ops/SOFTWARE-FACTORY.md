@@ -48,7 +48,17 @@ To actually run 24/7 at factory volume later: enable on-demand with a hard cap, 
 | Reviewer | Other vendor, max 2 cycles | Hermes (MiniMax) reads the PR diff | Share implementer chain-of-thought |
 | Ship | Draft PR | Human marks ready / merges | Auto-publish, pay, fulfil |
 
- eve’s own Foreman still deploys as a **separate** Vercel project when `vercel login` exists (`FACTORY_REPO=TumeloRamaphosa/Stud-Ex-Global-Markets-`, label `factory`). Until then the scripts in `ops/agent-stack/factory/` are the line.
+Foreman station prompts and JSON schemas live in `ops/agent-stack/factory/stations/` (classifier → analyst → implementer → reviewer), copied from the eve template and pointed at Hermes/Cursor. Validate a station file with `run-line.sh <station> output.json`.
+
+eve’s own Foreman still deploys as a **sibling** clone, never vendored into this Next.js repo:
+
+```bash
+ops/agent-stack/factory/bootstrap-foreman.sh
+# default dest: ~/src/studex-foreman
+# FACTORY_REPO=TumeloRamaphosa/Stud-Ex-Global-Markets-  label factory
+```
+
+`pnpm install` / `eve deploy` run on the Mac Mini after `vercel login`. Until that exists, `run-line.sh` + `dispatch-cursor.sh` are the line.
 
 Portable-agents Mission Control (`mission-control/index.html`) is the PwC/sovereign **console**, not the coder. Factory PRs feed that console; they do not replace it.
 
@@ -89,7 +99,7 @@ Job files go in Drive Agent Bus `tasks/` (folder `1i8XGV3H9bXA8UpPE8DMKIQ5OqLYyu
 
 1. **Now (Cursor capped until ~3 Oct 20:06):** Hermes MiniMax does classifier/analyst/implementer. No new Cloud Agents.
 2. **After reset:** one Cursor implementer at a time via `dispatch-cursor.sh --go`.
-3. **When Vercel CLI is logged in:** clone eve template to its own repo, set `FACTORY_REPO`, deploy Foreman. GitHub label `factory` becomes intake.
+3. **When Vercel CLI is logged in:** `ops/agent-stack/factory/bootstrap-foreman.sh` then `eve deploy` on the Mac Mini. GitHub label `factory` becomes intake.
 4. **Mac Mini 24/7:** Hermes + Herdr + this dispatcher. Not a sixth VM. Not a second OpenClaw.
 5. **Portable-agents:** keep Mission Control as the human pane; factory draft PRs are the feed.
 

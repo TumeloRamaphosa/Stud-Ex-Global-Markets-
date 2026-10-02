@@ -1,0 +1,10 @@
+{
+  "type": "chore",
+  "priority": "low",
+  "complexity": "trivial",
+  "affected_area": "ops/agent-stack/factory",
+  "actionable": true,
+  "needs_clarification": false,
+  "questions": [],
+  "summary": "Example classification used to test run-line.sh schema checks."
+}

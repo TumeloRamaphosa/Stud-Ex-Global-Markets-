@@ -17,6 +17,8 @@ gateway. Run these scripts **on your laptop**, not in this Cursor cloud VM.
 | Collect Vercel / Cloudflare IDs | Laptop after `vercel login` / `wrangler login` | `cloud/collect-ids.sh` |
 | Dispatch one Cursor Cloud Agent (implementer) | Laptop / Mac Mini with `CURSOR_API_KEY` | `factory/dispatch-cursor.sh` (dry-run unless `--go`) |
 | List Cursor Cloud Agents | Laptop | `factory/status-cursor.sh` |
+| Print / validate a Foreman station | Laptop | `factory/run-line.sh classifier` |
+| Clone eve Foreman as a sibling repo | Mac Mini after `vercel login` | `factory/bootstrap-foreman.sh` |
 
 ## Why this Cursor session cannot finish the last mile
 

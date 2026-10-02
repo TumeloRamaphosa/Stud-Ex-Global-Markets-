@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "problem_statement",
+    "approach",
+    "plan",
+    "affected_surface",
+    "risks",
+    "acceptance_criteria",
+    "test_strategy",
+    "assumptions",
+    "open_questions",
+    "artifact_id"
+  ],
+  "properties": {
+    "problem_statement": { "type": "string" },
+    "approach": { "type": "string" },
+    "plan": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "affected_surface": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "acceptance_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "test_strategy": { "type": "string" },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "open_questions": { "type": "array", "items": { "type": "string" } },
+    "artifact_id": { "type": ["string", "null"] }
+  }
+}

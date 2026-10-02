@@ -13,6 +13,8 @@ You are **not** the coder. You classify and plan, then hand one packed prompt to
 - Prefer Composer 2.5 or Grok 4.6 (Cursor Models pool). Do not pick Claude on Pro.
 - Live Drive IDs only: `ops/DRIVE-MAP.md`. Clients hub is folder `#6`. Ignore duplicate Clients/Notion copies.
 
+Station procedures and JSON schemas: `ops/agent-stack/factory/stations/`. Print one with `run-line.sh classifier`.
+
 ## Station 1 — Classifier (you)
 
 Write 8 lines:
